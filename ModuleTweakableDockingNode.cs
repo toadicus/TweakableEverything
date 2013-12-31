@@ -21,7 +21,7 @@ namespace TweakableDockingNode
 			this.StartOpened = false;
 			this.startOpenedState = false;
 			this.lastOpenState = false;
-			// this.attachNodePosition = new Vector3(0, 1, 0);
+			this.TDNnodeName = string.Empty;
 		}
 		// Tweakable property to determine whether the docking port should start opened or closed.
 		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true),
@@ -29,14 +29,16 @@ namespace TweakableDockingNode
 		public bool StartOpened;
 		// Save the state here so we can tell if StartOpened has changed.
 		protected bool startOpenedState;
+
 		// Field that references the animationName of the ModuleAnimateGeneric doing the animating.
 		[KSPField(isPersistant = false)]
 		public string deployAnimationControllerName;
+
+		// String containing the name of the AttachNode that we will toggle.
+		[KSPField(isPersistant = false)]
+		public string TDNnodeName;
 		// We will store our attachment node here.
 		private AttachNode attachNode;
-
-		[KSPField(isPersistant = true)]
-		public Vector3 attachNodePosition;
 
 		// Stores the open/closed state of the shield.
 		protected bool lastOpenState;
@@ -89,76 +91,27 @@ namespace TweakableDockingNode
 
 			base.OnStart(st);
 
-			Tools.PostDebugMessage(string.Format(
-				"{0}: Started.  attachNodePosition={1}",
-				this.GetType().Name,
-				this.attachNodePosition
-			));
-
 			if (this.referenceAttachNode != string.Empty)
 			{
 				this.attachNode = base.part.findAttachNode(this.referenceAttachNode);
 			}
-			else
+			else if (this.TDNnodeName != string.Empty)
 			{
-				this.attachNode = new AttachNode();
-				this.attachNode.id = "dockingPort";
-				this.attachNode.position = this.attachNodePosition;
-				this.attachNode.originalPosition = this.attachNode.position;
-				this.attachNode.orientation = base.part.partTransform.InverseTransformDirection(Vector3.up);
-				this.attachNode.originalOrientation = this.attachNode.orientation;
-				this.attachNode.nodeType = AttachNode.NodeType.Stack;
-				this.attachNode.size = 1;
-				// base.part.attachNodes.Add(this.attachNode);
+				this.attachNode = base.part.findAttachNode(this.TDNnodeName);
 			}
 
 			this.startOpenedState = this.StartOpened;
 			base.part.attachRules.allowStack = this.StartOpened;
 
 			Tools.PostDebugMessage(string.Format(
-				"{0}: Started.  deployAnimationModule={1}",
+				"{0}: Started.  deployAnimationModule={1}, attachNode={2}, TDNnodeName={3}",
 				this.GetType().Name,
-				this.deployAnimationModule
+				this.deployAnimationModule,
+				this.attachNode,
+				this.TDNnodeName
 			));
 		}
-
-		public override void OnLoad(ConfigNode node)
-		{
-			Tools.PostDebugMessage(string.Format(
-				"{0}: Loading." +
-				"\n\tbase.part: {1}",
-				this.GetType().Name,
-				base.part
-			));
-
-			base.OnLoad(node);
-
-			if (node.HasValue("attachNodePosition"))
-			{
-				this.attachNodePosition = KSPUtil.ParseVector3(node.GetValue("attachNodePosition"));
-				this.loadedNodePosition = true;
-			}
-		}
-
-		public override void OnSave(ConfigNode node)
-		{
-			Tools.PostDebugMessage(string.Format(
-				"{0}: Saving.",
-				this.GetType().Name
-			));
-
-			base.OnSave(node);
-
-			if (node.HasValue("attachNodePosition"))
-			{
-				node.SetValue("attachNodePosition", KSPUtil.WriteVector(this.attachNodePosition));
-			}
-			else
-			{
-				node.AddValue("attachNodePosition", KSPUtil.WriteVector(this.attachNodePosition));
-			}
-		}
-
+		
 		// On Update, check to see if StartOpened has changed, and toggle the animation module if so.
 		public void Update()
 		{
@@ -169,33 +122,23 @@ namespace TweakableDockingNode
 				{
 					this.lastOpenState = this.IsOpen;
 
-					if (!loadedNodePosition && this.IsOpen)
+					Tools.PostDebugMessage(string.Format(
+						"{0}: IsOpen changed to: {1}, part contains node: {2}",
+						this.GetType().Name,
+						this.IsOpen,
+						base.part.attachNodes.Contains(this.attachNode)
+					));
+					if (this.IsOpen && !base.part.attachNodes.Contains(this.attachNode))
 					{
-						this.attachNodePosition = base.part.transform.InverseTransformPoint(this.nodeTransform.position);
-						this.attachNode.position = this.attachNodePosition;
-						this.attachNode.originalPosition = this.attachNode.position;
-
-						this.loadedNodePosition = true;
+						Tools.PostDebugMessage(this.GetType().Name + ": adding node");
+						base.part.attachNodes.Add(this.attachNode);
 					}
-
-					if (loadedNodePosition)
+					if ((!this.IsOpen) && base.part.attachNodes.Contains(this.attachNode))
 					{
-						Tools.PostDebugMessage(string.Format(
-							"{0}: node position loaded, IsOpen: {1}, part contains node: {2}",
-							this.GetType().Name,
-							this.IsOpen,
-							base.part.attachNodes.Contains(this.attachNode)
-						));
-						if (this.IsOpen && !base.part.attachNodes.Contains(this.attachNode))
-						{
-							Tools.PostDebugMessage(this.GetType().Name + ": adding node");
-							base.part.attachNodes.Add(this.attachNode);
-						}
-						if ((!this.IsOpen) && base.part.attachNodes.Contains(this.attachNode))
-						{
-							Tools.PostDebugMessage(this.GetType().Name + ": removing node");
-							base.part.attachNodes.Remove(this.attachNode);
-						}
+						Tools.PostDebugMessage(this.GetType().Name + ": removing node");
+						GameObject.Destroy(this.attachNode.icon);
+						this.attachNode.icon = null;
+						base.part.attachNodes.Remove(this.attachNode);
 					}
 
 					Tools.PostDebugMessage(string.Format(
@@ -305,6 +248,7 @@ namespace TweakableDockingNode
 				}
 			}
 		}
+
 		#if DEBUG
 		[KSPEvent(guiActive = true, guiName = "Debug Info")]
 		public void DebugInfo()
