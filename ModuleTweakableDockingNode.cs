@@ -22,6 +22,8 @@ namespace TweakableDockingNode
 			this.StartOpened = false;
 			this.startOpenedState = false;
 			this.lastOpenState = false;
+			this.AlwaysAllowStack = false;
+
 			this.deployAnimationControllerName = string.Empty;
 			this.TDNnodeName = string.Empty;
 		}
@@ -47,6 +49,10 @@ namespace TweakableDockingNode
 		public string TDNnodeName;
 		// We will store our attachment node here.
 		protected AttachNode attachNode;
+
+		// Some parts need to leave stacking allowed all the time.
+		[KSPField(isPersistant = false)]
+		public bool AlwaysAllowStack;
 
 		// Stores the open/closed state of the shield.
 		protected bool lastOpenState;
@@ -113,7 +119,10 @@ namespace TweakableDockingNode
 
 			// Seed the start opened state and stack rules.  This is relevant mostly when loading a saved-open port.
 			this.startOpenedState = this.StartOpened;
-			base.part.attachRules.allowStack = this.StartOpened;
+			base.part.attachRules.allowStack = this.StartOpened | this.AlwaysAllowStack;
+
+			// Seed the lastOpenState to the opposite of IsOpen, to force the node code to run once in the first update.
+			this.lastOpenState = !this.IsOpen;
 
 			// Yay debugging!
 			Tools.PostDebugMessage(string.Format(
@@ -140,7 +149,7 @@ namespace TweakableDockingNode
 					this.lastOpenState = this.IsOpen;
 
 					// ...switch allowStack
-					base.part.attachRules.allowStack = this.IsOpen;
+					base.part.attachRules.allowStack = this.IsOpen | this.AlwaysAllowStack;
 
 					// Yay debugging!
 					Tools.PostDebugMessage(string.Format(
@@ -174,7 +183,8 @@ namespace TweakableDockingNode
 					}
 
 					// Yay debugging!
-					Tools.PostDebugMessage(string.Format(
+					// This is just too much debugging.
+					/*Tools.PostDebugMessage(string.Format(
 						"{0}: Updating.  StartOpened={1}, startOpenedState={2}" +
 						"\n\tattachRules.allowStack=({3})" +
 						"\n\tattachNode: {4}" +
@@ -205,7 +215,7 @@ namespace TweakableDockingNode
 						base.part.partTransform.position,
 						base.part.transform.position,
 						base.part.transform.InverseTransformPoint(this.nodeTransform.position)
-					));
+					));*/
 				}
 
 				// If StartOpened has changed...
