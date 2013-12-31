@@ -241,44 +241,6 @@ namespace TweakableDockingNode
 					this.startOpenedState = this.StartOpened;
 				}
 			}
-			// TODO: Investigate if this logic will ever be necessary at all.
-			else if (HighLogic.LoadedSceneIsFlight && false)
-			{
-				this.isEnabled = (this.deployAnimationModule.Progress == 1);
-
-				/*if (this.deployAnimationModule.Progress != 1)
-				{
-					this.captureRange = -1 * Math.Abs(this.captureRange);
-					this.acquireRange = -1 * Math.Abs(this.acquireRange);
-				}
-				else
-				{
-					this.captureRange = Math.Abs(this.captureRange);
-					this.acquireRange = Math.Abs(this.acquireRange);
-				}*/
-
-				if (this.attachedPart != null && this.part.Modules.Contains(this.deployAnimationModule.ClassID))
-				{
-					this.part.Modules.Remove(this.deployAnimationModule);
-
-					Tools.PostDebugMessage(string.Format(
-						"{0}: removed animation module, new count: {1}",
-						this.GetType().Name,
-						this.part.Modules.OfType<ModuleAnimateGeneric>().Count()
-					));
-				}
-
-				if (this.attachedPart == null && !this.part.Modules.Contains(this.deployAnimationModule.ClassID))
-				{
-					this.part.Modules.Add(this.deployAnimationModule);
-
-					Tools.PostDebugMessage(string.Format(
-						"{0}: added animation module, new count: {1}",
-						this.GetType().Name,
-						this.part.Modules.OfType<ModuleAnimateGeneric>().Count()
-					));
-				}
-			}
 		}
 
 		// Sometimes, when debugging, it's nice to have a "tell me everything" button.
