@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace TweakableDockingNode
 {
-	public class ModuleTweakableDockingNode : ModuleDockingNode, ITargetable
+	public class ModuleTweakableDockingNode : PartModule
 	{
 		/*
 		 * Ctor
@@ -32,6 +32,9 @@ namespace TweakableDockingNode
 		/*
 		 * Fields
 		 * */
+		// Stores the ModuleDockingNode we're wrapping.
+		protected ModuleDockingNode dockingNodeModule;
+
 		// Tweakable property to determine whether the docking port should start opened or closed.
 		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true),
 		UI_Toggle(disabledText = "Closed", enabledText = "Opened")]
@@ -114,6 +117,8 @@ namespace TweakableDockingNode
 		// Runs when each new part is started.
 		public override void OnStart(StartState st)
 		{
+			this.dockingNodeModule = (ModuleDockingNode)base.part.Modules["ModuleDockingNode"];
+
 			// If we've loaded a deployAnimationControllerName from the cfg...
 			if (this.deployAnimationControllerName != string.Empty)
 			{
@@ -123,10 +128,12 @@ namespace TweakableDockingNode
 					.FirstOrDefault(m => m.animationName == this.deployAnimationControllerName);
 
 				// ...and reset the deployAnimationController index for ModuleDockingNode.
-				this.deployAnimationController = base.part.Modules.IndexOf(this.deployAnimationModule);
+				this.dockingNodeModule.deployAnimationController = base.part.Modules.IndexOf(this.deployAnimationModule);
 			}
+			// ...otherwise, we don't have a shield...
 			else
 			{
+				// ...so disable the option to start it open or closed.
 				this.Fields["StartOpened"].guiActiveEditor = false;
 			}
 
@@ -134,9 +141,9 @@ namespace TweakableDockingNode
 			base.OnStart(st);
 
 			// If we have a referenceAttachNode, use it.  This is for regular docking ports and not used yet.
-			if (this.referenceAttachNode != string.Empty)
+			if (this.dockingNodeModule.referenceAttachNode != string.Empty)
 			{
-				this.attachNode = base.part.findAttachNode(this.referenceAttachNode);
+				this.attachNode = base.part.findAttachNode(this.dockingNodeModule.referenceAttachNode);
 			}
 			// Otherwise, if we have a tweakable AttachNode, use it.
 			else if (this.TDNnodeName != string.Empty)
@@ -156,14 +163,14 @@ namespace TweakableDockingNode
 
 			this.partCrossFeed = this.fuelCrossFeed;
 
-			base.Events["EnableXFeed"].guiActive = false;
-			base.Events["DisableXFeed"].guiActive = false;
+			this.dockingNodeModule.Events["EnableXFeed"].guiActive = false;
+			this.dockingNodeModule.Events["DisableXFeed"].guiActive = false;
 
-			base.Events["EnableXFeed"].guiActiveEditor = false;
-			base.Events["DisableXFeed"].guiActiveEditor = false;
+			this.dockingNodeModule.Events["EnableXFeed"].guiActiveEditor = false;
+			this.dockingNodeModule.Events["DisableXFeed"].guiActiveEditor = false;
 
-			base.Events["EnableXFeed"].active = false;
-			base.Events["DisableXFeed"].active = false;
+			this.dockingNodeModule.Events["EnableXFeed"].active = false;
+			this.dockingNodeModule.Events["DisableXFeed"].active = false;
 
 			// Yay debugging!
 			Tools.PostDebugMessage(string.Format(
@@ -191,7 +198,7 @@ namespace TweakableDockingNode
 				if (this.deployAnimationModule != null)
 				{
 					// If the Opened state of the port has changed since last update and we have an attachNode...
-					if (this.lastOpenState != this.IsOpen && this.attachNode != null)
+					if (/*this.lastOpenState != this.IsOpen && */this.attachNode != null)
 					{
 						// ...set the last state to the current state
 						this.lastOpenState = this.IsOpen;
@@ -214,7 +221,7 @@ namespace TweakableDockingNode
 							Tools.PostDebugMessage(this.GetType().Name + ": adding node");
 
 							// ...add the attachNode.
-							base.part.attachNodes.Add(this.attachNode);
+							// base.part.attachNodes.Add(this.attachNode);
 						}
 						// ...if the port is closed and we do have an attachNode...
 						if ((!this.IsOpen) && base.part.attachNodes.Contains(this.attachNode))
@@ -227,7 +234,7 @@ namespace TweakableDockingNode
 							this.attachNode.icon = null;
 
 							// ...and remove the node.
-							base.part.attachNodes.Remove(this.attachNode);
+							// base.part.attachNodes.Remove(this.attachNode);
 						}
 
 						// Yay debugging!
@@ -308,24 +315,24 @@ namespace TweakableDockingNode
 				if (this.deployAnimationModule != null)
 				{
 					// ...and if we have an attached part...
-					if (this.attachedPart != null && this.state == "Ready")
+					if (this.attachedPart != null && this.dockingNodeModule.state == "Ready")
 					{
 						// ...disable the deploy animation.
 						this.deployAnimationModule.Events["Toggle"].active = false;
 					}
 					// ...otherwise...
-					else if (this.state == "Ready")
+					else if (this.dockingNodeModule.state == "Ready")
 					{
 						// ...enable the deploy animation.
 						this.deployAnimationModule.Events["Toggle"].active = true;
 					}
 				}
 
+				// ...and if the crossfeed status has changed...
 				if (this.fuelCrossFeed != this.partCrossFeed)
 				{
+					// ...assign our crossfeed status to the part, since that's where it matters.
 					this.partCrossFeed = this.fuelCrossFeed;
-					// base.Events["DisableXFeed"].active = this.partCrossFeed;
-					// base.Events["EnableXFeed"].active = !this.partCrossFeed;
 				}
 			}
 		}
