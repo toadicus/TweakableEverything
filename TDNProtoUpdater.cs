@@ -6,18 +6,24 @@ using UnityEngine;
 
 namespace TweakableDockingNode
 {
+	// Base class that facilitates the updating of prototype parts that were saved without TDN attach nodes.
 	public abstract class TDNProtoUpdater : MonoBehaviour
 	{
+		// Some things should only happen once.
 		protected bool runOnce = false;
 
+		// Default array of names of parts with new AttachNodes from TDN.
 		protected string[] AffectedParts = new string[]
 		{
 			"dockingPort1",
 			"dockingPortLateral"
 		};
 
+		// We'll save the array as a single string.  This is the delimiter.
 		protected char configStringSplitChar = ',';
 
+		// When the plugin wakes up, load the rule list of affected parts from the XML file,
+		// in case someone has changed it.
 		public virtual void Awake()
 		{
 			var config = KSP.IO.PluginConfiguration.CreateForType<TDNProtoUpdater>();
@@ -33,6 +39,7 @@ namespace TweakableDockingNode
 			}
 		}
 
+		// Check each of the affected parts snapshots to see if they are missing any AttachNodes.  If so, add them.
 		protected virtual void UpdateProtoPartSnapshots(IEnumerable<ProtoPartSnapshot> affectedParts)
 		{
 			foreach (ProtoPartSnapshot affectedPart in affectedParts)
@@ -85,6 +92,7 @@ namespace TweakableDockingNode
 			}
 		}
 
+		// When we're done, save the list of affected parts to the xml file.
 		public virtual void OnDestroy()
 		{
 			var config = KSP.IO.PluginConfiguration.CreateForType<TDNProtoUpdater>();
@@ -96,9 +104,11 @@ namespace TweakableDockingNode
 		}
 	}
 
+	// SpaceCentre driver to update all affected parts in the current save.
 	[KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
 	public class TDNProtoUpdater_SpaceCentre : TDNProtoUpdater
 	{
+		// This runs once at the first update.  Any earlier and the current game doesn't have all the vessels yet.
 		public void Update()
 		{
 			if (runOnce)
@@ -109,6 +119,7 @@ namespace TweakableDockingNode
 
 			Tools.PostDebugMessage(this.GetType().Name + ": First Update.");
 
+			// Fetch all the affected parts from the current game's list of prototype vessels.
 			IEnumerable<ProtoPartSnapshot> affectedParts = HighLogic.CurrentGame.flightState.protoVessels
 				.SelectMany(pv => pv.protoPartSnapshots)
 				.Where(pps => this.AffectedParts.Contains(pps.partName));
@@ -117,20 +128,24 @@ namespace TweakableDockingNode
 		}
 	}
 
+	// Flight driver to update all affected parts in the current flight cache.  This is for fixing when quickloading.
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
 	public class TDNProtoUpdater_Flight : TDNProtoUpdater
 	{
+		// Runs once when the plugin wakes up.  Any later and the vessel loader will throw an exception.
 		public override void Awake()
 		{
+			// We only need to run this code if we're reloading from a saved cache, as in quickloading.
 			if (FlightDriver.StartupBehaviour != FlightDriver.StartupBehaviours.RESUME_SAVED_CACHE)
 			{
 				return;
 			}
-
+				
 			base.Awake();
 
 			Tools.PostDebugMessage(this.GetType().Name + ": Awake started.  Flight StartupBehavior: " + FlightDriver.StartupBehaviour);
 
+			// Fetch all the affected parts from the flight state cache.
 			IEnumerable<ProtoPartSnapshot> affectedParts = FlightDriver.FlightStateCache.flightState.protoVessels
 				.SelectMany(pv => pv.protoPartSnapshots)
 				.Where(pps => this.AffectedParts.Contains(pps.partName));
