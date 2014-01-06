@@ -1,10 +1,15 @@
-﻿using KSP;
+﻿// TweakableDockingNode © 2014 toadicus
+//
+// This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a
+// copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/
+
+using KSP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace TweakableDockingNode
+namespace TweakableEverything
 {
 	// Base class that facilitates the updating of prototype parts that were saved without TDN attach nodes.
 	public abstract class TDNProtoUpdater : MonoBehaviour

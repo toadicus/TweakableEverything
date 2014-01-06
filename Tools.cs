@@ -1,4 +1,4 @@
-// TweakableDockingNode © 2013 toadicus
+// TweakableDockingNode © 2014 toadicus
 //
 // This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a
 // copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/
@@ -6,7 +6,7 @@
 using System.Linq;
 using System.Collections.Generic;
 
-namespace TweakableDockingNode
+namespace TweakableEverything
 {
 	public static class Tools
 	{

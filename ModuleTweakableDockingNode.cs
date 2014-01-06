@@ -1,4 +1,4 @@
-// TweakableDockingNode © 2013 toadicus
+// TweakableDockingNode © 2014 toadicus
 //
 // This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a
 // copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace TweakableDockingNode
+namespace TweakableEverything
 {
 	public class ModuleTweakableDockingNode : PartModule
 	{
@@ -27,6 +27,12 @@ namespace TweakableDockingNode
 
 			this.deployAnimationControllerName = string.Empty;
 			this.TDNnodeName = string.Empty;
+
+			this.acquireRange = -1;
+			this.acquireForce = -1;
+			this.acquireTorque = -1;
+			this.undockEjectionForce = -1;
+			this.minDistanceToReEngage = -1;
 		}
 
 		/*
@@ -64,6 +70,33 @@ namespace TweakableDockingNode
 		[KSPField(isPersistant = true, guiName = "Crossfeed", guiActiveEditor = true, guiActive = true),
 		UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
 		public bool fuelCrossFeed;
+
+		/*
+		 * This functionality is disabled until Squad fixes tweakable tips.
+		[KSPField(isPersistant = false, guiName = "Advanced Options", guiActiveEditor = true, guiActive = false)]
+		[UI_Toggle(enabledText = "Shown", disabledText = "Hidden")]
+		public bool showAdvanced;
+		*/
+
+		[KSPField(isPersistant = true, guiName = "Acquire Range (m)", guiActiveEditor = true, guiActive = false)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		public float acquireRange;
+
+		[KSPField(isPersistant = true, guiName = "Acquire Force (kN)", guiActiveEditor = true, guiActive = false)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		public float acquireForce;
+
+		[KSPField(isPersistant = true, guiName = "Acquire Torque (kN-m)", guiActiveEditor = true, guiActive = false)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		public float acquireTorque;
+
+		[KSPField(isPersistant = true, guiName = "Ejection Force (kN)", guiActiveEditor = true, guiActive = false)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		public float undockEjectionForce;
+
+		[KSPField(isPersistant = true, guiName = "Re-engage Distance (m)", guiActiveEditor = true, guiActive = false)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		public float minDistanceToReEngage;
 
 		// Gets the base part's fuelCrossFeed value.
 		public bool partCrossFeed
@@ -139,6 +172,71 @@ namespace TweakableDockingNode
 
 			// Start the underlying ModuleDockingNode.
 			base.OnStart(st);
+
+			if (this.acquireRange == -1)
+			{
+				this.acquireRange = this.dockingNodeModule.acquireRange;
+			}
+
+			((UI_FloatRange)this.Fields["acquireRange"].uiControlEditor).minValue = 0;
+			((UI_FloatRange)this.Fields["acquireRange"].uiControlEditor).maxValue =
+				this.dockingNodeModule.acquireRange * 2f;
+			((UI_FloatRange)this.Fields["acquireRange"].uiControlEditor).stepIncrement =
+				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.acquireRange)) - 1);
+
+			this.dockingNodeModule.acquireRange = this.acquireRange;
+
+			if (this.acquireForce == -1)
+			{
+				this.acquireForce = this.dockingNodeModule.acquireForce;
+			}
+
+			((UI_FloatRange)this.Fields["acquireForce"].uiControlEditor).minValue = 0;
+			((UI_FloatRange)this.Fields["acquireForce"].uiControlEditor).maxValue =
+				this.dockingNodeModule.acquireForce * 2f;
+			((UI_FloatRange)this.Fields["acquireForce"].uiControlEditor).stepIncrement =
+				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.acquireForce)) - 1);
+
+			this.dockingNodeModule.acquireForce = this.acquireForce;
+
+			if (this.acquireTorque == -1)
+			{
+				this.acquireTorque = this.dockingNodeModule.acquireTorque;
+			}
+
+			((UI_FloatRange)this.Fields["acquireTorque"].uiControlEditor).minValue = 0;
+			((UI_FloatRange)this.Fields["acquireTorque"].uiControlEditor).maxValue =
+				this.dockingNodeModule.acquireTorque * 2f;
+			((UI_FloatRange)this.Fields["acquireTorque"].uiControlEditor).stepIncrement =
+				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.acquireTorque)) - 1);
+
+			this.dockingNodeModule.acquireTorque = this.acquireTorque;
+
+			if (this.undockEjectionForce == -1)
+			{
+				this.undockEjectionForce = this.dockingNodeModule.undockEjectionForce;
+			}
+
+			((UI_FloatRange)this.Fields["undockEjectionForce"].uiControlEditor).minValue = 0;
+			((UI_FloatRange)this.Fields["undockEjectionForce"].uiControlEditor).maxValue =
+				this.dockingNodeModule.undockEjectionForce * 2f;
+			((UI_FloatRange)this.Fields["undockEjectionForce"].uiControlEditor).stepIncrement =
+				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.undockEjectionForce)) - 1);
+
+			this.dockingNodeModule.undockEjectionForce = this.undockEjectionForce;
+
+			if (this.minDistanceToReEngage == -1)
+			{
+				this.minDistanceToReEngage = this.dockingNodeModule.minDistanceToReEngage;
+			}
+
+			((UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlEditor).minValue = 0;
+			((UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlEditor).maxValue =
+				this.dockingNodeModule.minDistanceToReEngage * 2f;
+			((UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlEditor).stepIncrement =
+				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.minDistanceToReEngage)) - 1);
+
+			this.dockingNodeModule.minDistanceToReEngage = this.minDistanceToReEngage;
 
 			// If we have a referenceAttachNode, use it.  This is for regular docking ports and not used yet.
 			if (this.dockingNodeModule.referenceAttachNode != string.Empty)
@@ -306,6 +404,15 @@ namespace TweakableDockingNode
 						this.startOpenedState = this.StartOpened;
 					}
 				}
+
+				/*
+				 * This functionality is disabled until Squad fixes tweakable tips.
+				this.Fields["acquireRange"].guiActiveEditor = this.showAdvanced;
+				this.Fields["acquireForce"].guiActiveEditor = this.showAdvanced;
+				this.Fields["acquireTorque"].guiActiveEditor = this.showAdvanced;
+				this.Fields["undockEjectionForce"].guiActiveEditor = this.showAdvanced;
+				this.Fields["minDistanceToReEngage"].guiActiveEditor = this.showAdvanced;
+				*/
 			}
 
 			// If we are in flight...
@@ -337,6 +444,15 @@ namespace TweakableDockingNode
 			}
 		}
 
+		[KSPAction("Control from Here")]
+		public void MakeReferenceTransformAction(KSPActionParam param)
+		{
+			if (this.dockingNodeModule.Events["MakeReferenceTransform"].active)
+			{
+				this.dockingNodeModule.MakeReferenceTransform();
+			}
+		}
+
 		// Sometimes, when debugging, it's nice to have a "tell me everything" button.
 		#if DEBUG
 		[KSPEvent(guiActive = true, guiName = "Debug Info")]
@@ -359,6 +475,22 @@ namespace TweakableDockingNode
 				msg.Append(field.Name);
 				msg.Append(": ");
 				msg.Append(field.GetValue(this));
+				msg.Append("\n\t");
+			}
+
+			foreach (System.Reflection.PropertyInfo prop in this.dockingNodeModule.GetType().GetProperties())
+			{
+				msg.Append(prop.Name);
+				msg.Append(": ");
+				msg.Append(prop.GetValue(this.dockingNodeModule, null));
+				msg.Append("\n\t");
+			}
+
+			foreach (System.Reflection.FieldInfo field in this.dockingNodeModule.GetType().GetFields())
+			{
+				msg.Append(field.Name);
+				msg.Append(": ");
+				msg.Append(field.GetValue(this.dockingNodeModule));
 				msg.Append("\n\t");
 			}
 
