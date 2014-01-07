@@ -14,19 +14,39 @@ namespace TweakableEverything
 	{
 		protected ModuleDeployableSolarPanel solarPanelModule;
 
-		// Tweakable property to determine whether the docking port should start opened or closed.
+		protected bool firstUpdate;
+
+		// Tweakable property to determine whether the solar panel should start opened or closed.
 		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true)]
 		[UI_Toggle(disabledText = "Retracted", enabledText = "Extended")]
 		public bool StartOpened;
 		// Save the state here so we can tell if StartOpened has changed.
 		protected bool startOpenedState;
 
-		protected bool firstUpdate;
+		// Tweakable property to determine whether the solar panel should track the sun or not.
+		// Tweakable in flight.
+		[KSPField(guiName = "Sun Tracking", isPersistant = false, guiActiveEditor = true, guiActive = true)]
+		[UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
+		public bool sunTracking;
+
+		protected bool panelSunTracking
+		{
+			get
+			{
+				return this.solarPanelModule.sunTracking;
+			}
+			set
+			{
+				this.solarPanelModule.sunTracking = value;
+			}
+		}
 
 		public ModuleTweakableSolarPanel()
 		{
-			this.StartOpened = false;
 			this.firstUpdate = true;
+
+			this.StartOpened = false;
+			this.sunTracking = true;
 		}
 
 		public override void OnStart(StartState state)
@@ -36,6 +56,8 @@ namespace TweakableEverything
 			this.startOpenedState = !this.StartOpened;
 
 			this.solarPanelModule = base.part.Modules.OfType<ModuleDeployableSolarPanel>().FirstOrDefault();
+
+			this.sunTracking = this.panelSunTracking;
 
 			if (HighLogic.LoadedSceneIsEditor)
 			{
@@ -73,18 +95,10 @@ namespace TweakableEverything
 				}
 			}
 
-			/*if (HighLogic.LoadedSceneIsFlight)
+			if (this.sunTracking != this.panelSunTracking)
 			{
-				if (this.firstUpdate)
-				{
-					this.firstUpdate = false;
-
-					if (this.StartOpened)
-					{
-						this.solarPanelModule.Extend();
-					}
-				}
-			}*/
+				this.panelSunTracking = this.sunTracking;
+			}
 		}
 	}
 }
