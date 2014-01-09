@@ -7,6 +7,7 @@ using KSP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace TweakableEverything
 {
@@ -28,6 +29,10 @@ namespace TweakableEverything
 		[KSPField(guiName = "Sun Tracking", isPersistant = false, guiActiveEditor = true, guiActive = true)]
 		[UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
 		public bool sunTracking;
+
+		protected Transform pivotTransform;
+		protected Vector3 initialPivotVector;
+		protected Quaternion initialPivotRotation;
 
 		protected bool panelSunTracking
 		{
@@ -58,6 +63,15 @@ namespace TweakableEverything
 			this.solarPanelModule = base.part.Modules.OfType<ModuleDeployableSolarPanel>().FirstOrDefault();
 
 			this.sunTracking = this.panelSunTracking;
+
+			this.pivotTransform = base.part.FindModelTransform(this.solarPanelModule.pivotName);
+			this.initialPivotVector = this.pivotTransform.localPosition;
+			this.initialPivotRotation = this.pivotTransform.localRotation;
+
+			Tools.PostDebugMessage(this,
+				"pivotTransform", this.pivotTransform,
+				"initial pivotVector", this.initialPivotVector,
+				"initial pivotRotation", this.initialPivotRotation);
 
 			if (HighLogic.LoadedSceneIsEditor)
 			{
