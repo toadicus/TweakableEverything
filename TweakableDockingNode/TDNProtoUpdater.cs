@@ -31,7 +31,7 @@ namespace TweakableEverything
 		// in case someone has changed it.
 		public virtual void Awake()
 		{
-			var config = KSP.IO.PluginConfiguration.CreateForType<TDNProtoUpdater>();
+			var config = KSP.IO.PluginConfiguration.CreateForType<TDNProtoUpdater>(null);
 
 			config.load();
 			string AffectedPartsString = config.GetValue<string>("AffectedParts", string.Empty);
@@ -100,7 +100,7 @@ namespace TweakableEverything
 		// When we're done, save the list of affected parts to the xml file.
 		public virtual void OnDestroy()
 		{
-			var config = KSP.IO.PluginConfiguration.CreateForType<TDNProtoUpdater>();
+			var config = KSP.IO.PluginConfiguration.CreateForType<TDNProtoUpdater>(null);
 
 			config.load();
 			string AffectedPartsString = string.Join(", ", this.AffectedParts);
