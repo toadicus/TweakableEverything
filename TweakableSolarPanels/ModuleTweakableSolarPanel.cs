@@ -1,4 +1,4 @@
-﻿// TweakableSolarPanels © 2014 toadicus
+﻿﻿// TweakableSolarPanels © 2014 toadicus
 //
 // This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a
 // copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/
@@ -35,6 +35,10 @@ namespace TweakableEverything
 
 		protected float baseTrackingSpeed;
 
+		protected Transform pivotTransform;
+		protected Vector3 initialPivotVector;
+		protected Quaternion initialPivotRotation;
+
 		protected string panelAnimationName
 		{
 			get
@@ -63,13 +67,14 @@ namespace TweakableEverything
 
 			this.panelModule = base.part.Modules.OfType<ModuleDeployableSolarPanel>().FirstOrDefault();
 
-			/*
-			// If we're in the editor, lie to the solar panel and tell it we're not.
-			if (HighLogic.LoadedSceneIsEditor)
-			{
-				this.solarPanelModule.OnStart(StartState.PreLaunch);
-			}
-			*/
+			this.pivotTransform = base.part.FindModelTransform(this.panelModule.pivotName);
+			this.initialPivotVector = this.pivotTransform.localPosition;
+			this.initialPivotRotation = this.pivotTransform.localRotation;
+
+			Tools.PostDebugMessage(this,
+				"pivotTransform", this.pivotTransform,
+				"initial pivotVector", this.initialPivotVector,
+				"initial pivotRotation", this.initialPivotRotation);
 
 			solarPanelAnimation = this.panelModule.GetComponentInChildren<Animation>();
 

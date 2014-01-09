@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace TweakableEverything
 {
-	public static class Tools
+	public static partial class Tools
 	{
 		private static ScreenMessage debugmsg = new ScreenMessage("", 4f, ScreenMessageStyle.UPPER_RIGHT);
 
@@ -22,6 +22,20 @@ namespace TweakableEverything
 			}
 
 			KSPLog.print(Msg);
+		}
+
+		[System.Diagnostics.Conditional("DEBUG")]
+		public static void PostDebugMessage(object Sender, params object[] args)
+		{
+			string Msg;
+
+			Msg = string.Format(
+				"{0}:\n\t{1}",
+				Sender.GetType().Name,
+				string.Join("\n\t", args.Select(a => a.ToString()).ToArray())
+			);
+
+			PostDebugMessage(Msg);
 		}
 	}
 }
