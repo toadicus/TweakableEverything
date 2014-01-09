@@ -7,14 +7,17 @@ using KSP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace TweakableEverything
 {
 	public class ModuleTweakableSolarPanel : PartModule
 	{
-		protected ModuleDeployableSolarPanel solarPanelModule;
-
 		protected bool firstUpdate;
+
+		protected ModuleDeployableSolarPanel panelModule;
+
+		protected Animation panelAnimation;
 
 		// Tweakable property to determine whether the solar panel should start opened or closed.
 		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true)]
@@ -25,43 +28,80 @@ namespace TweakableEverything
 
 		// Tweakable property to determine whether the solar panel should track the sun or not.
 		// Tweakable in flight.
-		[KSPField(guiName = "Sun Tracking", isPersistant = false, guiActiveEditor = true, guiActive = true)]
+		[KSPField(guiName = "Sun Tracking", isPersistant = true, guiActiveEditor = true, guiActive = true)]
 		[UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
-		public bool sunTracking;
+		public bool sunTrackingEnabled;
+		protected bool sunTrackingState;
 
-		protected bool panelSunTracking
+		protected float baseTrackingSpeed;
+
+		protected string panelAnimationName
 		{
 			get
 			{
-				return this.solarPanelModule.sunTracking;
-			}
-			set
-			{
-				this.solarPanelModule.sunTracking = value;
+				return this.panelModule.animationName;
 			}
 		}
 
+		// Construct ALL the objects.
 		public ModuleTweakableSolarPanel()
 		{
 			this.firstUpdate = true;
 
 			this.StartOpened = false;
-			this.sunTracking = true;
+			this.sunTrackingEnabled = true;
 		}
 
 		public override void OnStart(StartState state)
 		{
+			Animation solarPanelAnimation;
+
 			base.OnStart(state);
 
 			this.startOpenedState = !this.StartOpened;
+			this.sunTrackingState = !this.sunTrackingEnabled;
 
-			this.solarPanelModule = base.part.Modules.OfType<ModuleDeployableSolarPanel>().FirstOrDefault();
+			this.panelModule = base.part.Modules.OfType<ModuleDeployableSolarPanel>().FirstOrDefault();
 
-			this.sunTracking = this.panelSunTracking;
-
+			/*
+			// If we're in the editor, lie to the solar panel and tell it we're not.
 			if (HighLogic.LoadedSceneIsEditor)
 			{
 				this.solarPanelModule.OnStart(StartState.PreLaunch);
+			}
+			*/
+
+			solarPanelAnimation = this.panelModule.GetComponentInChildren<Animation>();
+
+			if (solarPanelAnimation != null)
+			{
+				if (solarPanelAnimation[this.panelModule.animationName])
+				{
+					this.panelAnimation[this.panelAnimationName].enabled = true;
+					this.panelAnimation[this.panelAnimationName].speed = 0f;
+					this.panelAnimation[this.panelAnimationName].weight = 1f;
+				}
+			}
+
+			/* 
+			 * Check whether this panel is a sun tracking panel or not.  Despite its name, ModuleDeployableSolarPanel
+			 * is used for all solar panels, even those that don't deply.
+			 * */
+			// If the panel is sun tracking panel...
+			if (this.panelModule.sunTracking)
+			{
+				// ...go fetch the tracking speed and make sure our tracking tweakable is active.
+				this.baseTrackingSpeed = this.panelModule.trackingSpeed;
+				this.Fields["sunTracking"].guiActive = true;
+				this.Fields["sunTracking"].guiActiveEditor = true;
+			}
+			else
+			{
+				// ...otherwise, make sure our tracking code and tweakable are inactive.
+				this.sunTrackingEnabled = false;
+				this.sunTrackingState = false;
+				this.Fields["sunTracking"].guiActive = false;
+				this.Fields["sunTracking"].guiActiveEditor = false;
 			}
 		}
 
@@ -69,35 +109,39 @@ namespace TweakableEverything
 		{
 			if (HighLogic.LoadedSceneIsEditor)
 			{
-				if (this.startOpenedState != this.StartOpened)
+				if (this.startOpenedState != this.StartOpened && this.panelAnimation != null)
 				{
 					this.startOpenedState = this.StartOpened;
 
-					if (this.StartOpened && this.solarPanelModule.panelState == ModuleDeployableSolarPanel.panelStates.RETRACTED)
+					if (this.StartOpened)
 					{
-						Tools.PostDebugMessage(this.GetType().Name + ": Extending panels.");
-						this.solarPanelModule.Extend();
+						this.panelAnimation[this.panelAnimationName].normalizedTime = 1f;
+						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.EXTENDED;
+					}
+					else
+					{
+						this.panelAnimation[this.panelAnimationName].normalizedTime = 0f;
+						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.RETRACTED;
 					}
 
-					if (!this.StartOpened && this.solarPanelModule.panelState == ModuleDeployableSolarPanel.panelStates.EXTENDED)
-					{
-						Tools.PostDebugMessage(this.GetType().Name + ": Retracting panels.");
-						this.solarPanelModule.Retract();
-					}
-				}
+					this.panelAnimation.Stop();
 
-				try
-				{
-					this.solarPanelModule.updateFSM();
-				}
-				catch (NullReferenceException)
-				{
+					this.panelModule.storedAnimationTime = this.panelAnimation[this.panelAnimationName].normalizedTime;
 				}
 			}
 
-			if (this.sunTracking != this.panelSunTracking)
+			if (this.panelModule.sunTracking && this.sunTrackingEnabled != this.sunTrackingState)
 			{
-				this.panelSunTracking = this.sunTracking;
+				this.sunTrackingState = this.sunTrackingEnabled;
+
+				if (this.sunTrackingEnabled)
+				{
+					this.panelModule.trackingSpeed = this.baseTrackingSpeed;
+				}
+				else
+				{
+					this.panelModule.trackingSpeed = 0;
+				}
 			}
 		}
 	}
