@@ -1,4 +1,4 @@
-﻿﻿// TweakableSolarPanels © 2014 toadicus
+// TweakableSolarPanels © 2014 toadicus
 //
 // This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a
 // copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/
@@ -58,8 +58,6 @@ namespace TweakableEverything
 
 		public override void OnStart(StartState state)
 		{
-			Animation solarPanelAnimation;
-
 			base.OnStart(state);
 
 			this.startOpenedState = !this.StartOpened;
@@ -67,24 +65,46 @@ namespace TweakableEverything
 
 			this.panelModule = base.part.Modules.OfType<ModuleDeployableSolarPanel>().FirstOrDefault();
 
+			Tools.PostDebugMessage(this,
+				"panelModule: " + this.panelModule,
+				"storedAnimationTime: " + this.panelModule.storedAnimationTime,
+				"storedAnimationSpeed: " + this.panelModule.storedAnimationSpeed,
+				"stateString: " + this.panelModule.stateString,
+				"currentRotation: " + this.panelModule.currentRotation,
+				"originalRotation: " + this.panelModule.originalRotation
+			);
+
 			this.pivotTransform = base.part.FindModelTransform(this.panelModule.pivotName);
 			this.initialPivotVector = this.pivotTransform.localPosition;
 			this.initialPivotRotation = this.pivotTransform.localRotation;
 
 			Tools.PostDebugMessage(this,
-				"pivotTransform", this.pivotTransform,
-				"initial pivotVector", this.initialPivotVector,
-				"initial pivotRotation", this.initialPivotRotation);
+				"pivotTransform: " + this.pivotTransform,
+				"initial pivotVector: " + this.initialPivotVector,
+				"initial pivotRotation:" + this.initialPivotRotation
+			);
 
-			solarPanelAnimation = this.panelModule.GetComponentInChildren<Animation>();
+			this.panelAnimation = this.panelModule.GetComponentInChildren<Animation>();
 
-			if (solarPanelAnimation != null)
+			Tools.PostDebugMessage(this,
+				"panelAnimation: " + this.panelAnimation,
+				"animationState: " + this.panelAnimation[this.panelModule.animationName]
+			);
+
+			if (HighLogic.LoadedSceneIsEditor && this.panelAnimation != null)
 			{
-				if (solarPanelAnimation[this.panelModule.animationName])
+				this.panelModule.currentRotation = this.panelModule.originalRotation;
+
+				if (this.panelAnimation[this.panelModule.animationName])
 				{
+					this.panelAnimation.wrapMode = WrapMode.ClampForever;
 					this.panelAnimation[this.panelAnimationName].enabled = true;
 					this.panelAnimation[this.panelAnimationName].speed = 0f;
 					this.panelAnimation[this.panelAnimationName].weight = 1f;
+
+					Tools.PostDebugMessage(this,
+						"panelAnimation set wrapMode, enabled, speed, and weight."
+					);
 				}
 			}
 
@@ -97,16 +117,16 @@ namespace TweakableEverything
 			{
 				// ...go fetch the tracking speed and make sure our tracking tweakable is active.
 				this.baseTrackingSpeed = this.panelModule.trackingSpeed;
-				this.Fields["sunTracking"].guiActive = true;
-				this.Fields["sunTracking"].guiActiveEditor = true;
+				this.Fields["sunTrackingEnabled"].guiActive = true;
+				this.Fields["sunTrackingEnabled"].guiActiveEditor = true;
 			}
 			else
 			{
 				// ...otherwise, make sure our tracking code and tweakable are inactive.
 				this.sunTrackingEnabled = false;
 				this.sunTrackingState = false;
-				this.Fields["sunTracking"].guiActive = false;
-				this.Fields["sunTracking"].guiActiveEditor = false;
+				this.Fields["sunTrackingEnabled"].guiActive = false;
+				this.Fields["sunTrackingEnabled"].guiActiveEditor = false;
 			}
 		}
 
@@ -120,19 +140,38 @@ namespace TweakableEverything
 
 					if (this.StartOpened)
 					{
+						Tools.PostDebugMessage(this, "Extending panel.");
+
+						this.panelAnimation[this.panelAnimationName].speed = 1f;
 						this.panelAnimation[this.panelAnimationName].normalizedTime = 1f;
+						this.panelAnimation.Play(this.panelAnimationName);
 						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.EXTENDED;
 					}
 					else
 					{
+						Tools.PostDebugMessage(this, "Retracting panel.");
+
+						this.panelAnimation[this.panelAnimationName].speed = -1f;
 						this.panelAnimation[this.panelAnimationName].normalizedTime = 0f;
+						this.panelAnimation.Play(this.panelAnimationName);
 						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.RETRACTED;
 					}
 
-					this.panelAnimation.Stop();
-
 					this.panelModule.storedAnimationTime = this.panelAnimation[this.panelAnimationName].normalizedTime;
+					this.panelModule.storedAnimationSpeed = this.panelAnimation[this.panelAnimationName].speed;
+					this.panelModule.stateString =
+						Enum.GetName(typeof(ModuleDeployableSolarPanel.panelStates), this.panelModule.panelState);
 				}
+			}
+
+			if (HighLogic.LoadedSceneIsFlight)
+			{
+				Tools.PostDebugMessage(this,
+					"storedAnimationTime: " + this.panelModule.storedAnimationTime,
+					"storedAnimationSpeed: " + this.panelModule.storedAnimationSpeed,
+					"stateString: " + this.panelModule.stateString,
+					"currentRotation: " + this.panelModule.currentRotation
+				);
 			}
 
 			if (this.panelModule.sunTracking && this.sunTrackingEnabled != this.sunTrackingState)
