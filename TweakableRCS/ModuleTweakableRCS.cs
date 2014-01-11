@@ -32,6 +32,7 @@ namespace TweakableRCS
 		public ModuleTweakableRCS()
 		{
 			this.startEnabled = true;
+			this.thrustLimit = 100f;
 		}
 
 		public override void OnStart(StartState state)
