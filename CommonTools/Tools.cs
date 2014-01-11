@@ -5,6 +5,7 @@
 
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace TweakableEverything
 {
@@ -36,6 +37,32 @@ namespace TweakableEverything
 			);
 
 			PostDebugMessage(Msg);
+		}
+
+		public static void InitializeTweakable(
+			UI_FloatRange floatRange,
+			ref float localField,
+			ref float remoteField,
+			bool clobberEverywhere = false
+		)
+		{
+			// If our field is uninitialized...
+			if (localField == -1)
+			{
+				// ...fetch it from the remote field
+				localField = remoteField;
+			}
+
+			// Set the bounds and increment for our tweakable range.
+			floatRange.minValue = 0;
+			floatRange.maxValue = remoteField * 2f;
+			floatRange.stepIncrement = Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(remoteField)) - 1);
+
+			if (HighLogic.LoadedSceneIsFlight || clobberEverywhere)
+			{
+				// Clobber the remote field with ours.
+				remoteField = localField;
+			}
 		}
 	}
 }
