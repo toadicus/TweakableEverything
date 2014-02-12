@@ -33,7 +33,7 @@ namespace TweakableEverything
 			Msg = string.Format(
 				"{0}:\n\t{1}",
 				Sender.GetType().Name,
-				string.Join("\n\t", args.Select(a => a.ToString()).ToArray())
+				string.Join("\n\t", args.Select(a => (string)a).ToArray())
 			);
 
 			PostDebugMessage(Msg);
@@ -43,6 +43,7 @@ namespace TweakableEverything
 			UI_FloatRange floatRange,
 			ref float localField,
 			ref float remoteField,
+			float centerValue,
 			bool clobberEverywhere = false
 		)
 		{
@@ -50,19 +51,29 @@ namespace TweakableEverything
 			if (localField == -1)
 			{
 				// ...fetch it from the remote field
-				localField = remoteField;
+				localField = centerValue;
 			}
 
 			// Set the bounds and increment for our tweakable range.
 			floatRange.minValue = 0;
-			floatRange.maxValue = remoteField * 2f;
-			floatRange.stepIncrement = Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(remoteField)) - 1);
+			floatRange.maxValue = centerValue * 2f;
+			floatRange.stepIncrement = Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(centerValue)) - 1);
 
 			if (HighLogic.LoadedSceneIsFlight || clobberEverywhere)
 			{
 				// Clobber the remote field with ours.
 				remoteField = localField;
 			}
+		}
+
+		public static void InitializeTweakable(
+			UI_FloatRange floatRange,
+			ref float localField,
+			ref float remoteField,
+			bool clobberEverywhere = false
+		)
+		{
+			InitializeTweakable(floatRange, ref localField, ref remoteField, remoteField, clobberEverywhere);
 		}
 	}
 }

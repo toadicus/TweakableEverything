@@ -49,7 +49,11 @@ namespace TweakableEverything
 			Tools.InitializeTweakable(
 				(UI_FloatRange)this.Fields["gimbalRange"].uiControlEditor,
 				ref this.gimbalRange,
-				ref this.gimbalModule.gimbalRange
+				ref this.gimbalModule.gimbalRange,
+				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
+					.OfType<ModuleGimbal>()
+					.FirstOrDefault()
+					.gimbalRange
 			);
 
 			// If we're in flight mode...

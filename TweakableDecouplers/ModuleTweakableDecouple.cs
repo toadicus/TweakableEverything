@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ModuleTweakableDecoupler
+namespace TweakableEverything
 {
 	public class ModuleTweakableDecouple : PartModule
 	{
@@ -37,11 +37,21 @@ namespace ModuleTweakableDecoupler
 		// Runs on start.  Seriously.
 		public override void OnStart(StartState state)
 		{
+			AvailablePart partInfo;
+			PartModule prefabModule;
+
 			// Start up any underlying PartModule stuff
 			base.OnStart(state);
 
 			// Fetch the decoupler module from the part by module name.
-			this.decoupleModule = base.part.Modules.OfType<PartModule>()
+			this.decoupleModule = base.part.Modules
+				.OfType<PartModule>()
+				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
+
+			partInfo = PartLoader.getPartInfoByName(base.part.partInfo.name);
+
+			prefabModule = partInfo.partPrefab.Modules
+				.OfType<PartModule>()
 				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
 
 			// If our ejection force is uninitialized...
@@ -54,11 +64,11 @@ namespace ModuleTweakableDecoupler
 			// Set the bounds and increment on the tweakable
 			((UI_FloatRange)this.Fields["ejectionForce"].uiControlEditor).minValue = 0;
 			((UI_FloatRange)this.Fields["ejectionForce"].uiControlEditor).maxValue =
-				this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule) * 2;
+				prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule) * 2;
 			((UI_FloatRange)this.Fields["ejectionForce"].uiControlEditor).stepIncrement =
 				Mathf.Pow(10f,
 					Mathf.RoundToInt(
-						Mathf.Log10(this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule))
+						Mathf.Log10(prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule))
 					) - 1
 				);
 
