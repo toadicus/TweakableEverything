@@ -75,5 +75,23 @@ namespace TweakableEverything
 		{
 			InitializeTweakable(floatRange, ref localField, ref remoteField, remoteField, clobberEverywhere);
 		}
+
+		public static bool Contains(System.Object[] haystack, System.Object needle)
+		{
+			foreach (System.Object item in haystack)
+			{
+				if (item == needle)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public static bool Contains(this GameScenes[] scenes, GameScenes scene)
+		{
+			return Contains(scenes, scene);
+		}
 	}
 }

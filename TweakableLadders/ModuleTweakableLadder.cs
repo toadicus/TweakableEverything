@@ -22,7 +22,7 @@ namespace TweakableEverything
 
 		protected RetractableLadder ladderModule;
 
-		protected Animation ladderAnimation;
+		protected TweakableAnimationWrapper ladderAnimation;
 
 		public ModuleTweakableLadder()
 		{
@@ -42,25 +42,21 @@ namespace TweakableEverything
 			this.ladderModule = base.part.Modules.OfType<RetractableLadder>().FirstOrDefault();
 
 			// Fetch the UnityEngine.Animation object from the solar ladder module.
-			this.ladderAnimation = base.part.FindModelTransform(this.ladderModule.ladderAnimationRootName).animation;
+			this.ladderAnimation = new TweakableAnimationWrapper(
+				base.part.FindModelTransform(this.ladderModule.ladderAnimationRootName).animation,
+				this.ladderModule.ladderRetractAnimationName,
+				new GameScenes[] { GameScenes.EDITOR, GameScenes.SPH },
+				WrapMode.ClampForever,
+				TweakableAnimationWrapper.PlayPosition.End,
+				TweakableAnimationWrapper.PlayDirection.Forward,
+				1f
+			);
 
 			// If we are in the editor and have an animation...
 			if (HighLogic.LoadedSceneIsEditor && this.ladderAnimation != null)
 			{
-				// ...and if our animation has an AnimationState named in the ladder module...
-				if (this.ladderAnimation[this.ladderModule.ladderRetractAnimationName])
-				{
-					// ...Set up the AnimationState for later use.
-					this.ladderAnimation.wrapMode = WrapMode.ClampForever;
-					this.ladderAnimation[this.ladderModule.ladderRetractAnimationName].enabled = true;
-					this.ladderAnimation[this.ladderModule.ladderRetractAnimationName].speed = 0f;
-					this.ladderAnimation[this.ladderModule.ladderRetractAnimationName].weight = 1f;
-
-					// Yay debugging!
-					Tools.PostDebugMessage(this,
-						"ladderAnimation set wrapMode, enabled, speed, and weight."
-					);
-				}
+				//  ...start the animation.
+				this.ladderAnimation.Start();
 			}
 		}
 
@@ -82,8 +78,7 @@ namespace TweakableEverything
 						Tools.PostDebugMessage(this, "Extending ladder.");
 
 						// ...move the animation to the end with a "forward" play speed.
-						this.ladderAnimation[this.ladderModule.ladderRetractAnimationName].speed = -1f;
-						this.ladderAnimation[this.ladderModule.ladderRetractAnimationName].normalizedTime = 0f;
+						this.ladderAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.End);
 
 						// ...flag the ladder as extended.
 						this.ladderModule.StateName = "Extended";
@@ -95,15 +90,11 @@ namespace TweakableEverything
 						Tools.PostDebugMessage(this, "Retracting ladder.");
 
 						// ...move the animation to the beginning with a "backward" play speed.
-						this.ladderAnimation[this.ladderModule.ladderRetractAnimationName].speed = 1f;
-						this.ladderAnimation[this.ladderModule.ladderRetractAnimationName].normalizedTime = 1f;
+						this.ladderAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.Beginning);
 
 						// ...flag the ladder as retracted.
 						this.ladderModule.StateName = "Retracted";
 					}
-
-					// ...play the animation, because it's so very pretty.
-					this.ladderAnimation.Play(this.ladderModule.ladderRetractAnimationName);
 				}
 			}
 		}
