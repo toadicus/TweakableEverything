@@ -327,7 +327,14 @@ namespace TweakableEverything
 						));
 
 						// ...toggle the animation module
-						this.deployAnimation.Toggle();
+						if (this.StartOpened)
+						{
+							this.deployAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.End);
+						}
+						else
+						{
+							this.deployAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.Beginning);
+						}
 
 						// If we are closing and have a part attached...
 						if (this.StartOpened == false && this.attachedPart != null)
@@ -349,7 +356,7 @@ namespace TweakableEverything
 
 
 					// ...if the port is closed and the attachNode icon is active...
-					if ((!this.IsOpen) && this.attachNode != null)
+					if ((!this.IsOpen) && this.attachNode != null && this.attachNode.icon != null)
 					{
 						// Yay debugging!
 						Tools.PostDebugMessage(this.GetType().Name + ": removing node");
@@ -421,7 +428,7 @@ namespace TweakableEverything
 			msg.Append(this.GetType().Name);
 			msg.Append(": \n\t");
 
-			foreach (System.Reflection.PropertyInfo prop in this.GetType().GetProperties())
+			foreach (System.Reflection.PropertyInfo prop in this.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
 			{
 				msg.Append(prop.Name);
 				msg.Append(": ");
@@ -429,7 +436,7 @@ namespace TweakableEverything
 				msg.Append("\n\t");
 			}
 
-			foreach (System.Reflection.FieldInfo field in this.GetType().GetFields())
+			foreach (System.Reflection.FieldInfo field in this.GetType().GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
 			{
 				msg.Append(field.Name);
 				msg.Append(": ");
