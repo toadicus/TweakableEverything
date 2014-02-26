@@ -31,6 +31,12 @@ namespace TweakableEverything
 		/*
 		 * Properties
 		 * */
+		public PartModule module
+		{
+			get;
+			protected set;
+		}
+
 		public float normalizedTime
 		{
 			get
@@ -88,9 +94,22 @@ namespace TweakableEverything
 			float animationWeight
 		)
 		{
+			Tools.PostDebugMessage(
+				this,
+				"Constructing new TweakableAnimationWrapper with:",
+				string.Format("animation: {0}", animation),
+				string.Format("animStateName: {0}", animStateName),
+				string.Format("validScenes: {0}", validScenes),
+				string.Format("wrapMode: {0}", wrapMode),
+				string.Format("startPosition: {0}", startPosition),
+				string.Format("startDirection: {0}", startDirection),
+				string.Format("animationWeight: {0}", animationWeight)
+			);
 			this.animation = animation;
 
 			this.animationState = this.animation[animStateName];
+
+			Tools.PostDebugMessage(this, string.Format("animationState: {0}", this.animationState));
 
 			this.validScenes = validScenes;
 			this.wrapMode = wrapMode;
@@ -116,6 +135,34 @@ namespace TweakableEverything
 			this.animationWeight = animationWeight;
 		}
 
+		public TweakableAnimationWrapper(
+			ModuleAnimateGeneric animationModule,
+			GameScenes[] validScenes,
+			WrapMode wrapMode,
+			PlayPosition startPosition,
+			PlayDirection startDirection
+		) : this
+		(
+			animationModule.part.FindModelAnimators(animationModule.animationName)[0],
+			animationModule.animationName,
+			validScenes,
+			wrapMode,
+			startPosition,
+			startDirection,
+			1f
+		)
+		{
+			Tools.PostDebugMessage(
+				this,
+				"Constructing new TweakableAnimationWrapper from:",
+				string.Format("animationModule: {0}", animationModule)
+			);
+			this.module = animationModule;
+
+			this.module.Fields["status"].guiActiveEditor = true;
+			this.module.Fields["animSwitch"].guiActiveEditor = true;
+		}
+
 		public void Start()
 		{
 
@@ -132,6 +179,8 @@ namespace TweakableEverything
 
 		public void SkipTo(PlayPosition position)
 		{
+			bool animSwitch;
+
 			if (this.animation.isPlaying)
 			{
 				this.animation.Stop();
@@ -140,19 +189,53 @@ namespace TweakableEverything
 			switch (position)
 			{
 				case PlayPosition.Beginning:
+					Tools.PostDebugMessage(this, string.Format("Skipping to {0}", this.startTime));
 					this.normalizedTime = this.startTime;
 					this.speed = (float)this.startDirection;
+					animSwitch = true;
 					break;
 				case PlayPosition.End:
+					Tools.PostDebugMessage(this, string.Format("Skipping to {0}", this.endTime));
 					this.normalizedTime = this.endTime;
 					this.speed = -(float)this.startDirection;
+					animSwitch = false;
 					break;
 				default:
 					throw new NotImplementedException();
 			}
 
+			if (this.module != null && this.module is ModuleAnimateGeneric)
+			{
+				(this.module as ModuleAnimateGeneric).animSwitch = animSwitch;
+			}
+
 			this.animation.Play(this.animationState.name);
+
+			Tools.PostDebugMessage(this, string.Format("Skipped to {0}", this.normalizedTime, this.animationState.normalizedTime));
 		}
+
+		public void Toggle()
+		{
+			Tools.PostDebugMessage(this,
+				"Toggling.",
+				string.Format("normalizedTime = {0}", this.normalizedTime),
+				string.Format("startTime = {0}", this.startTime)
+			);
+
+			if (this.module is ModuleAnimateGeneric)
+			{
+				(this.module as ModuleAnimateGeneric).Toggle();
+			}
+
+			if (this.normalizedTime == startTime)
+			{
+				this.SkipTo(PlayPosition.End);
+			}
+			else
+			{
+				this.SkipTo(PlayPosition.Beginning);
+			}
+	}
 
 		public void Play()
 		{
