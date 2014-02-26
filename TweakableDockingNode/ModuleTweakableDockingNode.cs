@@ -51,8 +51,8 @@ namespace TweakableEverything
 		// Field that references the animationName of the ModuleAnimateGeneric doing the animating.
 		[KSPField(isPersistant = false)]
 		public string deployAnimationControllerName;
-		// Store a reference to the ModuleAnimateGeneric module here, for toggling.
-		protected ModuleAnimateGeneric deployAnimationModule;
+		// Wrap the animation.
+		protected TweakableAnimationWrapper deployAnimation;
 
 		// String containing the name of the AttachNode that we will toggle.
 		[KSPField(isPersistant = false)]
@@ -133,13 +133,13 @@ namespace TweakableEverything
 		{
 			get
 			{
-				if (this.deployAnimationModule == null)
+				if (this.deployAnimation == null)
 				{
-					return true;
+					return false;
 				}
 				else
 				{
-					return (this.deployAnimationModule.Progress == 1);
+					return (this.deployAnimation.normalizedTime == 1);
 				}
 			}
 		}
@@ -156,12 +156,15 @@ namespace TweakableEverything
 			if (this.deployAnimationControllerName != string.Empty)
 			{
 				// ...go get the module reference from the Part...
-				this.deployAnimationModule = base.part.Modules
+				this.deployAnimation = new TweakableAnimationWrapper(
+					base.part.Modules
 					.OfType<ModuleAnimateGeneric>()
-					.FirstOrDefault(m => m.animationName == this.deployAnimationControllerName);
-
-				// ...and reset the deployAnimationController index for ModuleDockingNode.
-				this.dockingNodeModule.deployAnimationController = base.part.Modules.IndexOf(this.deployAnimationModule);
+					.First(m => m.animationName == this.deployAnimationControllerName),
+					new GameScenes[] { GameScenes.EDITOR, GameScenes.SPH, GameScenes.FLIGHT },
+					WrapMode.ClampForever,
+					TweakableAnimationWrapper.PlayPosition.Beginning,
+					TweakableAnimationWrapper.PlayDirection.Backward
+				);
 			}
 			// ...otherwise, we don't have a shield...
 			else
@@ -238,22 +241,19 @@ namespace TweakableEverything
 
 			this.dockingNodeModule.minDistanceToReEngage = this.minDistanceToReEngage;
 
-			// If we have a referenceAttachNode, use it.  This is for regular docking ports and not used yet.
-			if (this.dockingNodeModule.referenceAttachNode != string.Empty)
-			{
-				this.attachNode = base.part.findAttachNode(this.dockingNodeModule.referenceAttachNode);
-			}
-			// Otherwise, if we have a tweakable AttachNode, use it.
-			else if (this.TDNnodeName != string.Empty)
+			// If we have a tweakable AttachNode, use it.
+			if (this.TDNnodeName != string.Empty)
 			{
 				this.attachNode = base.part.findAttachNode(this.TDNnodeName);
 			}
 
-			if (this.deployAnimationModule != null)
+			if (this.deployAnimation != null)
 			{
 				// Seed the start opened state and stack rules.  This is relevant mostly when loading a saved-open port.
 				this.startOpenedState = this.StartOpened;
 				base.part.attachRules.allowStack = this.StartOpened | this.AlwaysAllowStack;
+
+				Tools.PostDebugMessage(this, string.Format("Set allowStack to {0}", base.part.attachRules.allowStack));
 
 				// Seed the lastOpenState to the opposite of IsOpen, to force the node code to run once in the first update.
 				this.lastOpenState = !this.IsOpen;
@@ -275,7 +275,7 @@ namespace TweakableEverything
 				"{0}: Started with assembly version {4}." +
 				"\n\tdeployAnimationModule={1}, attachNode={2}, TDNnodeName={3}, attachedPart={5}, fuelCrossFeed={6}",
 				this.GetType().Name,
-				this.deployAnimationModule,
+				this.deployAnimation,
 				this.attachNode,
 				this.TDNnodeName,
 				this.GetType().Assembly.GetName().Version,
@@ -283,7 +283,7 @@ namespace TweakableEverything
 				this.fuelCrossFeed
 			));
 		}
-		
+
 		// Runs every LateUpdate, because that's how Unity rolls.
 		// We're running at LateUpdate to avoid hiding Update, since ModuleDockingNode's Update is private and we
 		// can't call it.
@@ -293,87 +293,30 @@ namespace TweakableEverything
 			if (HighLogic.LoadedSceneIsEditor)
 			{
 				// ...and if we have a deployAnimationModule...
-				if (this.deployAnimationModule != null)
+				if (this.deployAnimation != null)
 				{
 					// If the Opened state of the port has changed since last update and we have an attachNode...
-					if (/*this.lastOpenState != this.IsOpen && */this.attachNode != null)
+					if (this.attachNode != null && this.IsOpen != this.lastOpenState)
 					{
 						// ...set the last state to the current state
 						this.lastOpenState = this.IsOpen;
 
-						// ...switch allowStack
+						// ...and switch allowStack.
 						base.part.attachRules.allowStack = this.IsOpen | this.AlwaysAllowStack;
 
 						// Yay debugging!
 						Tools.PostDebugMessage(string.Format(
-							"{0}: IsOpen changed to: {1}, part contains node: {2}",
+							"{0}: IsOpen changed to: {1}, part contains node: {2}, allowStack: {3}",
 							this.GetType().Name,
 							this.IsOpen,
-							base.part.attachNodes.Contains(this.attachNode)
+							base.part.attachNodes.Contains(this.attachNode),
+							base.part.attachRules.allowStack
 						));
-
-						// ...if the port is open and we don't have an attachNode...
-						if (this.IsOpen && !base.part.attachNodes.Contains(this.attachNode))
-						{
-							// Yay debugging!
-							Tools.PostDebugMessage(this.GetType().Name + ": adding node");
-
-							// ...add the attachNode.
-							// base.part.attachNodes.Add(this.attachNode);
-						}
-						// ...if the port is closed and we do have an attachNode...
-						if ((!this.IsOpen) && base.part.attachNodes.Contains(this.attachNode))
-						{
-							// Yay debugging!
-							Tools.PostDebugMessage(this.GetType().Name + ": removing node");
-
-							// ...delete the node's icon...
-							GameObject.Destroy(this.attachNode.icon);
-							this.attachNode.icon = null;
-
-							// ...and remove the node.
-							// base.part.attachNodes.Remove(this.attachNode);
-						}
-
-						// Yay debugging!
-						// This is just too much debugging.
-						/*Tools.PostDebugMessage(string.Format(
-						"{0}: Updating.  StartOpened={1}, startOpenedState={2}" +
-						"\n\tattachRules.allowStack=({3})" +
-						"\n\tattachNode: {4}" +
-						"\n\tSortedShipList contains base.part: {5}" +
-						"\n\tship contains base.part: {6}" +
-						"\n\tpart contains attachNode: {7}" +
-						"\n\tcontrolTransform position: {8}" +
-						"\n\tnodeTransform position: {9}" +
-						"\n\tpart.partTransform position: {10}" +
-						"\n\tpart.transform position: {11}" +
-						"\n\tpart.transform inverse point nodeTransform: {12}",
-						this.GetType().Name,
-						this.StartOpened,
-						this.startOpenedState,
-						base.part.attachRules.allowStack,
-						string.Format(
-							"id: {0}, position: {1}, size: {2}, nodeType: {3}",
-							this.attachNode.id,
-							this.attachNode.position,
-							this.attachNode.size,
-							this.attachNode.nodeType
-						),
-						EditorLogic.SortedShipList.Contains(base.part),
-						EditorLogic.fetch.ship.Contains(base.part),
-						base.part.attachNodes.Contains(this.attachNode),
-						this.controlTransform.position,
-						this.nodeTransform.position,
-						base.part.partTransform.position,
-						base.part.transform.position,
-						base.part.transform.InverseTransformPoint(this.nodeTransform.position)
-					));*/
 					}
 
 					// If StartOpened has changed...
 					// TODO: Investigate if StartOpened can be compared against lastOpenState instead of startOpenedState.
-					if (this.StartOpened != this.startOpenedState && !this.deployAnimationModule.IsInvoking("Toggle"))
+					if (this.StartOpened != this.startOpenedState)
 					{
 						// Yay debugging!
 						Tools.PostDebugMessage(string.Format(
@@ -384,7 +327,7 @@ namespace TweakableEverything
 						));
 
 						// ...toggle the animation module
-						this.deployAnimationModule.Toggle();
+						this.deployAnimation.Toggle();
 
 						// If we are closing and have a part attached...
 						if (this.StartOpened == false && this.attachedPart != null)
@@ -403,6 +346,18 @@ namespace TweakableEverything
 						// ...and store the new StartOpened state.
 						this.startOpenedState = this.StartOpened;
 					}
+
+
+					// ...if the port is closed and the attachNode icon is active...
+					if ((!this.IsOpen) && this.attachNode != null)
+					{
+						// Yay debugging!
+						Tools.PostDebugMessage(this.GetType().Name + ": removing node");
+
+						// ...delete the node's icon.
+						GameObject.Destroy(this.attachNode.icon);
+						this.attachNode.icon = null;
+					}
 				}
 
 				/*
@@ -418,20 +373,24 @@ namespace TweakableEverything
 			// If we are in flight...
 			if (HighLogic.LoadedSceneIsFlight)
 			{
-				// ...and if we have a deploy animation...
-				if (this.deployAnimationModule != null)
+				// ...and if we have a deploy animation module and are ready...
+				if (
+					this.deployAnimation != null &&
+					this.deployAnimation.module != null &&
+					this.dockingNodeModule.state == "Ready"
+				)
 				{
 					// ...and if we have an attached part...
-					if (this.attachedPart != null && this.dockingNodeModule.state == "Ready")
+					if (this.attachedPart != null)
 					{
 						// ...disable the deploy animation.
-						this.deployAnimationModule.Events["Toggle"].active = false;
+						this.deployAnimation.module.Events["Toggle"].active = false;
 					}
 					// ...otherwise...
-					else if (this.dockingNodeModule.state == "Ready")
+					else
 					{
 						// ...enable the deploy animation.
-						this.deployAnimationModule.Events["Toggle"].active = true;
+						this.deployAnimation.module.Events["Toggle"].active = true;
 					}
 				}
 
@@ -455,7 +414,7 @@ namespace TweakableEverything
 
 		// Sometimes, when debugging, it's nice to have a "tell me everything" button.
 		#if DEBUG
-		[KSPEvent(guiActive = true, guiName = "Debug Info")]
+		[KSPEvent(guiName = "Debug Info", guiActive = true, guiActiveEditor = true)]
 		public void DebugInfo()
 		{
 			System.Text.StringBuilder msg = new System.Text.StringBuilder();
