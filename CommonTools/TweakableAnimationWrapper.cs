@@ -158,9 +158,6 @@ namespace TweakableEverything
 				string.Format("animationModule: {0}", animationModule)
 			);
 			this.module = animationModule;
-
-			this.module.Fields["status"].guiActiveEditor = true;
-			this.module.Fields["animSwitch"].guiActiveEditor = true;
 		}
 
 		public void Start()
