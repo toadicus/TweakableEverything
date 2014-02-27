@@ -3,6 +3,7 @@
 // This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a
 // copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/
 
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -37,6 +38,15 @@ namespace TweakableEverything
 			);
 
 			PostDebugMessage(Msg);
+		}
+
+		[System.Diagnostics.Conditional("DEBUG")]
+		public static void DebugFieldsActivate(this PartModule partModule)
+		{
+			foreach (BaseField field in partModule.Fields)
+			{
+				field.guiActive = field.guiActiveEditor = true;
+			}
 		}
 
 		public static void InitializeTweakable(
@@ -76,9 +86,9 @@ namespace TweakableEverything
 			InitializeTweakable(floatRange, ref localField, ref remoteField, remoteField, clobberEverywhere);
 		}
 
-		public static bool Contains(System.Object[] haystack, System.Object needle)
+		public static bool Contains(this GameScenes[] haystack, GameScenes needle)
 		{
-			foreach (System.Object item in haystack)
+			foreach (GameScenes item in haystack)
 			{
 				if (item == needle)
 				{
@@ -89,9 +99,69 @@ namespace TweakableEverything
 			return false;
 		}
 
-		public static bool Contains(this GameScenes[] scenes, GameScenes scene)
+		public static bool TryParse<enumType>(string value, out enumType result)
+			where enumType : struct, IConvertible, IComparable, IFormattable
 		{
-			return Contains(scenes, scene);
+			try
+			{
+				if (!typeof(enumType).IsEnum)
+				{
+					throw new ArgumentException("result must be of an enum type");
+				}
+
+				result = (enumType)Enum.Parse(typeof(enumType), value);
+				return true;
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning(string.Format("[{0}] failed to parse value '{1}': {2}",
+					typeof(enumType).Name,
+					value,
+					e.Message
+				));
+
+				result = (enumType)Enum.GetValues(typeof(enumType)).GetValue(0);
+				return false;
+			}
+		}
+
+		public static double GetValue(this ConfigNode node, string name, double defaultValue)
+		{
+			if (node.HasValue(name))
+			{
+				double result;
+				if (double.TryParse(node.GetValue(name), out result))
+				{
+					return result;
+				}
+			}
+			return defaultValue;
+		}
+
+		public static float GetValue(this ConfigNode node, string name, float defaultValue)
+		{
+			if (node.HasValue(name))
+			{
+				float result;
+				if (float.TryParse(node.GetValue(name), out result))
+				{
+					return result;
+				}
+			}
+			return defaultValue;
+		}
+
+		public static int GetValue(this ConfigNode node, string name, int defaultValue)
+		{
+			if (node.HasValue(name))
+			{
+				int result;
+				if (int.TryParse(node.GetValue(name), out 	result))
+				{
+					return result;
+				}
+			}
+			return defaultValue;
 		}
 	}
 }

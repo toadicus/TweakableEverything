@@ -43,7 +43,7 @@ namespace TweakableEverything
 			{
 				if (this.animationState != null)
 				{
-					return this.animationState.normalizedTime;
+					return Mathf.Clamp(this.animationState.normalizedTime, 0f, 1f);
 				}
 				return 0f;
 			}
@@ -169,8 +169,6 @@ namespace TweakableEverything
 			}
 
 			this.animation.wrapMode = this.wrapMode;
-			this.animationState.normalizedTime = this.startTime;
-			this.animationState.speed = (float)this.startDirection;
 			this.animationState.weight = this.animationWeight;
 		}
 
@@ -204,11 +202,16 @@ namespace TweakableEverything
 			if (this.module != null && this.module is ModuleAnimateGeneric)
 			{
 				(this.module as ModuleAnimateGeneric).animSwitch = animSwitch;
+				(this.module as ModuleAnimateGeneric).animTime = this.normalizedTime;
 			}
 
 			this.animation.Play(this.animationState.name);
 
-			Tools.PostDebugMessage(this, string.Format("Skipped to {0}", this.normalizedTime, this.animationState.normalizedTime));
+			Tools.PostDebugMessage(this, string.Format(
+				"Skipped to {0} ({1})",
+				this.normalizedTime,
+				this.animationState.normalizedTime
+			));
 		}
 
 		public void Toggle()
