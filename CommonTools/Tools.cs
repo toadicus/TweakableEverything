@@ -1,4 +1,4 @@
-// TweakableDockingNode © 2014 toadicus
+// TweakableEverything © 2014 toadicus
 //
 // This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a
 // copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/
@@ -47,43 +47,6 @@ namespace TweakableEverything
 			{
 				field.guiActive = field.guiActiveEditor = true;
 			}
-		}
-
-		public static void InitializeTweakable(
-			UI_FloatRange floatRange,
-			ref float localField,
-			ref float remoteField,
-			float centerValue,
-			bool clobberEverywhere = false
-		)
-		{
-			// If our field is uninitialized...
-			if (localField == -1)
-			{
-				// ...fetch it from the remote field
-				localField = centerValue;
-			}
-
-			// Set the bounds and increment for our tweakable range.
-			floatRange.minValue = 0;
-			floatRange.maxValue = centerValue * 2f;
-			floatRange.stepIncrement = Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(centerValue)) - 1);
-
-			if (HighLogic.LoadedSceneIsFlight || clobberEverywhere)
-			{
-				// Clobber the remote field with ours.
-				remoteField = localField;
-			}
-		}
-
-		public static void InitializeTweakable(
-			UI_FloatRange floatRange,
-			ref float localField,
-			ref float remoteField,
-			bool clobberEverywhere = false
-		)
-		{
-			InitializeTweakable(floatRange, ref localField, ref remoteField, remoteField, clobberEverywhere);
 		}
 
 		public static bool Contains(this GameScenes[] haystack, GameScenes needle)
