@@ -27,10 +27,18 @@ namespace TweakableEverything
 		// Stores the previous state of reverseGimbalControl.
 		protected bool reverseControlState;
 
+		[KSPField(isPersistant = false)]
+		public float lowerMult;
+
+		[KSPField(isPersistant = false)]
+		public float upperMult;
+
 		public ModuleTweakableGimbal()
 		{
 			this.gimbalRange = -1;
 			this.reverseGimbalControl = false;
+			this.lowerMult = 0f;
+			this.upperMult = 2f;
 		}
 
 		// Runs on PartModule startup.
@@ -46,14 +54,16 @@ namespace TweakableEverything
 			this.gimbalModule = base.part.Modules.OfType<ModuleGimbal>().FirstOrDefault();
 
 			// Initialize the gimbal range tweakable and value.
-			Tools.InitializeTweakable(
+			Tools.InitializeTweakable<ModuleTweakableGimbal>(
 				(UI_FloatRange)this.Fields["gimbalRange"].uiControlEditor,
 				ref this.gimbalRange,
 				ref this.gimbalModule.gimbalRange,
 				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
 					.OfType<ModuleGimbal>()
 					.FirstOrDefault()
-					.gimbalRange
+					.gimbalRange,
+				this.lowerMult,
+				this.upperMult
 			);
 
 			// If we're in flight mode...
