@@ -1,0 +1,7 @@
+*.sln
+*.userprefs
+*.csproj
+*.mdproj
+**bin/
+**obj/
+/releases
