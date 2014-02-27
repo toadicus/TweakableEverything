@@ -35,7 +35,7 @@ namespace TweakableEverything
 
 		public ModuleTweakableGimbal()
 		{
-			this.gimbalRange = -1;
+			this.gimbalRange = -1f;
 			this.reverseGimbalControl = false;
 			this.lowerMult = 0f;
 			this.upperMult = 2f;
@@ -55,7 +55,7 @@ namespace TweakableEverything
 
 			// Initialize the gimbal range tweakable and value.
 			Tools.InitializeTweakable<ModuleTweakableGimbal>(
-				(UI_FloatRange)this.Fields["gimbalRange"].uiControlEditor,
+				(UI_FloatRange)this.Fields["gimbalRange"].uiControlCurrent(),
 				ref this.gimbalRange,
 				ref this.gimbalModule.gimbalRange,
 				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
