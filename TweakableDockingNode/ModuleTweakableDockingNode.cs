@@ -176,70 +176,44 @@ namespace TweakableEverything
 			// Start the underlying ModuleDockingNode.
 			base.OnStart(st);
 
-			if (this.acquireRange == -1)
-			{
-				this.acquireRange = this.dockingNodeModule.acquireRange;
-			}
+			ModuleDockingNode prefabModule = PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab.Modules
+				.OfType<ModuleDockingNode>()
+				.FirstOrDefault();
 
-			((UI_FloatRange)this.Fields["acquireRange"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["acquireRange"].uiControlEditor).maxValue =
-				this.dockingNodeModule.acquireRange * 2f;
-			((UI_FloatRange)this.Fields["acquireRange"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.acquireRange)) - 1);
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+				(UI_FloatRange)this.Fields["acquireRange"].uiControlCurrent(),
+				ref this.acquireRange,
+				ref this.dockingNodeModule.acquireRange,
+				prefabModule.acquireRange
+			);
 
-			this.dockingNodeModule.acquireRange = this.acquireRange;
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+				(UI_FloatRange)this.Fields["acquireForce"].uiControlCurrent(),
+				ref this.acquireForce,
+				ref this.dockingNodeModule.acquireForce,
+				prefabModule.acquireForce
+			);
 
-			if (this.acquireForce == -1)
-			{
-				this.acquireForce = this.dockingNodeModule.acquireForce;
-			}
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+				(UI_FloatRange)this.Fields["acquireTorque"].uiControlCurrent(),
+				ref this.acquireTorque,
+				ref this.dockingNodeModule.acquireTorque,
+				prefabModule.acquireForce
+			);
 
-			((UI_FloatRange)this.Fields["acquireForce"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["acquireForce"].uiControlEditor).maxValue =
-				this.dockingNodeModule.acquireForce * 2f;
-			((UI_FloatRange)this.Fields["acquireForce"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.acquireForce)) - 1);
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+				(UI_FloatRange)this.Fields["undockEjectionForce"].uiControlCurrent(),
+				ref this.undockEjectionForce,
+				ref this.dockingNodeModule.undockEjectionForce,
+				prefabModule.undockEjectionForce
+			);
 
-			this.dockingNodeModule.acquireForce = this.acquireForce;
-
-			if (this.acquireTorque == -1)
-			{
-				this.acquireTorque = this.dockingNodeModule.acquireTorque;
-			}
-
-			((UI_FloatRange)this.Fields["acquireTorque"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["acquireTorque"].uiControlEditor).maxValue =
-				this.dockingNodeModule.acquireTorque * 2f;
-			((UI_FloatRange)this.Fields["acquireTorque"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.acquireTorque)) - 1);
-
-			this.dockingNodeModule.acquireTorque = this.acquireTorque;
-
-			if (this.undockEjectionForce == -1)
-			{
-				this.undockEjectionForce = this.dockingNodeModule.undockEjectionForce;
-			}
-
-			((UI_FloatRange)this.Fields["undockEjectionForce"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["undockEjectionForce"].uiControlEditor).maxValue =
-				this.dockingNodeModule.undockEjectionForce * 2f;
-			((UI_FloatRange)this.Fields["undockEjectionForce"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.undockEjectionForce)) - 1);
-
-			this.dockingNodeModule.undockEjectionForce = this.undockEjectionForce;
-
-			if (this.minDistanceToReEngage == -1)
-			{
-				this.minDistanceToReEngage = this.dockingNodeModule.minDistanceToReEngage;
-			}
-
-			((UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlEditor).maxValue =
-				this.dockingNodeModule.minDistanceToReEngage * 2f;
-			((UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.dockingNodeModule.minDistanceToReEngage)) - 1);
-
-			this.dockingNodeModule.minDistanceToReEngage = this.minDistanceToReEngage;
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+				(UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlCurrent(),
+				ref this.minDistanceToReEngage,
+				ref this.dockingNodeModule.minDistanceToReEngage,
+				prefabModule.minDistanceToReEngage
+			);
 
 			// If we have a tweakable AttachNode, use it.
 			if (this.TDNnodeName != string.Empty)
