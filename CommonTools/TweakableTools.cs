@@ -35,16 +35,6 @@ namespace TweakableEverything
 				localField = centerValue;
 			}
 
-			if (lowerMult == -1)
-			{
-				lowerMult = bounds.x;
-			}
-
-			if (upperMult == -1)
-			{
-				upperMult = bounds.y;
-			}
-
 			lowerMult = Mathf.Max(lowerMult, bounds.x, 0);
 			upperMult = Mathf.Max(lowerMult, Mathf.Min(upperMult, bounds.y));
 
@@ -75,8 +65,8 @@ namespace TweakableEverything
 				ref localField,
 				ref remoteField,
 				centerValue,
-				-1f,
-				-1f,
+				0f,
+				2f,
 				clobberEverywhere
 			);
 		}
@@ -98,7 +88,7 @@ namespace TweakableEverything
 
 			config.load();
 
-			bounds = config.GetValue("bounds", new Vector2(0f, 2f));
+			bounds = config.GetValue("bounds", new Vector2(float.NegativeInfinity, float.PositiveInfinity));
 
 			config.save();
 
