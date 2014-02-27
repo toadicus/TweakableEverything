@@ -60,16 +60,7 @@ namespace TweakableEverything
 		{
 			get
 			{
-				if (HighLogic.LoadedSceneIsEditor)
-				{
-					return (UI_Toggle)this.startField.uiControlEditor;
-				}
-				else if (HighLogic.LoadedSceneIsFlight)
-				{
-					return (UI_Toggle)this.startField.uiControlFlight;
-				}
-
-				return null;
+				return (UI_Toggle)this.startField.uiControlCurrent();
 			}
 		}
 
