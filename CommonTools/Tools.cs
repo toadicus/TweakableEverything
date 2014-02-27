@@ -126,5 +126,21 @@ namespace TweakableEverything
 			}
 			return defaultValue;
 		}
+
+		public static UI_Control uiControlCurrent(this BaseField field)
+		{
+			if (HighLogic.LoadedSceneIsFlight)
+			{
+				return field.uiControlFlight;
+			}
+			else if (HighLogic.LoadedSceneIsEditor)
+			{
+				return field.uiControlEditor;
+			}
+			else
+			{
+				return null;
+			}
+		}
 	}
 }

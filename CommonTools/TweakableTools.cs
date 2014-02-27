@@ -24,6 +24,10 @@ namespace TweakableEverything
 			bool clobberEverywhere = false
 		)
 		{
+			Vector2 bounds;
+
+			bounds = LoadBounds<T>();
+
 			// If our field is uninitialized...
 			if (localField == -1)
 			{
@@ -31,17 +35,25 @@ namespace TweakableEverything
 				localField = centerValue;
 			}
 
-			Vector2 bounds;
+			if (lowerMult == -1)
+			{
+				lowerMult = bounds.x;
+			}
 
-			bounds = LoadBounds<T>();
+			if (upperMult == -1)
+			{
+				upperMult = bounds.y;
+			}
 
-			lowerMult = Mathf.Max(bounds.x, lowerMult, 0);
-			upperMult = Mathf.Min(bounds.y, upperMult);
+			lowerMult = Mathf.Max(lowerMult, bounds.x, 0);
+			upperMult = Mathf.Max(lowerMult, Mathf.Min(upperMult, bounds.y));
 
 			// Set the bounds and increment for our tweakable range.
 			floatRange.minValue = centerValue * lowerMult;
 			floatRange.maxValue = centerValue * upperMult;
 			floatRange.stepIncrement = Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(centerValue)) - 1);
+
+			localField = Mathf.Clamp(localField, floatRange.minValue, floatRange.maxValue);
 
 			if (HighLogic.LoadedSceneIsFlight || clobberEverywhere)
 			{
@@ -63,8 +75,8 @@ namespace TweakableEverything
 				ref localField,
 				ref remoteField,
 				centerValue,
-				0f,
-				2f,
+				-1f,
+				-1f,
 				clobberEverywhere
 			);
 		}
