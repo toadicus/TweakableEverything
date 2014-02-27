@@ -25,11 +25,22 @@ namespace TweakableEverything
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float ejectionForce;
 
+		[KSPField(isPersistant = false)]
+		public float lowerMult;
+
+		[KSPField(isPersistant = false)]
+		public float upperMult;
+
 		// Construct ALL the objects.
 		public ModuleTweakableDecouple() : base()
 		{
 			// We'll use -1 to mean "uninitialized" for purposes of defaulting to the base module's value
 			this.ejectionForce = -1;
+
+			// Set the default multipler bounds.
+			this.lowerMult = 0f;
+			this.upperMult = 2f;
+
 			// Default to ModuleDecouple in case we get an older .cfg file.
 			this.decouplerModuleName = "ModuleDecouple";
 		}
@@ -54,27 +65,21 @@ namespace TweakableEverything
 				.OfType<PartModule>()
 				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
 
-			// If our ejection force is uninitialized...
-			if (this.ejectionForce == -1)
-			{
-				// Fetch it from the decoupler module
-				this.ejectionForce = this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
-			}
+			float remoteEjectionForce =
+				this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
 
-			// Set the bounds and increment on the tweakable
-			((UI_FloatRange)this.Fields["ejectionForce"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["ejectionForce"].uiControlEditor).maxValue =
-				prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule) * 2;
-			((UI_FloatRange)this.Fields["ejectionForce"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f,
-					Mathf.RoundToInt(
-						Mathf.Log10(prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule))
-					) - 1
-				);
+			Tools.InitializeTweakable<ModuleTweakableDecouple>(
+				(UI_FloatRange)this.Fields["ejectionForce"].uiControlCurrent(),
+				ref this.ejectionForce,
+				ref remoteEjectionForce,
+				prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),
+				this.lowerMult,
+				this.upperMult
+			);
 
 			// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
 			// this sets the ejectionForce from our persistent value when the part is started.
-			this.decoupleModule.Fields["ejectionForce"].SetValue(this.ejectionForce, this.decoupleModule);
+			this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
 		}
 	}
 }
