@@ -56,57 +56,30 @@ namespace TweakableEverything
 
 			// Fetch the reaction wheel module.
 			this.reactionWheelModule = base.part.Modules.OfType<ModuleReactionWheel>().FirstOrDefault();
+			ModuleReactionWheel prefabModule = PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab.Modules
+				.OfType<ModuleReactionWheel>()
+				.First();
 
-			// If our roll torque value is uninitalized...
-			if (this.RollTorque == -1)
-			{
-				// ...fetch it from the reaction wheel module.
-				this.RollTorque = this.reactionWheelModule.RollTorque;
-			}
+			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+				(UI_FloatRange)this.Fields["RollTorque"].uiControlEditor,
+				ref this.RollTorque,
+				ref this.reactionWheelModule.RollTorque,
+				prefabModule.RollTorque
+			);
 
-			// Set the bounds and increment for our roll torque tweakable.
-			((UI_FloatRange)this.Fields["RollTorque"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["RollTorque"].uiControlEditor).maxValue =
-				this.reactionWheelModule.RollTorque * 2f;
-			((UI_FloatRange)this.Fields["RollTorque"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.reactionWheelModule.RollTorque)) - 1);
+			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+				(UI_FloatRange)this.Fields["PitchTorque"].uiControlEditor,
+				ref this.PitchTorque,
+				ref this.reactionWheelModule.PitchTorque,
+				prefabModule.PitchTorque
+			);
 
-			// Clobber the reaction wheel module's roll torque with ours.
-			this.reactionWheelModule.RollTorque = this.RollTorque;
-
-			// If our pitch torque value is uninitalized...
-			if (this.PitchTorque == -1)
-			{
-				// ...fetch it from the reaction wheel module.
-				this.PitchTorque = this.reactionWheelModule.PitchTorque;
-			}
-
-			// Set the bounds and increment for our pitch torque tweakable.
-			((UI_FloatRange)this.Fields["PitchTorque"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["PitchTorque"].uiControlEditor).maxValue =
-				this.reactionWheelModule.PitchTorque * 2f;
-			((UI_FloatRange)this.Fields["PitchTorque"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.reactionWheelModule.PitchTorque)) - 1);
-
-			// Clobber the reaction wheel module's pitch torque with ours.
-			this.reactionWheelModule.PitchTorque = this.PitchTorque;
-
-			// If our yaw torque value is uninitalized...
-			if (this.YawTorque == -1)
-			{
-				// ...fetch it from the reaction wheel module.
-				this.YawTorque = this.reactionWheelModule.YawTorque;
-			}
-
-			// Set the bounds and increment for our yaw torque tweakable.
-			((UI_FloatRange)this.Fields["YawTorque"].uiControlEditor).minValue = 0;
-			((UI_FloatRange)this.Fields["YawTorque"].uiControlEditor).maxValue =
-				this.reactionWheelModule.YawTorque * 2f;
-			((UI_FloatRange)this.Fields["YawTorque"].uiControlEditor).stepIncrement =
-				Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(this.reactionWheelModule.YawTorque)) - 1);
-
-			// Clobber the reaction wheel module's yaw torque with ours.
-			this.reactionWheelModule.YawTorque = this.YawTorque;
+			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+				(UI_FloatRange)this.Fields["YawTorque"].uiControlEditor,
+				ref this.YawTorque,
+				ref this.reactionWheelModule.YawTorque,
+				prefabModule.YawTorque
+			);
 		}
 
 		// Runs late in the update cycle
