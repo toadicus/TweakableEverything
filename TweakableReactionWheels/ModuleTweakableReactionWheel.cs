@@ -61,21 +61,21 @@ namespace TweakableEverything
 				.First();
 
 			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
-				(UI_FloatRange)this.Fields["RollTorque"].uiControlEditor,
+				(UI_FloatRange)this.Fields["RollTorque"].uiControlCurrent(),
 				ref this.RollTorque,
 				ref this.reactionWheelModule.RollTorque,
 				prefabModule.RollTorque
 			);
 
 			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
-				(UI_FloatRange)this.Fields["PitchTorque"].uiControlEditor,
+				(UI_FloatRange)this.Fields["PitchTorque"].uiControlCurrent(),
 				ref this.PitchTorque,
 				ref this.reactionWheelModule.PitchTorque,
 				prefabModule.PitchTorque
 			);
 
 			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
-				(UI_FloatRange)this.Fields["YawTorque"].uiControlEditor,
+				(UI_FloatRange)this.Fields["YawTorque"].uiControlCurrent(),
 				ref this.YawTorque,
 				ref this.reactionWheelModule.YawTorque,
 				prefabModule.YawTorque
