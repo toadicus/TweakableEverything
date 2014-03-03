@@ -112,7 +112,7 @@ namespace TweakableEverything
 
 		// Puts this in an action group.
 		[KSPAction("Toggle Gimbal Control Flip")]
-		public void ActionGimbalFlip()
+		public void ActionGimbalFlip(KSPActionParam p)
 		{
 			// Emulate a tweakble toggle.
 			this.reverseGimbalControl = !this.reverseGimbalControl;
