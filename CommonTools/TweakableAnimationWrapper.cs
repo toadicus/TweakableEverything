@@ -41,16 +41,31 @@ namespace TweakableEverything
 		{
 			get
 			{
+				// If we have an animation state...
 				if (this.animationState != null)
 				{
+					// ...and if we're wrapping a ModuleAnimateGeneric, return its Progress property, because it lies to us.
+					if (this.module != null && this.module is ModuleAnimateGeneric)
+					{
+						return (this.module as ModuleAnimateGeneric).Progress;
+					}
+					// ...otherwise, return the animation's normalizedTime.
 					return Mathf.Clamp(this.animationState.normalizedTime, 0f, 1f);
 				}
+
+				// Return 0 if we're not wrapping anything yet.
 				return 0f;
 			}
 			protected set
 			{
 				if (this.animationState != null)
 				{
+					if (this.module != null && this.module is ModuleAnimateGeneric)
+					{
+						(this.module as ModuleAnimateGeneric).animTime = value;
+						(this.module as ModuleAnimateGeneric).SetScalar(value);
+					}
+
 					this.animationState.normalizedTime = value;
 					return;
 				}
@@ -201,8 +216,8 @@ namespace TweakableEverything
 
 			if (this.module != null && this.module is ModuleAnimateGeneric)
 			{
-				(this.module as ModuleAnimateGeneric).animSwitch = animSwitch;
-				(this.module as ModuleAnimateGeneric).animTime = this.normalizedTime;
+				ModuleAnimateGeneric mag = (this.module as ModuleAnimateGeneric);
+				mag.animSwitch = animSwitch;
 			}
 
 			this.animation.Play(this.animationState.name);
