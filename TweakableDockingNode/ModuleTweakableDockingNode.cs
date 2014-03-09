@@ -129,17 +129,19 @@ namespace TweakableEverything
 		}
 
 		// Get the open/closed state of the shield.
+		[KSPField(isPersistant = false, guiActiveEditor = true)]
 		protected bool IsOpen
 		{
 			get
 			{
 				if (this.deployAnimation == null)
 				{
+					Tools.PostDebugMessage(this, "deployAnimation is null; open status falling back to False.");
 					return false;
 				}
 				else
 				{
-					return (this.deployAnimation.normalizedTime == 1);
+					return (this.deployAnimation.normalizedTime >= 1);
 				}
 			}
 		}
@@ -330,14 +332,9 @@ namespace TweakableEverything
 
 
 					// ...if the port is closed and the attachNode icon is active...
-					if ((!this.IsOpen) && this.attachNode != null && this.attachNode.icon != null)
+					if (this.attachNode != null && this.attachNode.icon != null)
 					{
-						// Yay debugging!
-						Tools.PostDebugMessage(this.GetType().Name + ": removing node");
-
-						// ...delete the node's icon.
-						GameObject.Destroy(this.attachNode.icon);
-						this.attachNode.icon = null;
+						this.attachNode.icon.SetActive(this.IsOpen);
 					}
 				}
 
@@ -431,6 +428,22 @@ namespace TweakableEverything
 				msg.Append(field.Name);
 				msg.Append(": ");
 				msg.Append(field.GetValue(this.dockingNodeModule));
+				msg.Append("\n\t");
+			}
+
+			foreach (System.Reflection.PropertyInfo prop in this.deployAnimation.GetType().GetProperties())
+			{
+				msg.Append(prop.Name);
+				msg.Append(": ");
+				msg.Append(prop.GetValue(this.deployAnimation, null));
+				msg.Append("\n\t");
+			}
+
+			foreach (System.Reflection.FieldInfo field in this.deployAnimation.GetType().GetFields())
+			{
+				msg.Append(field.Name);
+				msg.Append(": ");
+				msg.Append(field.GetValue(this.deployAnimation));
 				msg.Append("\n\t");
 			}
 
