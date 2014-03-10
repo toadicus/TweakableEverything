@@ -83,6 +83,18 @@ namespace TweakableRCS
 				}
 			}
 		}
+
+		[KSPAction(guiName = "Enable Thruster")]
+		public void EnableAction(KSPActionParam param)
+		{
+			this.RCSModule.Enable();
+		}
+
+		[KSPAction(guiName = "Disable Thruster")]
+		public void DisableAction(KSPAction param)
+		{
+			this.RCSModule.Disable();
+		}
 	}
 }
 
