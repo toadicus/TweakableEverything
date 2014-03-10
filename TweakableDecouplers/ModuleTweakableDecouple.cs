@@ -31,6 +31,13 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public float upperMult;
 
+		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
+		[KSPField(isPersistant = true, guiName = "Staging", guiActive = true, guiActiveEditor = true)]
+		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
+		public bool stagingEnabled;
+		// Stores its last state so we can only run when things change.
+		protected bool stagingState;
+
 		// Construct ALL the objects.
 		public ModuleTweakableDecouple() : base()
 		{
@@ -40,6 +47,11 @@ namespace TweakableEverything
 			// Set the default multipler bounds.
 			this.lowerMult = 0f;
 			this.upperMult = 2f;
+
+			// Default stagingEnabled to true for consistency with stock behavior.
+			this.stagingEnabled = true;
+			// Seed the staging state to false so we only get first-run behavior 
+			this.stagingState = false;
 
 			// Default to ModuleDecouple in case we get an older .cfg file.
 			this.decouplerModuleName = "ModuleDecouple";
@@ -80,6 +92,59 @@ namespace TweakableEverything
 			// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
 			// this sets the ejectionForce from our persistent value when the part is started.
 			this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
+		}
+
+		public void LateUpdate()
+		{
+			// If our staging state has changed...
+			if (this.stagingState != this.stagingEnabled)
+			{
+				// ...seed the last state
+				this.stagingState = this.stagingEnabled;
+
+				// ...and switch the staging
+				this.SwitchStaging(this.stagingEnabled);
+			}
+
+			// If our tweakable is active but the decoupler has already fired...
+			if (this.Fields["stagingEnabled"].guiActive && this.decoupleModule.Fields["isDecoupled"].GetValue<bool>(this.decoupleModule))
+			{
+				// ...disable the tweakable
+				this.Fields["stagingEnabled"].guiActive = this.Fields["stagingEnabled"].guiActiveEditor = false;
+			}
+		}
+
+		// Switches the staging
+		protected void SwitchStaging(bool enabled)
+		{
+			// If we're switching to enabled...
+			if (enabled)
+			{
+				// ..and if our part has fallen off the staging list...
+				if (Staging.StageCount < this.part.inverseStage + 1)
+				{
+					// ...add a new stage at the end
+					Staging.AddStageAt(Staging.StageCount);
+					// ...and move our part to it
+					this.part.inverseStage = Staging.StageCount - 1;
+				}
+
+				// ...add our icon to the staging list
+				Tools.PostDebugMessage(this, "Assigning inverseStage " + this.part.inverseStage, "Stage Count: " + Staging.StageCount);
+				this.part.stackIcon.CreateIcon();
+			}
+			// ...otherwise, we're switching to disabled, so...
+			else
+			{
+				// ...remove the icon from the list
+				this.part.stackIcon.RemoveIcon();
+			}
+
+			// Sort the staging list
+			Staging.ScheduleSort();
+
+			// Clobber the "staged" field in the decoupler module
+			this.decoupleModule.Fields["staged"].SetValue(enabled, this.decoupleModule);
 		}
 	}
 }
