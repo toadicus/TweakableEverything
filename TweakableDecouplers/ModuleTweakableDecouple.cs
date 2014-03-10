@@ -25,9 +25,10 @@ namespace TweakableEverything
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float ejectionForce;
 
+		// Stores the configurable multiplier for the lower bound on the FloatRange
 		[KSPField(isPersistant = false)]
 		public float lowerMult;
-
+		// Stores the configurable multiplier for the upper bound on the FloatRange
 		[KSPField(isPersistant = false)]
 		public float upperMult;
 
@@ -50,8 +51,6 @@ namespace TweakableEverything
 
 			// Default stagingEnabled to true for consistency with stock behavior.
 			this.stagingEnabled = true;
-			// Seed the staging state to false so we only get first-run behavior 
-			this.stagingState = false;
 
 			// Default to ModuleDecouple in case we get an older .cfg file.
 			this.decouplerModuleName = "ModuleDecouple";
@@ -66,20 +65,25 @@ namespace TweakableEverything
 			// Start up any underlying PartModule stuff
 			base.OnStart(state);
 
-			// Fetch the decoupler module from the part by module name.
+			// Fetch the generic decoupler module from the part by module name.
 			this.decoupleModule = base.part.Modules
 				.OfType<PartModule>()
 				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
 
+			// Fetch the prefab for harvesting the actual stock value.  This is done to prevent copies in the editor
+			// from inheriting a tweaked value as their "center".
 			partInfo = PartLoader.getPartInfoByName(base.part.partInfo.name);
-
+			// Fetch the prefab module for the above purpose.
 			prefabModule = partInfo.partPrefab.Modules
 				.OfType<PartModule>()
 				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
 
+			// Fetch the ejectionForce field from our generic decoupler module.
 			float remoteEjectionForce =
 				this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
 
+			// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
+			// prefab, and current value from persistence
 			Tools.InitializeTweakable<ModuleTweakableDecouple>(
 				(UI_FloatRange)this.Fields["ejectionForce"].uiControlCurrent(),
 				ref this.ejectionForce,
@@ -92,10 +96,23 @@ namespace TweakableEverything
 			// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
 			// this sets the ejectionForce from our persistent value when the part is started.
 			this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
+
+			// Seed the stagingEnabled state so we make sure to run on the first update.
+			this.stagingState = !this.stagingEnabled;
 		}
 
 		public void LateUpdate()
 		{
+			// If the decoupler has already fired...
+			if (this.decoupleModule.Fields["isDecoupled"].GetValue<bool>(this.decoupleModule))
+			{
+				// ...disable the tweakable
+				this.Fields["stagingEnabled"].guiActive = this.Fields["stagingEnabled"].guiActiveEditor = false;
+
+				// ...and do nothing else
+				return;
+			}
+
 			// If our staging state has changed...
 			if (this.stagingState != this.stagingEnabled)
 			{
@@ -104,13 +121,6 @@ namespace TweakableEverything
 
 				// ...and switch the staging
 				this.SwitchStaging(this.stagingEnabled);
-			}
-
-			// If our tweakable is active but the decoupler has already fired...
-			if (this.Fields["stagingEnabled"].guiActive && this.decoupleModule.Fields["isDecoupled"].GetValue<bool>(this.decoupleModule))
-			{
-				// ...disable the tweakable
-				this.Fields["stagingEnabled"].guiActive = this.Fields["stagingEnabled"].guiActiveEditor = false;
 			}
 		}
 
