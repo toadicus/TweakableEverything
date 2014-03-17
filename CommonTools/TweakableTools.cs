@@ -39,9 +39,18 @@ namespace TweakableEverything
 			upperMult = Mathf.Max(lowerMult, Mathf.Min(upperMult, bounds.y));
 
 			// Set the bounds and increment for our tweakable range.
-			floatRange.minValue = centerValue * lowerMult;
-			floatRange.maxValue = centerValue * upperMult;
-			floatRange.stepIncrement = Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(centerValue)) - 1);
+			if (centerValue < 0)
+			{
+				floatRange.maxValue = centerValue * lowerMult;
+				floatRange.minValue = centerValue * upperMult;
+			}
+			else
+			{
+				floatRange.minValue = centerValue * lowerMult;
+				floatRange.maxValue = centerValue * upperMult;
+			}
+
+			floatRange.stepIncrement = Mathf.Pow(10f, Mathf.RoundToInt(Mathf.Log10(Mathf.Abs(centerValue))) - 1);
 
 			localField = Mathf.Clamp(localField, floatRange.minValue, floatRange.maxValue);
 
