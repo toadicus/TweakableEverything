@@ -98,6 +98,16 @@ namespace TweakableEverything
 		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float minDistanceToReEngage;
 
+		[KSPField(isPersistant = true)]
+		protected bool isDecoupled;
+
+		[KSPField(isPersistant = true, guiName = "Decoupler Staging", guiActiveEditor = true, guiActive = true)]
+		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
+		public bool decoupleStaging;
+		protected bool decoupleStagingState;
+
+		protected VStackIcon stackIcon;
+
 		// Gets the base part's fuelCrossFeed value.
 		public bool partCrossFeed
 		{
@@ -258,6 +268,36 @@ namespace TweakableEverything
 				this.attachedPart,
 				this.fuelCrossFeed
 			));
+
+			this.decoupleStagingState = !this.decoupleStaging;
+
+			// If we have not already decoupled through staging...
+			if (!this.isDecoupled)
+			{
+				// ...assign the part's staging icon to the vertical decoupler icon
+				this.part.stagingIcon = Enum.GetName(typeof(DefaultIcons), DefaultIcons.DECOUPLER_VERT);
+
+				// ...and if the part's stackIcon is missing...
+				if (this.part.stackIcon == null)
+				{
+					// ...rebuild it
+					this.part.stackIcon = new VStackIcon(this.part);
+				}
+
+				// ...fetch the part's stackIcon for our use
+				this.stackIcon = this.part.stackIcon;
+
+				// ...set the stackIcon's icon to the vertical decoupler icon
+				this.stackIcon.SetIcon(DefaultIcons.DECOUPLER_VERT);
+			}
+			// ...otherwise, we've already decoupled...
+			else
+			{
+				// ...so disable the staging toggle
+				this.Fields["decoupleStaging"].uiControlCurrent().controlEnabled = false;
+				this.Fields["decoupleStaging"].guiActive = false;
+				this.Fields["decoupleStaging"].guiActiveEditor = false;
+			}
 		}
 
 		// Runs every LateUpdate, because that's how Unity rolls.
@@ -378,6 +418,62 @@ namespace TweakableEverything
 					// ...assign our crossfeed status to the part, since that's where it matters.
 					this.partCrossFeed = this.fuelCrossFeed;
 				}
+			}
+
+			// If we're not already decoupled, we have a stack icon, and the decoupleStaging toggle has changed...
+			if (!this.isDecoupled && this.stackIcon != null && this.decoupleStaging != this.decoupleStagingState)
+			{
+				// ...reseed the decoupleStaging toggle state
+				this.decoupleStagingState = this.decoupleStaging;
+
+				// ...and if decoupleStaging is now true...
+				if (this.decoupleStaging)
+				{
+					// If our part has fallen off the staging list...
+					if (Staging.StageCount < this.part.inverseStage + 1)
+					{
+						// ...add a new stage at the end
+						Staging.AddStageAt(Staging.StageCount);
+						// ...and move our part to it
+						this.part.inverseStage = Staging.StageCount - 1;
+					}
+
+					// ...activate the stack icon
+					this.stackIcon.CreateIcon();
+				}
+				// ...otherwise, decoupleStaging is false...
+				else
+				{
+					// ...deactivate the stack icon
+					this.stackIcon.RemoveIcon();
+				}
+
+				// Sort the staging list
+				Staging.ScheduleSort();
+			}
+		}
+
+		// Called when the part is activated, as by staging
+		public override void OnActive()
+		{
+			Tools.PostDebugMessage(this, "OnActive called.");
+
+			base.OnActive();
+
+			// If we have enabled staging, have not already decoupled, and have a stack icon...
+			if (this.decoupleStaging && !this.isDecoupled && this.stackIcon != null)
+			{
+				// ...decouple the underlying ModuleDockingNode
+				this.dockingNodeModule.Decouple();
+				// ...note that we have decoupled
+				this.isDecoupled = true;
+				// ...disable the stack icon
+				this.stackIcon.DisableIcon();
+
+				// ...disable the tweakable
+				this.Fields["decoupleStaging"].uiControlCurrent().controlEnabled = false;
+				this.Fields["decoupleStaging"].guiActive = false;
+				this.Fields["decoupleStaging"].guiActiveEditor = false;
 			}
 		}
 
