@@ -101,7 +101,7 @@ namespace TweakableEverything
 		[KSPField(isPersistant = true)]
 		protected bool isDecoupled;
 
-		[KSPField(isPersistant = true, guiName = "Decoupler Staging", guiActiveEditor = true, guiActive = true)]
+		[KSPField(isPersistant = true, guiName = "Decoupler Staging", guiActiveEditor = true, guiActive = false)]
 		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
 		public bool decoupleStaging;
 		protected bool decoupleStagingState;
@@ -289,13 +289,22 @@ namespace TweakableEverything
 
 				// ...set the stackIcon's icon to the vertical decoupler icon
 				this.stackIcon.SetIcon(DefaultIcons.DECOUPLER_VERT);
+
+				if (this.decoupleStaging)
+				{
+					this.stackIcon.CreateIcon();
+				}
+				else
+				{
+					this.stackIcon.RemoveIcon();
+				}
+				Staging.ScheduleSort();
 			}
 			// ...otherwise, we've already decoupled...
 			else
 			{
 				// ...so disable the staging toggle
 				this.Fields["decoupleStaging"].uiControlCurrent().controlEnabled = false;
-				this.Fields["decoupleStaging"].guiActive = false;
 				this.Fields["decoupleStaging"].guiActiveEditor = false;
 			}
 		}
@@ -472,7 +481,6 @@ namespace TweakableEverything
 
 				// ...disable the tweakable
 				this.Fields["decoupleStaging"].uiControlCurrent().controlEnabled = false;
-				this.Fields["decoupleStaging"].guiActive = false;
 				this.Fields["decoupleStaging"].guiActiveEditor = false;
 			}
 		}
