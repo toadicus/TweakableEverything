@@ -17,6 +17,8 @@ namespace TweakableEverything
 
 		protected Dictionary<string, Transform> jettisonTransforms;
 
+		protected Dictionary<string, bool> isJettisonedTable;
+
 		[KSPField(isPersistant = true, guiName = "Fairing", guiActive = false, guiActiveEditor = true)]
 		[UI_Toggle(enabledText = "Disabled", disabledText = "Enabled")]
 		public bool disableFairing;
@@ -30,6 +32,7 @@ namespace TweakableEverything
 
 			this.jettisonModules = new List<ModuleJettison>();
 			this.jettisonTransforms = new Dictionary<string, Transform>();
+			this.isJettisonedTable = new Dictionary<string, bool>();
 		}
 
 		public override void OnStart(StartState state)
@@ -45,6 +48,7 @@ namespace TweakableEverything
 					ModuleJettison jettisonModule = module as ModuleJettison;
 					this.jettisonModules.Add(jettisonModule);
 					this.jettisonTransforms[jettisonModule.jettisonName] = jettisonModule.jettisonTransform;
+					this.isJettisonedTable[jettisonModule.jettisonName] = jettisonModule.isJettisoned;
 				}
 			}
 
@@ -97,6 +101,9 @@ namespace TweakableEverything
 							jettisonModule.jettisonTransform = jettisonTransform;
 							Tools.PostDebugMessage(this, "transform reset.");
 						}
+
+						jettisonModule.isJettisoned = !this.disableFairing |
+							this.isJettisonedTable[jettisonModule.jettisonName];
 					}
 				}
 			}
