@@ -43,12 +43,22 @@ namespace TweakableRCS
 
 			this.startEnabledState = !this.startEnabled;
 
-			this.baseThrusterPower = this.RCSModule.thrusterPower;
+			// Only run the assignment if the module exists.
+			if (this.RCSModule != null)
+			{
+				this.baseThrusterPower = this.RCSModule.thrusterPower;
+			}
 		}
 
 		// Runs late in the update cycle
 		public void LateUpdate()
 		{
+			// Do nothing if the RCS module is null.
+			if (this.RCSModule == null)
+			{
+				return;
+			}
+
 			// If we're in the editor...
 			if (HighLogic.LoadedSceneIsEditor)
 			{
