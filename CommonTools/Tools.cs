@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -38,6 +39,19 @@ namespace TweakableEverything
 			);
 
 			PostDebugMessage(Msg);
+		}
+
+		[System.Diagnostics.Conditional("DEBUG")]
+		public static void PostDebugMessage(object Sender, string format, params object[] args)
+		{
+			StringBuilder sb = new StringBuilder();
+
+			sb.Append(Sender.GetType().Name);
+			sb.Append(": ");
+
+			sb.AppendFormat(format, args);
+
+			PostDebugMessage(sb.ToString());
 		}
 
 		[System.Diagnostics.Conditional("DEBUG")]

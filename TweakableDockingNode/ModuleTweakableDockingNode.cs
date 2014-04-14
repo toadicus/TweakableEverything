@@ -503,57 +503,62 @@ namespace TweakableEverything
 			msg.Append(this.GetType().Name);
 			msg.Append(": \n\t");
 
-			foreach (System.Reflection.PropertyInfo prop in this.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+			try
 			{
-				msg.Append(prop.Name);
-				msg.Append(": ");
-				msg.Append(prop.GetValue(this, null));
-				msg.Append("\n\t");
-			}
+				foreach (System.Reflection.PropertyInfo prop in this.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+				{
+					msg.Append(prop.Name);
+					msg.Append(": ");
+					msg.Append(prop.GetValue(this, null));
+					msg.Append("\n\t");
+				}
 
-			foreach (System.Reflection.FieldInfo field in this.GetType().GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+				foreach (System.Reflection.FieldInfo field in this.GetType().GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+				{
+					msg.Append(field.Name);
+					msg.Append(": ");
+					msg.Append(field.GetValue(this));
+					msg.Append("\n\t");
+				}
+
+				foreach (System.Reflection.PropertyInfo prop in this.dockingNodeModule.GetType().GetProperties())
+				{
+					msg.Append(prop.Name);
+					msg.Append(": ");
+					msg.Append(prop.GetValue(this.dockingNodeModule, null));
+					msg.Append("\n\t");
+				}
+
+				foreach (System.Reflection.FieldInfo field in this.dockingNodeModule.GetType().GetFields())
+				{
+					msg.Append(field.Name);
+					msg.Append(": ");
+					msg.Append(field.GetValue(this.dockingNodeModule));
+					msg.Append("\n\t");
+				}
+
+				foreach (System.Reflection.PropertyInfo prop in this.deployAnimation.GetType().GetProperties())
+				{
+					msg.Append(prop.Name);
+					msg.Append(": ");
+					msg.Append(prop.GetValue(this.deployAnimation, null));
+					msg.Append("\n\t");
+				}
+
+				foreach (System.Reflection.FieldInfo field in this.deployAnimation.GetType().GetFields())
+				{
+					msg.Append(field.Name);
+					msg.Append(": ");
+					msg.Append(field.GetValue(this.deployAnimation));
+					msg.Append("\n\t");
+				}
+			}
+			finally
 			{
-				msg.Append(field.Name);
-				msg.Append(": ");
-				msg.Append(field.GetValue(this));
-				msg.Append("\n\t");
+				msg.Remove(msg.Length - 2, 2);
+
+				Tools.PostDebugMessage(msg.ToString());
 			}
-
-			foreach (System.Reflection.PropertyInfo prop in this.dockingNodeModule.GetType().GetProperties())
-			{
-				msg.Append(prop.Name);
-				msg.Append(": ");
-				msg.Append(prop.GetValue(this.dockingNodeModule, null));
-				msg.Append("\n\t");
-			}
-
-			foreach (System.Reflection.FieldInfo field in this.dockingNodeModule.GetType().GetFields())
-			{
-				msg.Append(field.Name);
-				msg.Append(": ");
-				msg.Append(field.GetValue(this.dockingNodeModule));
-				msg.Append("\n\t");
-			}
-
-			foreach (System.Reflection.PropertyInfo prop in this.deployAnimation.GetType().GetProperties())
-			{
-				msg.Append(prop.Name);
-				msg.Append(": ");
-				msg.Append(prop.GetValue(this.deployAnimation, null));
-				msg.Append("\n\t");
-			}
-
-			foreach (System.Reflection.FieldInfo field in this.deployAnimation.GetType().GetFields())
-			{
-				msg.Append(field.Name);
-				msg.Append(": ");
-				msg.Append(field.GetValue(this.deployAnimation));
-				msg.Append("\n\t");
-			}
-
-			msg.Remove(msg.Length - 2, 2);
-
-			Tools.PostDebugMessage(msg.ToString());
 		}
 		#endif
 	}
