@@ -123,6 +123,8 @@ namespace TweakableEverything
 
 			// Seed the stagingEnabled state so we make sure to run on the first update.
 			this.stagingState = !this.stagingEnabled;
+
+			GameEvents.onPartAttach.Add(this.onPartAttach);
 		}
 
 		public void LateUpdate()
@@ -148,12 +150,55 @@ namespace TweakableEverything
 			}
 		}
 
+		public void Destroy()
+		{
+			GameEvents.onPartAttach.Remove(this.onPartAttach);
+		}
+
+		// Gets the inverse stage in which this decoupler's part will be removed from the craft, or -1 if not
+		protected int GetDecoupledStage()
+		{
+			int iStage = -1;
+
+			if (this.stagingEnabled)
+			{
+				iStage = this.part.inverseStage;
+			}
+			else
+			{
+				Part ancestorPart = this.part;
+				while (ancestorPart.parent != null)
+				{
+					ancestorPart = ancestorPart.parent;
+
+					if (ancestorPart.isDecoupler())
+					{
+						ModuleTweakableDecouple tweakableDecouplerModule;
+
+						if (ancestorPart.tryGetFirstModuleOfType<ModuleTweakableDecouple>(out tweakableDecouplerModule))
+						{
+							if (!tweakableDecouplerModule.stagingEnabled)
+							{
+								continue;
+							}
+						}
+
+						iStage = ancestorPart.inverseStage;
+					}
+				}
+			}
+
+			return iStage;
+		}
+
 		// Switches the staging
 		protected void SwitchStaging(bool enabled)
 		{
 			// If we're switching to enabled...
 			if (enabled)
 			{
+				this.part.inverseStage = Math.Max(this.part.inverseStage, 0);
+
 				// ..and if our part has fallen off the staging list...
 				if (Staging.StageCount < this.part.inverseStage + 1)
 				{
@@ -172,6 +217,8 @@ namespace TweakableEverything
 			{
 				// ...remove the icon from the list
 				this.part.stackIcon.RemoveIcon();
+
+				this.part.inverseStage = this.GetDecoupledStage();
 			}
 
 			// Sort the staging list
@@ -179,6 +226,16 @@ namespace TweakableEverything
 
 			// Clobber the "staged" field in the decoupler module
 			this.decoupleModule.Fields["staged"].SetValue(enabled, this.decoupleModule);
+		}
+
+		protected void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
+		{
+			Tools.PostDebugMessage(this, "Caught onPartAttach with host {0} and target {1}", data.host, data.target);
+
+			if (this.part.hasAncestorPart(data.target))
+			{
+				this.part.inverseStage = this.GetDecoupledStage();
+			}
 		}
 	}
 }
