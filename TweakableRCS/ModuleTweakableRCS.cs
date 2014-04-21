@@ -30,6 +30,7 @@ using KSP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ToadicusTools;
 using UnityEngine;
 
 namespace TweakableRCS
@@ -62,13 +63,12 @@ namespace TweakableRCS
 		{
 			base.OnStart(state);
 
-			this.RCSModule = base.part.Modules.OfType<ModuleRCS>().FirstOrDefault();
-
-			this.startEnabledState = !this.startEnabled;
+			this.RCSModule = base.part.getFirstModuleOfType<ModuleRCS>();
 
 			// Only run the assignment if the module exists.
 			if (this.RCSModule != null)
 			{
+				this.startEnabledState = !this.startEnabled;
 				this.baseThrusterPower = this.RCSModule.thrusterPower;
 			}
 		}

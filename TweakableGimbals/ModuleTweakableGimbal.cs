@@ -75,7 +75,12 @@ namespace TweakableEverything
 //			this.startLockedState = !this.startLocked;
 
 			// Fetch the gimbal module from the part.
-			this.gimbalModule = base.part.Modules.OfType<ModuleGimbal>().FirstOrDefault();
+			this.gimbalModule = base.part.getFirstModuleOfType<ModuleGimbal>();
+
+			if (this.gimbalRange == null)
+			{
+				return;
+			}
 
 			// Initialize the gimbal range tweakable and value.
 			Tools.InitializeTweakable<ModuleTweakableGimbal>(
@@ -110,6 +115,11 @@ namespace TweakableEverything
 
 		public void LateUpdate()
 		{
+			if (this.gimbalModule == null)
+			{
+				return;
+			}
+
 			// If we're in flight mode...
 			if (HighLogic.LoadedSceneIsFlight)
 			{
