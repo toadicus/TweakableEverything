@@ -30,7 +30,6 @@ using KSP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ToadicusTools;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -80,7 +79,7 @@ namespace TweakableEverything
 				IEnumerable<AttachNode> missingProtoNodes = prefabNodes
 					.Where(pfN => !protoNodes.Select(prN => prN.id).Contains(pfN.id));
 
-				Tools.PostDebugMessage(string.Format(
+				/*Tools.PostDebugMessage(string.Format(
 					"{0}: found affected part '{1}' in vessel '{2}'" +
 					"\n\tprotoNodes: {3}" +
 					"\n\tprefabNodes: {4}" +
@@ -91,17 +90,17 @@ namespace TweakableEverything
 					string.Join("; ", protoNodes.Select(n => n.id).ToArray()),
 					string.Join("; ", prefabNodes.Select(n => n.id).ToArray()),
 					string.Join("; ", missingProtoNodes.Select(n => n.id).ToArray())
-				));
+				));*/
 
 				if (missingProtoNodes.Count() > 0)
 				{
 					foreach (AttachNode missingProtoNode in missingProtoNodes)
 					{
-						Tools.PostDebugMessage(string.Format(
+						/*Tools.PostDebugMessage(string.Format(
 							"{0}: Adding new AttachNodeSnapshot '{1}'",
 							this.GetType().Name,
 							missingProtoNode.id
-						));
+						));*/
 						protoNodes.Add(
 							new AttachNodeSnapshot(missingProtoNode.id + ", -1")
 						);
@@ -146,7 +145,7 @@ namespace TweakableEverything
 			}
 			runOnce = true;
 
-			Tools.PostDebugMessage(this.GetType().Name + ": First Update.");
+			// Tools.PostDebugMessage(this.GetType().Name + ": First Update.");
 
 			// Fetch all the affected parts from the current game's list of prototype vessels.
 			IEnumerable<ProtoPartSnapshot> affectedParts = HighLogic.CurrentGame.flightState.protoVessels
@@ -172,7 +171,7 @@ namespace TweakableEverything
 				
 			base.Awake();
 
-			Tools.PostDebugMessage(this.GetType().Name + ": Awake started.  Flight StartupBehavior: " + FlightDriver.StartupBehaviour);
+			// Tools.PostDebugMessage(this.GetType().Name + ": Awake started.  Flight StartupBehavior: " + FlightDriver.StartupBehaviour);
 
 			// Fetch all the affected parts from the flight state cache.
 			IEnumerable<ProtoPartSnapshot> affectedParts = FlightDriver.FlightStateCache.flightState.protoVessels

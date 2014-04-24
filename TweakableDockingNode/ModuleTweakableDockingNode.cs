@@ -125,12 +125,7 @@ namespace TweakableEverything
 		[KSPField(isPersistant = true)]
 		protected bool isDecoupled;
 
-		[KSPField(isPersistant = true, guiName = "Decoupler Staging", guiActiveEditor = true, guiActive = false)]
-		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
-		public bool decoupleStaging;
-		protected bool decoupleStagingState;
-
-		protected VStackIcon stackIcon;
+		protected bool stagingEnabled;
 
 		// Gets the base part's fuelCrossFeed value.
 		public bool partCrossFeed
@@ -216,35 +211,35 @@ namespace TweakableEverything
 				.OfType<ModuleDockingNode>()
 				.FirstOrDefault();
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireRange"].uiControlCurrent(),
 				ref this.acquireRange,
 				ref this.dockingNodeModule.acquireRange,
 				prefabModule.acquireRange
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireForce"].uiControlCurrent(),
 				ref this.acquireForce,
 				ref this.dockingNodeModule.acquireForce,
 				prefabModule.acquireForce
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireTorque"].uiControlCurrent(),
 				ref this.acquireTorque,
 				ref this.dockingNodeModule.acquireTorque,
 				prefabModule.acquireForce
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["undockEjectionForce"].uiControlCurrent(),
 				ref this.undockEjectionForce,
 				ref this.dockingNodeModule.undockEjectionForce,
 				prefabModule.undockEjectionForce
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlCurrent(),
 				ref this.minDistanceToReEngage,
 				ref this.dockingNodeModule.minDistanceToReEngage,
@@ -280,8 +275,16 @@ namespace TweakableEverything
 			this.dockingNodeModule.Events["EnableXFeed"].active = false;
 			this.dockingNodeModule.Events["DisableXFeed"].active = false;
 
+			ModuleStagingToggle stagingToggleModule;
+
+			if (this.part.tryGetFirstModuleOfType<ModuleStagingToggle>(out stagingToggleModule))
+			{
+				stagingToggleModule.OnToggle += new ModuleStagingToggle.ToggleEventHandler(this.OnStagingToggle);
+				this.stagingEnabled = stagingToggleModule.stagingEnabled;
+			}
+
 			// Yay debugging!
-			Tools.PostDebugMessage(string.Format(
+			Tools.PostDebugMessage(this,
 				"{0}: Started with assembly version {4}." +
 				"\n\tdeployAnimationModule={1}, attachNode={2}, TDNnodeName={3}, attachedPart={5}, fuelCrossFeed={6}",
 				this.GetType().Name,
@@ -291,46 +294,7 @@ namespace TweakableEverything
 				this.GetType().Assembly.GetName().Version,
 				this.attachedPart,
 				this.fuelCrossFeed
-			));
-
-			this.decoupleStagingState = !this.decoupleStaging;
-
-			// If we have not already decoupled through staging...
-			if (!this.isDecoupled)
-			{
-				// ...assign the part's staging icon to the vertical decoupler icon
-				this.part.stagingIcon = Enum.GetName(typeof(DefaultIcons), DefaultIcons.DECOUPLER_VERT);
-
-				// ...and if the part's stackIcon is missing...
-				if (this.part.stackIcon == null)
-				{
-					// ...rebuild it
-					this.part.stackIcon = new VStackIcon(this.part);
-				}
-
-				// ...fetch the part's stackIcon for our use
-				this.stackIcon = this.part.stackIcon;
-
-				// ...set the stackIcon's icon to the vertical decoupler icon
-				this.stackIcon.SetIcon(DefaultIcons.DECOUPLER_VERT);
-
-				if (this.decoupleStaging)
-				{
-					this.stackIcon.CreateIcon();
-				}
-				else
-				{
-					this.stackIcon.RemoveIcon();
-				}
-				Staging.ScheduleSort();
-			}
-			// ...otherwise, we've already decoupled...
-			else
-			{
-				// ...so disable the staging toggle
-				this.Fields["decoupleStaging"].uiControlCurrent().controlEnabled = false;
-				this.Fields["decoupleStaging"].guiActiveEditor = false;
-			}
+			);
 		}
 
 		// Runs every LateUpdate, because that's how Unity rolls.
@@ -452,60 +416,15 @@ namespace TweakableEverything
 					this.partCrossFeed = this.fuelCrossFeed;
 				}
 			}
-
-			// If we're not already decoupled, we have a stack icon, and the decoupleStaging toggle has changed...
-			if (!this.isDecoupled && this.stackIcon != null && this.decoupleStaging != this.decoupleStagingState)
-			{
-				// ...reseed the decoupleStaging toggle state
-				this.decoupleStagingState = this.decoupleStaging;
-
-				// ...and if decoupleStaging is now true...
-				if (this.decoupleStaging)
-				{
-					// If our part has fallen off the staging list...
-					if (Staging.StageCount < this.part.inverseStage + 1)
-					{
-						// ...add a new stage at the end
-						Staging.AddStageAt(Staging.StageCount);
-						// ...and move our part to it
-						this.part.inverseStage = Staging.StageCount - 1;
-					}
-
-					// ...activate the stack icon
-					this.stackIcon.CreateIcon();
-				}
-				// ...otherwise, decoupleStaging is false...
-				else
-				{
-					// ...deactivate the stack icon
-					this.stackIcon.RemoveIcon();
-				}
-
-				// Sort the staging list
-				Staging.ScheduleSort();
-			}
 		}
 
-		// Called when the part is activated, as by staging
 		public override void OnActive()
 		{
-			Tools.PostDebugMessage(this, "OnActive called.");
-
 			base.OnActive();
 
-			// If we have enabled staging, have not already decoupled, and have a stack icon...
-			if (this.decoupleStaging && !this.isDecoupled && this.stackIcon != null)
+			if (this.stagingEnabled)
 			{
-				// ...decouple the underlying ModuleDockingNode
 				this.dockingNodeModule.Decouple();
-				// ...note that we have decoupled
-				this.isDecoupled = true;
-				// ...disable the stack icon
-				this.stackIcon.DisableIcon();
-
-				// ...disable the tweakable
-				this.Fields["decoupleStaging"].uiControlCurrent().controlEnabled = false;
-				this.Fields["decoupleStaging"].guiActiveEditor = false;
 			}
 		}
 
@@ -516,6 +435,12 @@ namespace TweakableEverything
 			{
 				this.dockingNodeModule.MakeReferenceTransform();
 			}
+		}
+
+		protected void OnStagingToggle(object sender, ModuleStagingToggle.BoolArg arg)
+		{
+			Tools.PostDebugMessage(this, "OnStagingToggle called.");
+			this.stagingEnabled = arg.Value;
 		}
 
 		// Sometimes, when debugging, it's nice to have a "tell me everything" button.
