@@ -211,35 +211,35 @@ namespace TweakableEverything
 				.OfType<ModuleDockingNode>()
 				.FirstOrDefault();
 
-			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireRange"].uiControlCurrent(),
 				ref this.acquireRange,
 				ref this.dockingNodeModule.acquireRange,
 				prefabModule.acquireRange
 			);
 
-			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireForce"].uiControlCurrent(),
 				ref this.acquireForce,
 				ref this.dockingNodeModule.acquireForce,
 				prefabModule.acquireForce
 			);
 
-			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireTorque"].uiControlCurrent(),
 				ref this.acquireTorque,
 				ref this.dockingNodeModule.acquireTorque,
 				prefabModule.acquireForce
 			);
 
-			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["undockEjectionForce"].uiControlCurrent(),
 				ref this.undockEjectionForce,
 				ref this.dockingNodeModule.undockEjectionForce,
 				prefabModule.undockEjectionForce
 			);
 
-			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlCurrent(),
 				ref this.minDistanceToReEngage,
 				ref this.dockingNodeModule.minDistanceToReEngage,

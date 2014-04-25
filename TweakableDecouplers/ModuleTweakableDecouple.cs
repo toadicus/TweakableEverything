@@ -98,7 +98,7 @@ namespace TweakableEverything
 
 			// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
 			// prefab, and current value from persistence
-			ToadicusTools.Tools.InitializeTweakable<ModuleTweakableDecouple>(
+			Tools.InitializeTweakable<ModuleTweakableDecouple>(
 				(UI_FloatRange)this.Fields["ejectionForce"].uiControlCurrent(),
 				ref this.ejectionForce,
 				ref remoteEjectionForce,
