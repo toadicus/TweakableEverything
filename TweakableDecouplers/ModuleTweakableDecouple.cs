@@ -121,20 +121,30 @@ namespace TweakableEverything
 
 		public void LateUpdate()
 		{
-			// If the decoupler has already fired...
-			if (this.decoupleModule.Fields["isDecoupled"].GetValue<bool>(this.decoupleModule))
+			try
 			{
-				// ...disable the tweakable
-				this.Fields["stagingEnabled"].guiActive = this.Fields["stagingEnabled"].guiActiveEditor = false;
+				if (this.decoupleModule == null)
+					return;
 
-				// ...and do nothing else
-				return;
+				// If the decoupler has already fired...
+				if (this.decoupleModule.Fields["isDecoupled"].GetValue<bool>(this.decoupleModule))
+				{
+					// ...disable the tweakable
+					this.Fields["stagingEnabled"].guiActive = this.Fields["stagingEnabled"].guiActiveEditor = false;
+
+					// ...and do nothing else
+					return;
+				}
 			}
+			catch (NullReferenceException) { }
 		}
 
 		// Switches the staging
 		protected void OnStagingToggle(object sender, ModuleStagingToggle.BoolArg arg)
 		{
+			if (this.decoupleModule == null)
+				return;
+
 			Tools.PostDebugMessage(this, "OnStagingToggle called.");
 			// Clobber the "staged" field in the decoupler module
 			this.decoupleModule.Fields["staged"].SetValue(arg.Value, this.decoupleModule);
