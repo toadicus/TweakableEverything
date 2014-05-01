@@ -73,8 +73,6 @@ namespace TweakableEverything
 			// Seed the stagingEnabled state so we make sure to run on the first update.
 			this.stagingState = !this.stagingEnabled;
 
-			GameEvents.onPartAttach.Add(this.onPartAttach);
-
 			if (!this.part.hasStagingIcon)
 			{
 				this.part.stagingIcon = Enum.GetName(typeof(DefaultIcons), DefaultIcons.DECOUPLER_VERT);
@@ -89,6 +87,11 @@ namespace TweakableEverything
 			{
 				this.part.stackIcon.RemoveIcon();
 			}
+
+			GameEvents.onPartAttach.Add(this.onPartAttach);
+			GameEvents.onPartCouple.Add(this.onFromToEvent);
+			GameEvents.onUndock.Add(this.onGenericEvent);
+			GameEvents.onVesselChange.Add(this.onGenericEvent);
 
 			Tools.PostDebugMessage(this,
 				"Started." +
@@ -195,7 +198,6 @@ namespace TweakableEverything
 			return iStage;
 		}
 
-
 		protected void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
 		{
 			Tools.PostDebugMessage(this, "Caught onPartAttach with host {0} and target {1}", data.host, data.target);
@@ -204,6 +206,16 @@ namespace TweakableEverything
 			{
 				this.part.inverseStage = this.GetDecoupledStage();
 			}
+		}
+
+		protected void onGenericEvent(object _)
+		{
+			this.stagingState = !this.stagingEnabled;
+		}
+
+		protected void onFromToEvent(GameEvents.FromToAction<Part, Part> _)
+		{
+			this.onGenericEvent(null);
 		}
 
 		public event ToggleEventHandler OnToggle;
