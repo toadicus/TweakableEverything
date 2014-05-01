@@ -35,12 +35,11 @@ namespace TweakableEverything
 {
 	public class ModuleStagingToggle : PartModule
 	{
+		#region Interface Elements
 		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
 		[KSPField(isPersistant = true, guiName = "Staging", guiActive = true, guiActiveEditor = true)]
 		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
 		public bool stagingEnabled;
-		// Stores its last state so we can only run when things change.
-		protected bool stagingState;
 
 		[KSPField(isPersistant = false)]
 		public bool activeInEditor;
@@ -51,6 +50,15 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public bool defaultDisabled;
 
+		public event ToggleEventHandler OnToggle;
+
+		public delegate void ToggleEventHandler(object sender, ModuleStagingToggle.BoolArg args);
+		#endregion
+
+		// Stores the last toggle state so we can only run when things change.
+		protected bool stagingState;
+
+		#region LifeCycle Methods
 		public override void OnAwake()
 		{
 			base.OnAwake();
@@ -125,8 +133,13 @@ namespace TweakableEverything
 		public void Destroy()
 		{
 			GameEvents.onPartAttach.Remove(this.onPartAttach);
+			GameEvents.onPartCouple.Remove(this.onPartCouple);
+			GameEvents.onUndock.Remove(this.onUndock);
+			GameEvents.onVesselChange.Remove(this.onVesselEvent);
 		}
+		#endregion
 
+		#region Utility Methods
 		protected void SwitchStaging(bool enabled)
 		{
 			// If we're switching to enabled...
@@ -197,7 +210,9 @@ namespace TweakableEverything
 
 			return iStage;
 		}
+		#endregion
 
+		#region Event Handlers
 		protected void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
 		{
 			Tools.PostDebugMessage(this, "Caught onPartAttach with host {0} and target {1}", data.host, data.target);
@@ -249,10 +264,7 @@ namespace TweakableEverything
 		{
 			this.stagingState = !this.stagingEnabled;
 		}
-
-		public event ToggleEventHandler OnToggle;
-
-		public delegate void ToggleEventHandler(object sender, ModuleStagingToggle.BoolArg args);
+		#endregion
 
 		public class BoolArg : EventArgs
 		{
@@ -260,7 +272,7 @@ namespace TweakableEverything
 
 			private BoolArg() {}
 
-			public BoolArg(bool value)
+			public BoolArg(bool value) : base()
 			{
 				this.Value = value;
 			}
