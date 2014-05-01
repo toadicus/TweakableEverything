@@ -89,9 +89,9 @@ namespace TweakableEverything
 			}
 
 			GameEvents.onPartAttach.Add(this.onPartAttach);
-			GameEvents.onPartCouple.Add(this.onFromToEvent);
-			GameEvents.onUndock.Add(this.onGenericEvent);
-			GameEvents.onVesselChange.Add(this.onGenericEvent);
+			GameEvents.onPartCouple.Add(this.onPartCouple);
+			GameEvents.onUndock.Add(this.onUndock);
+			GameEvents.onVesselChange.Add(this.onVesselEvent);
 
 			Tools.PostDebugMessage(this,
 				"Started." +
@@ -208,14 +208,46 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onGenericEvent(object _)
+		protected void onUndock(EventReport data)
 		{
-			this.stagingState = !this.stagingEnabled;
+			if (data.origin != null)
+			{
+				this.onPartEvent(data.origin);
+			}
 		}
 
-		protected void onFromToEvent(GameEvents.FromToAction<Part, Part> _)
+		protected void onPartCouple(GameEvents.FromToAction<Part, Part> data)
 		{
-			this.onGenericEvent(null);
+			if (data.from != null)
+			{
+				this.onPartEvent(data.from);
+			}
+
+			if (data.to != null)
+			{
+				this.onPartEvent(data.to);
+			}
+		}
+
+		protected void onVesselEvent(Vessel data)
+		{
+			if (this.part.vessel != null && data.id == this.part.vessel.id)
+			{
+				this.onGenericEvent();
+			}
+		}
+
+		protected void onPartEvent(Part data)
+		{
+			if (data.vessel != null)
+			{
+				this.onVesselEvent(data.vessel);
+			}
+		}
+
+		protected void onGenericEvent()
+		{
+			this.stagingState = !this.stagingEnabled;
 		}
 
 		public event ToggleEventHandler OnToggle;
