@@ -8,7 +8,7 @@
     <ProjectGuid>{A9127548-5542-47FC-B6C2-7129E6573E51}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>TweakableGimbals</RootNamespace>
-    <ReleaseVersion>1.0</ReleaseVersion>
+    <ReleaseVersion>1.1</ReleaseVersion>
     <AssemblyName>TweakableGimbals</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <UseMSBuildEngine>False</UseMSBuildEngine>

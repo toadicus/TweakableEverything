@@ -8,7 +8,7 @@
     <ProjectGuid>{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>TweakableRCS</RootNamespace>
-    <ReleaseVersion>1.0</ReleaseVersion>
+    <ReleaseVersion>1.1</ReleaseVersion>
     <AssemblyName>TweakableRCS</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <UseMSBuildEngine>False</UseMSBuildEngine>

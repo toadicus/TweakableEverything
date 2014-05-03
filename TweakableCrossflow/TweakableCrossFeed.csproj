@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>TweakableEverything</RootNamespace>
     <AssemblyName>TweakableCrossFeed</AssemblyName>
-    <ReleaseVersion>1.0</ReleaseVersion>
+    <ReleaseVersion>1.1</ReleaseVersion>
     <CodePage>65001</CodePage>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <UseMSBuildEngine>False</UseMSBuildEngine>
