@@ -50,6 +50,9 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public bool defaultDisabled;
 
+		[KSPField(isPersistant = false)]
+		public string stagingIcon;
+
 		public event ToggleEventHandler OnToggle;
 
 		public delegate void ToggleEventHandler(object sender, ModuleStagingToggle.BoolArg args);
@@ -73,15 +76,26 @@ namespace TweakableEverything
 
 		public override void OnStart(StartState state)
 		{
+			Tools.PostDebugMessage(this, "Starting with state {0}", state);
 			base.OnStart(state);
 
 			this.Fields["stagingEnabled"].guiActiveEditor = this.activeInEditor;
 			this.Fields["stagingEnabled"].guiActive = this.activeInFlight;
 
+			Tools.PostDebugMessage(this, "guiActiveEditor: {0} guiActive: {1}",
+				this.Fields["stagingEnabled"].guiActiveEditor, this.activeInFlight);
+
 			// Seed the stagingEnabled state so we make sure to run on the first update.
 			this.stagingState = !this.stagingEnabled;
 
-			if (!this.part.hasStagingIcon)
+			if (this.stagingIcon != string.Empty)
+			{
+				DefaultIcons icon = (DefaultIcons)Enum.Parse(typeof(DefaultIcons), this.stagingIcon);
+
+				this.part.stagingIcon = this.stagingIcon;
+				this.part.stackIcon.SetIcon(icon);
+			}
+			else if (!this.part.hasStagingIcon)
 			{
 				this.part.stagingIcon = Enum.GetName(typeof(DefaultIcons), DefaultIcons.DECOUPLER_VERT);
 				this.part.stackIcon.SetIcon(DefaultIcons.DECOUPLER_VERT);
