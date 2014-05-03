@@ -1,0 +1,191 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableDockingNode", "TweakableDockingNode\TweakableDockingNode.csproj", "{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableDecouplers", "TweakableDecouplers\TweakableDecouplers.csproj", "{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableSolarPanels", "TweakableSolarPanels\TweakableSolarPanels.csproj", "{047D6609-21D0-4DD0-A8A0-37BB9D270100}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableReactionWheels", "TweakableReactionWheels\TweakableReactionWheels.csproj", "{E5B0D4C8-F539-4825-8823-D9E37716ACEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableLadders", "TweakableLadders\TweakableLadders.csproj", "{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableGimbals", "TweakableGimbals\TweakableGimbals.csproj", "{A9127548-5542-47FC-B6C2-7129E6573E51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableRCS", "TweakableRCS\TweakableRCS.csproj", "{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableAnimateGeneric", "TweakableAnimateGeneric\TweakableAnimateGeneric.csproj", "{D472A279-0B6E-4524-9091-C06705569DFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableEngineFairings", "TweakableEngineFairings\TweakableEngineFairings.csproj", "{182C9111-3F20-417F-ADF0-3083F8F503D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableCrossFeed", "TweakableCrossflow\TweakableCrossFeed.csproj", "{72909923-1DDF-45E3-922C-27E17CF69556}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableStaging", "TweakableStaging\TweakableStaging.csproj", "{44171674-3C98-40EA-AC2A-1D4AFC100EC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToadicusTools", "..\ToadicusTools\ToadicusTools.csproj", "{D48A5542-6655-4149-BC27-B27DF0466F1C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug_win|Any CPU = Debug_win|Any CPU
+		Release_win|Any CPU = Release_win|Any CPU
+		Release_linux|Any CPU = Release_linux|Any CPU
+		Debug_linux|Any CPU = Debug_linux|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{047D6609-21D0-4DD0-A8A0-37BB9D270100}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{72909923-1DDF-45E3-922C-27E17CF69556}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{A9127548-5542-47FC-B6C2-7129E6573E51}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{D472A279-0B6E-4524-9091-C06705569DFB}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{E5B0D4C8-F539-4825-8823-D9E37716ACEE}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{EBEA2280-E6EC-4B61-8A0E-A9909AAC9206}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{F8866D1C-8FDF-4DEB-AF28-89DEF85BB15E}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = TweakableDockingNode\TweakableDockingNode.csproj
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = None
+		$1.ResourceNamePolicy = FileFormatDefault
+		$0.TextStylePolicy = $2
+		$2.FileWidth = 120
+		$2.TabsToSpaces = False
+		$2.EolMarker = Unix
+		$2.inheritsSet = VisualStudio
+		$2.inheritsScope = text/plain
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.IndentSwitchBody = True
+		$3.AnonymousMethodBraceStyle = NextLine
+		$3.PropertyBraceStyle = NextLine
+		$3.PropertyGetBraceStyle = NextLine
+		$3.PropertySetBraceStyle = NextLine
+		$3.EventBraceStyle = NextLine
+		$3.EventAddBraceStyle = NextLine
+		$3.EventRemoveBraceStyle = NextLine
+		$3.StatementBraceStyle = NextLine
+		$3.ElseNewLinePlacement = NewLine
+		$3.CatchNewLinePlacement = NewLine
+		$3.FinallyNewLinePlacement = NewLine
+		$3.WhileNewLinePlacement = DoNotCare
+		$3.ArrayInitializerWrapping = DoNotChange
+		$3.ArrayInitializerBraceStyle = NextLine
+		$3.BeforeMethodDeclarationParentheses = False
+		$3.BeforeMethodCallParentheses = False
+		$3.BeforeConstructorDeclarationParentheses = False
+		$3.BeforeDelegateDeclarationParentheses = False
+		$3.NewParentheses = False
+		$3.SpacesBeforeBrackets = False
+		$3.inheritsSet = Mono
+		$3.inheritsScope = text/x-csharp
+		$3.scope = text/x-csharp
+		$0.TextStylePolicy = $4
+		$4.FileWidth = 120
+		$4.TabsToSpaces = False
+		$4.EolMarker = Unix
+		$4.inheritsSet = VisualStudio
+		$4.inheritsScope = text/plain
+		$4.scope = text/plain
+		$0.VersionControlPolicy = $5
+		$5.CommitMessageStyle = $6
+		$6.FirstFilePrefix = 
+		$6.FileSeparator = @:\n
+		$6.LineAlign = 0
+		$6.InterMessageLines = 0
+		$5.inheritsSet = Mono
+		$0.StandardHeader = $7
+		$7.Text = @${ProjectName}, a TweakableEverything module\n\n${FileName}\n\nCopyright © ${Year}, ${AuthorName}\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without modification,\nare permitted provided that the following conditions are met:\n\n1. Redistributions of source code must retain the above copyright notice,\n   this list of conditions and the following disclaimer.\n\n2. Redistributions in binary form must reproduce the above copyright notice,\n   this list of conditions and the following disclaimer in the documentation and/or other\n   materials provided with the distribution.\n\n3. Neither the name of the copyright holder nor the names of its contributors may be used\n   to endorse or promote products derived from this software without specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,\nINCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\nSPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,\nWHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		$7.IncludeInNewFiles = True
+		description = For all your part tweaking needs.
+		version = 1.0
+	EndGlobalSection
+EndGlobal

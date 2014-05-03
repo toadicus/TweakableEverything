@@ -122,12 +122,10 @@ namespace TweakableEverything
 		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float minDistanceToReEngage;
 
-		[KSPField(isPersistant = true, guiName = "Decoupler Staging", guiActiveEditor = true, guiActive = false)]
-		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
-		public bool decoupleStaging;
-		protected bool decoupleStagingState;
+		[KSPField(isPersistant = true)]
+		protected bool isDecoupled;
 
-		protected VStackIcon stackIcon;
+		protected bool stagingEnabled;
 
 		// Gets the base part's fuelCrossFeed value.
 		public bool partCrossFeed
@@ -159,18 +157,8 @@ namespace TweakableEverything
 			}
 		}
 
-		protected bool isDecoupled
-		{
-			get
-			{
-				if (this.dockingNodeModule == null)
-				{
-					return false;
-				}
-				return !this.dockingNodeModule.Events["Decouple"].active && this.attachedPart != null;
-			}
-		}
-
+		// Get the open/closed state of the shield.
+		[KSPField(isPersistant = false, guiActiveEditor = true)]
 		protected bool IsOpen
 		{
 			get
@@ -185,16 +173,6 @@ namespace TweakableEverything
 					return (this.deployAnimation.normalizedTime >= 1);
 				}
 			}
-		}
-
-		public override void OnLoad(ConfigNode node)
-		{
-
-			Tools.PostDebugMessage(this, "OnLoad called.");
-			base.OnLoad(node);
-
-			this.decoupleStagingState = !this.decoupleStaging;
-			this.lastOpenState = !this.IsOpen;
 		}
 
 		/*
@@ -281,6 +259,9 @@ namespace TweakableEverything
 				base.part.attachRules.allowStack = this.StartOpened | this.AlwaysAllowStack;
 
 				Tools.PostDebugMessage(this, string.Format("Set allowStack to {0}", base.part.attachRules.allowStack));
+
+				// Seed the lastOpenState to the opposite of IsOpen, to force the node code to run once in the first update.
+				this.lastOpenState = !this.IsOpen;
 			}
 
 			this.partCrossFeed = this.fuelCrossFeed;
@@ -294,81 +275,26 @@ namespace TweakableEverything
 			this.dockingNodeModule.Events["EnableXFeed"].active = false;
 			this.dockingNodeModule.Events["DisableXFeed"].active = false;
 
-			// ...assign the part's staging icon to the vertical decoupler icon
-			this.part.stagingIcon = Enum.GetName(typeof(DefaultIcons), DefaultIcons.DECOUPLER_VERT);
+			ModuleStagingToggle stagingToggleModule;
 
-			// ...and if the part's stackIcon is missing...
-			if (this.part.stackIcon == null)
+			if (this.part.tryGetFirstModuleOfType<ModuleStagingToggle>(out stagingToggleModule))
 			{
-				// ...rebuild it
-				this.part.stackIcon = new VStackIcon(this.part);
+				stagingToggleModule.OnToggle += new ModuleStagingToggle.ToggleEventHandler(this.OnStagingToggle);
+				this.stagingEnabled = stagingToggleModule.stagingEnabled;
 			}
-
-			// ...fetch the part's stackIcon for our use
-			this.stackIcon = this.part.stackIcon;
-
-			// ...set the stackIcon's icon to the vertical decoupler icon
-			this.stackIcon.SetIcon(DefaultIcons.DECOUPLER_VERT);
-
-			if (this.decoupleStaging)
-			{
-				Tools.PostDebugMessage(this, "OnStart: creating stack icon.");
-				this.stackIcon.CreateIcon();
-			}
-			else
-			{
-				Tools.PostDebugMessage(this, "OnStart: removing stack icon.");
-				this.stackIcon.RemoveIcon();
-			}
-			Staging.ScheduleSort();
-
-			GameEvents.onVesselChange.Add(this.onVesselEvent);
 
 			// Yay debugging!
 			Tools.PostDebugMessage(this,
-				"Started with assembly version {0}." +
-				"\n\tdeployAnimationModule={1}, attachNode={2}, TDNnodeName={3}, attachedPart={4}, fuelCrossFeed={5}" +
-				"\n\tdecoupleStaging: {6}, isDecoupled: {7}, stackIcon: {8}",
-				this.GetType().Assembly.GetName().Version,
+				"{0}: Started with assembly version {4}." +
+				"\n\tdeployAnimationModule={1}, attachNode={2}, TDNnodeName={3}, attachedPart={5}, fuelCrossFeed={6}",
+				this.GetType().Name,
 				this.deployAnimation,
 				this.attachNode,
 				this.TDNnodeName,
+				this.GetType().Assembly.GetName().Version,
 				this.attachedPart,
-				this.fuelCrossFeed,
-				this.decoupleStaging,
-				this.isDecoupled,
-				this.stackIcon
+				this.fuelCrossFeed
 			);
-
-		}
-
-		// Called when the part is activated, as by staging
-		public override void OnActive()
-		{
-			Tools.PostDebugMessage(this, "OnActive called.");
-
-			base.OnActive();
-
-			// If we have a stack icon...
-			if (this.stackIcon != null)
-			{
-				// ...disable the stack icon
-				Tools.PostDebugMessage(this, "OnActive: removing stack icon.");
-				this.stackIcon.RemoveIcon();
-
-				Staging.ScheduleSort();
-
-				// ...disable the tweakable
-				this.Fields["decoupleStaging"].uiControlCurrent().controlEnabled = false;
-				this.Fields["decoupleStaging"].guiActiveEditor = false;
-
-				// ...and if we have enabled staging and have not already decoupled...
-				if (this.decoupleStaging && !this.isDecoupled)
-				{
-					// ...decouple the underlying ModuleDockingNode
-					this.dockingNodeModule.Decouple();
-				}
-			}
 		}
 
 		// Runs every LateUpdate, because that's how Unity rolls.
@@ -490,42 +416,16 @@ namespace TweakableEverything
 					this.partCrossFeed = this.fuelCrossFeed;
 				}
 			}
+		}
 
-			// If we're not already decoupled, we have a stack icon, and the decoupleStaging toggle has changed...
-			if (!this.isDecoupled && this.stackIcon != null && this.decoupleStaging != this.decoupleStagingState)
+		public override void OnActive()
+		{
+			base.OnActive();
+
+			if (this.stagingEnabled)
 			{
-				// ...reseed the decoupleStaging toggle state
-				this.decoupleStagingState = this.decoupleStaging;
-
-				// ...and if decoupleStaging is now true...
-				if (this.decoupleStaging)
-				{
-					// If our part has fallen off the staging list...
-					if (Staging.StageCount < this.part.inverseStage + 1)
-					{
-						// ...add a new stage at the end
-						Staging.AddStageAt(Staging.StageCount);
-						// ...and move our part to it
-						this.part.inverseStage = Staging.StageCount - 1;
-					}
-
-					// ...activate the stack icon
-					Tools.PostDebugMessage(this, "LateUpdate: creating stack icon.");
-					this.stackIcon.CreateIcon();
-				}
-				// ...otherwise, decoupleStaging is false...
-				else
-				{
-					// ...deactivate the stack icon
-					Tools.PostDebugMessage(this, "LateUpdate: removing stack icon.");
-					this.stackIcon.RemoveIcon();
-				}
-
-				// Sort the staging list
-				Staging.ScheduleSort();
+				this.dockingNodeModule.Decouple();
 			}
-
-			Staging.
 		}
 
 		[KSPAction("Control from Here")]
@@ -537,21 +437,10 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onVesselEvent(Vessel vessel)
+		protected void OnStagingToggle(object sender, ModuleStagingToggle.BoolArg arg)
 		{
-			if (this.stackIcon != null)
-			{
-				if (this.decoupleStaging)
-				{
-					Tools.PostDebugMessage(this, "onVesselEvent: creating stack icon");
-					this.stackIcon.CreateIcon();
-				}
-				else
-				{
-					Tools.PostDebugMessage(this, "onVesselEvent: removing stack icon");
-					this.stackIcon.RemoveIcon();
-				}
-			}
+			Tools.PostDebugMessage(this, "OnStagingToggle called.");
+			this.stagingEnabled = arg.Value;
 		}
 
 		// Sometimes, when debugging, it's nice to have a "tell me everything" button.
