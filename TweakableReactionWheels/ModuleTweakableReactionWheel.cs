@@ -83,39 +83,43 @@ namespace TweakableEverything
 			// Seed the startEnabledState to the opposite of startEnabled to force first-update processing.
 			this.startEnabledState = !this.startEnabled;
 
+			ModuleReactionWheel prefabModule;
+
 			// Fetch the reaction wheel module.
-			this.reactionWheelModule = base.part.Modules.OfType<ModuleReactionWheel>().FirstOrDefault();
-			ModuleReactionWheel prefabModule = PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab.Modules
-				.OfType<ModuleReactionWheel>()
-				.First();
+			if (this.part.tryGetFirstModuleOfType<ModuleReactionWheel>(out this.reactionWheelModule))
+			{
+				if (PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab
+					.tryGetFirstModuleOfType<ModuleReactionWheel>(out prefabModule))
+				{
+					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+						(UI_FloatRange)this.Fields["RollTorque"].uiControlCurrent(),
+						ref this.RollTorque,
+						ref this.reactionWheelModule.RollTorque,
+						prefabModule.RollTorque
+					);
 
-			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
-				(UI_FloatRange)this.Fields["RollTorque"].uiControlCurrent(),
-				ref this.RollTorque,
-				ref this.reactionWheelModule.RollTorque,
-				prefabModule.RollTorque
-			);
+					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+						(UI_FloatRange)this.Fields["PitchTorque"].uiControlCurrent(),
+						ref this.PitchTorque,
+						ref this.reactionWheelModule.PitchTorque,
+						prefabModule.PitchTorque
+					);
 
-			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
-				(UI_FloatRange)this.Fields["PitchTorque"].uiControlCurrent(),
-				ref this.PitchTorque,
-				ref this.reactionWheelModule.PitchTorque,
-				prefabModule.PitchTorque
-			);
-
-			Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
-				(UI_FloatRange)this.Fields["YawTorque"].uiControlCurrent(),
-				ref this.YawTorque,
-				ref this.reactionWheelModule.YawTorque,
-				prefabModule.YawTorque
-			);
+					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+						(UI_FloatRange)this.Fields["YawTorque"].uiControlCurrent(),
+						ref this.YawTorque,
+						ref this.reactionWheelModule.YawTorque,
+						prefabModule.YawTorque
+					);
+				}
+			}
 		}
 
 		// Runs late in the update cycle
 		public void LateUpdate()
 		{
 			// If we're in the editor...
-			if (HighLogic.LoadedSceneIsEditor)
+			if (HighLogic.LoadedSceneIsEditor && this.reactionWheelModule != null)
 			{
 				// ...and if our startEnabled state has changed...
 				if (this.startEnabled != this.startEnabledState)
