@@ -63,31 +63,32 @@ namespace TweakableEverything
 			this.startExtendedState = !this.startExtended;
 
 			// Fetch the solar ladder module from the part.
-			this.ladderModule = base.part.Modules.OfType<RetractableLadder>().FirstOrDefault();
-
-			// Fetch the UnityEngine.Animation object from the solar ladder module.
-			this.ladderAnimation = new TweakableAnimationWrapper(
-				base.part.FindModelTransform(this.ladderModule.ladderAnimationRootName).animation,
-				this.ladderModule.ladderRetractAnimationName,
-				new GameScenes[] { GameScenes.EDITOR, GameScenes.SPH },
-				WrapMode.ClampForever,
-				TweakableAnimationWrapper.PlayPosition.End,
-				TweakableAnimationWrapper.PlayDirection.Forward,
-				1f
-			);
-
-			// If we are in the editor and have an animation...
-			if (HighLogic.LoadedSceneIsEditor && this.ladderAnimation != null)
+			if (this.part.tryGetFirstModuleOfType<RetractableLadder>(out this.ladderModule))
 			{
-				//  ...start the animation.
-				this.ladderAnimation.Start();
+				// Fetch the UnityEngine.Animation object from the solar ladder module.
+				this.ladderAnimation = new TweakableAnimationWrapper(
+					base.part.FindModelTransform(this.ladderModule.ladderAnimationRootName).animation,
+					this.ladderModule.ladderRetractAnimationName,
+					new GameScenes[] { GameScenes.EDITOR, GameScenes.SPH },
+					WrapMode.ClampForever,
+					TweakableAnimationWrapper.PlayPosition.End,
+					TweakableAnimationWrapper.PlayDirection.Forward,
+					1f
+				);
+
+				// If we are in the editor and have an animation...
+				if (HighLogic.LoadedSceneIsEditor && this.ladderAnimation != null)
+				{
+					//  ...start the animation.
+					this.ladderAnimation.Start();
+				}
 			}
 		}
 
 		public void LateUpdate()
 		{
 			// If we're in the editor...
-			if (HighLogic.LoadedSceneIsEditor)
+			if (HighLogic.LoadedSceneIsEditor && this.ladderModule != null)
 			{
 				// ...if startExtended has changed and we have an Animation...
 				if (this.startExtendedState != this.startExtended && this.ladderAnimation != null)
