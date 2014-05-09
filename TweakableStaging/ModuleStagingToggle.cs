@@ -228,6 +228,12 @@ namespace TweakableEverything
 		{
 			Tools.PostDebugMessage(this, "Caught onPartAttach with host {0} and target {1}", data.host, data.target);
 
+			// Do nothing if our part or the part being attached are null.
+			if (data.target == null || this.part == null)
+			{
+				return;
+			}
+
 			if (this.part.hasAncestorPart(data.target))
 			{
 				this.part.inverseStage = this.GetDecoupledStage();
