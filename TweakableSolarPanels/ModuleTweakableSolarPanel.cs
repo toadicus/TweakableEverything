@@ -83,84 +83,90 @@ namespace TweakableEverything
 			// Startup the PartModule stuff first.
 			base.OnStart(state);
 
-			// Set our state trackers to the opposite of our states, to force first-run updates.
-			this.startOpenedState = !this.StartOpened;
-			this.sunTrackingState = !this.sunTrackingEnabled;
-
 			// Fetch the solar panel module from the part.
-			this.panelModule = base.part.Modules.OfType<ModuleDeployableSolarPanel>().FirstOrDefault();
+			if (this.part.tryGetFirstModuleOfType(out this.panelModule))
+			{// Set our state trackers to the opposite of our states, to force first-run updates.
+				this.startOpenedState = !this.StartOpened;
+				this.sunTrackingState = !this.sunTrackingEnabled;
 
-			// Yay debugging!
-			Tools.PostDebugMessage(this,
-				"panelModule: " + this.panelModule,
-				"storedAnimationTime: " + this.panelModule.storedAnimationTime,
-				"storedAnimationSpeed: " + this.panelModule.storedAnimationSpeed,
-				"stateString: " + this.panelModule.stateString,
-				"currentRotation: " + this.panelModule.currentRotation,
-				"originalRotation: " + this.panelModule.originalRotation
-			);
+				// Yay debugging!
+				Tools.PostDebugMessage(this,
+					"panelModule: " + this.panelModule,
+					"storedAnimationTime: " + this.panelModule.storedAnimationTime,
+					"storedAnimationSpeed: " + this.panelModule.storedAnimationSpeed,
+					"stateString: " + this.panelModule.stateString,
+					"currentRotation: " + this.panelModule.currentRotation,
+					"originalRotation: " + this.panelModule.originalRotation
+				);
 
-			// Fetch the UnityEngine.Animation object from the solar panel module.
-			this.panelAnimation = this.panelModule.GetComponentInChildren<Animation>();
+				// Fetch the UnityEngine.Animation object from the solar panel module.
+				this.panelAnimation = this.panelModule.GetComponentInChildren<Animation>();
 
-			// Yay debugging!
-			Tools.PostDebugMessage(this,
-				"panelAnimation: " + this.panelAnimation,
-				"animationState: " + this.panelAnimation[this.panelModule.animationName]
-			);
+				// Yay debugging!
+				Tools.PostDebugMessage(this,
+					"panelAnimation: " + this.panelAnimation,
+					"animationState: " + this.panelAnimation[this.panelModule.animationName]
+				);
 
-			// If we are in the editor and have an animation...
-			if (HighLogic.LoadedSceneIsEditor && this.panelAnimation != null)
-			{
-				// ...pre-set the panel's currentRotation...
-				this.panelModule.currentRotation = this.panelModule.originalRotation;
-
-				// ...and if our animation has an AnimationState named in the panel module...
-				if (this.panelAnimation[this.panelModule.animationName])
+				// If we are in the editor and have an animation...
+				if (HighLogic.LoadedSceneIsEditor && this.panelAnimation != null)
 				{
-					// ...Set up the AnimationState for later use.
-					this.panelAnimation.wrapMode = WrapMode.ClampForever;
-					this.panelAnimation[this.panelAnimationName].enabled = true;
-					this.panelAnimation[this.panelAnimationName].speed = 0f;
-					this.panelAnimation[this.panelAnimationName].weight = 1f;
+					// ...pre-set the panel's currentRotation...
+					this.panelModule.currentRotation = this.panelModule.originalRotation;
 
-					// Yay debuggin!
-					Tools.PostDebugMessage(this,
-						"panelAnimation set wrapMode, enabled, speed, and weight."
-					);
+					// ...and if our animation has an AnimationState named in the panel module...
+					if (this.panelAnimation[this.panelModule.animationName])
+					{
+						// ...Set up the AnimationState for later use.
+						this.panelAnimation.wrapMode = WrapMode.ClampForever;
+						this.panelAnimation[this.panelAnimationName].enabled = true;
+						this.panelAnimation[this.panelAnimationName].speed = 0f;
+						this.panelAnimation[this.panelAnimationName].weight = 1f;
+
+						// Yay debuggin!
+						Tools.PostDebugMessage(this,
+							"panelAnimation set wrapMode, enabled, speed, and weight."
+						);
+					}
 				}
-			}
 
-			/* 
+				/* 
 			 * Checks whether this panel is a sun tracking panel or not.  Despite its name, ModuleDeployableSolarPanel
 			 * is used for all (most?) solar panels, even those that don't deploy or rotate.
 			 * */
-			// If the panel is sun tracking panel...
-			if (this.panelModule.sunTracking)
-			{
-				// ...go fetch the tracking speed and make sure our tracking tweakable is active.
-				this.baseTrackingSpeed = this.panelModule.trackingSpeed;
-				this.Fields["sunTrackingEnabled"].guiActive = true;
-				this.Fields["sunTrackingEnabled"].guiActiveEditor = true;
-			}
-			else
-			{
-				// ...otherwise, make sure our tracking code and tweakable are inactive.
-				this.sunTrackingEnabled = false;
-				this.sunTrackingState = false;
-				this.Fields["sunTrackingEnabled"].guiActive = false;
-				this.Fields["sunTrackingEnabled"].guiActiveEditor = false;
+				// If the panel is sun tracking panel...
+				if (this.panelModule.sunTracking)
+				{
+					// ...go fetch the tracking speed and make sure our tracking tweakable is active.
+					this.baseTrackingSpeed = this.panelModule.trackingSpeed;
+					this.Fields["sunTrackingEnabled"].guiActive = true;
+					this.Fields["sunTrackingEnabled"].guiActiveEditor = true;
+				}
+				else
+				{
+					// ...otherwise, make sure our tracking code and tweakable are inactive.
+					this.sunTrackingEnabled = false;
+					this.sunTrackingState = false;
+					this.Fields["sunTrackingEnabled"].guiActive = false;
+					this.Fields["sunTrackingEnabled"].guiActiveEditor = false;
+				}
 			}
 		}
 
 		// Runs at LateUpdate.  Why?  Because.
 		public void LateUpdate()
 		{
+			// Do nothing if the panel module is null
+			if (this.panelModule == null)
+			{
+				return;
+			}
+
 			// If we're in the editor...
-			if (HighLogic.LoadedSceneIsEditor)
+			if (HighLogic.LoadedSceneIsEditor && this.panelAnimation != null)
 			{
 				// ...if StartOpened has changed and we have an Animation...
-				if (this.startOpenedState != this.StartOpened && this.panelAnimation != null)
+				if (this.startOpenedState != this.StartOpened)
 				{
 					// ...refresh startOpenedState
 					this.startOpenedState = this.StartOpened;
