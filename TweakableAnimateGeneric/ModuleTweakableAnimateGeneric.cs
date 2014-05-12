@@ -99,8 +99,9 @@ namespace TweakableEverything
 		// Start when KSP tells us to start.
 		public override void OnStart(StartState state)
 		{
-			// Only do any work if we're in the editor.
-			if (state == StartState.Editor)
+			// Only do any work if we're in the editor and we have an animation module.
+			if (state == StartState.Editor &&
+			    this.part.tryGetFirstModuleOfType<ModuleAnimateGeneric>(out this.animationModule))
 			{
 				// Declare enum values for parsing from string values
 				TweakableAnimationWrapper.PlayPosition positionStart;
@@ -133,13 +134,10 @@ namespace TweakableEverything
 				// Seed startCompletedState to ensure we run the startCompleted check on the first update
 				this.startCompletedState = !this.startCompleted;
 
-				// Fetch the ModuleAnimateGeneric module from the part
-				this.animationModule = base.part.Modules.OfType<ModuleAnimateGeneric>().FirstOrDefault();
-
 				// If we didn't get a module, or we can't parse enums from startPosition or startDirection...
 				if (this.animationModule == null ||
-				   !Tools.TryParse(this.startPosition, out positionStart) ||
-				   !Tools.TryParse(this.startDirection, out directionStart))
+				    !Tools.TryParse(this.startPosition, out positionStart) ||
+				    !Tools.TryParse(this.startDirection, out directionStart))
 				{
 					// ...disable the control and stop processing.
 					this.Abort();
@@ -163,7 +161,6 @@ namespace TweakableEverything
 				}
 			}
 		}
-
 		// Runs at Unity's LateUpdate
 		public void LateUpdate()
 		{
