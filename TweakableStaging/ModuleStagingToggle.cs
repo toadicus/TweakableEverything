@@ -153,6 +153,12 @@ namespace TweakableEverything
 		#region Utility Methods
 		protected void SwitchStaging(bool enabled)
 		{
+			if (this.part == null)
+			{
+				Tools.PostDebugMessage(this, "could not switch staging: part reference is null.");
+				return;
+			}
+
 			// If we're switching to enabled...
 			if (enabled)
 			{
@@ -183,7 +189,14 @@ namespace TweakableEverything
 			// Sort the staging list
 			Staging.ScheduleSort();
 
-			this.OnToggle(this, new BoolArg(this.stagingEnabled));
+			if (this.OnToggle != null)
+			{
+				this.OnToggle(this, new BoolArg(this.stagingEnabled));
+			}
+			else
+			{
+				Tools.PostDebugMessage(this, "cannot raise OnToggle: no subscribers to call.");
+			}
 		}
 
 		// Gets the inverse stage in which this decoupler's part will be removed from the craft, or -1 if not
