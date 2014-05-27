@@ -79,8 +79,12 @@ namespace TweakableEverything
 				// If we are in the editor and have an animation...
 				if (HighLogic.LoadedSceneIsEditor && this.ladderAnimation != null)
 				{
-					//  ...start the animation.
+					//  ...start the animation
 					this.ladderAnimation.Start();
+
+					// ...and disable Squad's tweakables, since they play out the animation
+					this.ladderModule.Events["Extend"].guiActiveEditor = false;
+					this.ladderModule.Events["Retract"].guiActiveEditor = false;
 				}
 			}
 		}
