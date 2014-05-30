@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>TweakableStaging</RootNamespace>
     <AssemblyName>TweakableStaging</AssemblyName>
-    <ReleaseVersion>1.1</ReleaseVersion>
+    <ReleaseVersion>1.2</ReleaseVersion>
     <CodePage>65001</CodePage>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
