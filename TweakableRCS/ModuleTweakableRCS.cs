@@ -106,14 +106,11 @@ namespace TweakableRCS
 				}
 			}
 
-			if (HighLogic.LoadedSceneIsFlight)
-			{
-				this.RCSModule.thrusterPower = this.baseThrusterPower * this.thrustLimit / 100f;
+			this.RCSModule.thrusterPower = this.baseThrusterPower * this.thrustLimit / 100f;
 
-				foreach (FXGroup fx in this.RCSModule.thrusterFX)
-				{
-					fx.Power *= this.thrustLimit / 100f;
-				}
+			foreach (FXGroup fx in this.RCSModule.thrusterFX)
+			{
+				fx.Power *= this.thrustLimit / 100f;
 			}
 		}
 
