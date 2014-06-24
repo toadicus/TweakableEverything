@@ -77,7 +77,7 @@ namespace TweakableEverything
 			// Fetch the gimbal module from the part.
 			this.gimbalModule = base.part.getFirstModuleOfType<ModuleGimbal>();
 
-			if (this.gimbalRange == null)
+			if (this.gimbalModule == null)
 			{
 				return;
 			}
