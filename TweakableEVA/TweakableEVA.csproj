@@ -81,6 +81,7 @@
   <ItemGroup>
     <Compile Include="ModuleTweakableEVA.cs" />
     <Compile Include="TweakableEVAManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ToadicusTools\ToadicusTools.csproj">

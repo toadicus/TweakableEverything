@@ -1,4 +1,4 @@
-﻿// TweakableRCS, a TweakableEverything module
+﻿// TweakableEVA, a TweakableEverything module
 //
 // AssemblyInfo.cs
 //
@@ -25,14 +25,13 @@
 // SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
-[assembly: AssemblyTitle("TweakableRCS")]
-[assembly: AssemblyDescription("Adds useful 'tweakable' configuration options for RCS thrusters.")]
+[assembly: AssemblyTitle("TweakableEVA")]
+[assembly: AssemblyDescription("Adds useful 'tweakable' configuration options for EVA kerbals.")]
 [assembly: AssemblyCopyright("toadicus")]
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
@@ -42,4 +41,3 @@ using System.Runtime.CompilerServices;
 // if desired. See the Mono documentation for more information about signing.
 //[assembly: AssemblyDelaySign(false)]
 //[assembly: AssemblyKeyFile("")]
-
