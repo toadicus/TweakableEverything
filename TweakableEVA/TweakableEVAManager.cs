@@ -64,9 +64,12 @@ namespace TweakableEVA
 							}
 							catch (Exception ex)
 							{
-								Debug.Log(string.Format("While added ModuleTweakableEVA, encountered exception: {0}",
-									ex));
+								Debug.Log(string.Format("TweakableEVAManager handled exception {0} while adding modules to kerbalEVA.",
+									ex.GetType().Name
+								));
 							}
+
+							Debug.Log("TweakableEVAManager added ModuleTweakableEVA to kerbalEVA part.");
 
 							this.runOnce = false;
 
