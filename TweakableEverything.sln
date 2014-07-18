@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToadicusTools", "..\Toadicu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableEVA", "TweakableEVA\TweakableEVA.csproj", "{A8B2B965-ABA5-4ADE-9F8F-F24792D281D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModuleDB", "..\ModuleDB\ModuleDB.csproj", "{817E63DC-BD2E-450D-BD25-D7111628630A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_win|Any CPU = Debug_win|Any CPU
@@ -67,6 +69,14 @@ Global
 		{72909923-1DDF-45E3-922C-27E17CF69556}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
 		{72909923-1DDF-45E3-922C-27E17CF69556}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
 		{72909923-1DDF-45E3-922C-27E17CF69556}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{817E63DC-BD2E-450D-BD25-D7111628630A}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
 		{A8B2B965-ABA5-4ADE-9F8F-F24792D281D0}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
 		{A8B2B965-ABA5-4ADE-9F8F-F24792D281D0}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
 		{A8B2B965-ABA5-4ADE-9F8F-F24792D281D0}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
