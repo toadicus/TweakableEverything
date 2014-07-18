@@ -34,7 +34,11 @@ using UnityEngine;
 
 namespace TweakableEVA
 {
+	#if DEBUG
 	public class ModuleTweakableEVA : DebugPartModule
+	#else
+	public class ModuleTweakableEVA : PartModule
+	#endif
 	{
 		[UI_FloatRange(minValue = 0f, maxValue = 1f, stepIncrement = 0.05f, controlEnabled = true)]
 		[KSPField(guiName = "Thruster Throttle", guiFormat = "P0", guiActive = true, isPersistant = true)]
