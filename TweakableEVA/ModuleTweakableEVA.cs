@@ -57,20 +57,23 @@ namespace TweakableEVA
 
 		public void Update()
 		{
-			if (this.evaModule == null &&
-				this.part != null &&
-				this.part.tryGetFirstModuleOfType(out this.evaModule))
+			if (HighLogic.LoadedSceneIsFlight)
 			{
-				this.origThrusterPower = this.evaModule.linPower;
-				this.origPropConsumption = this.evaModule.PropellantConsumption;
-			}
+				if (this.evaModule == null &&
+				    this.part != null &&
+				    this.part.tryGetFirstModuleOfType(out this.evaModule))
+				{
+					this.origThrusterPower = this.evaModule.linPower;
+					this.origPropConsumption = this.evaModule.PropellantConsumption;
+				}
 
-			if (this.evaModule != null && this.lastPowerThrottle != this.thrusterPowerThrottle)
-			{
-				this.evaModule.linPower = this.origThrusterPower * this.thrusterPowerThrottle;
-				this.evaModule.PropellantConsumption = this.origPropConsumption * this.thrusterPowerThrottle;
+				if (this.evaModule != null && this.lastPowerThrottle != this.thrusterPowerThrottle)
+				{
+					this.evaModule.linPower = this.origThrusterPower * this.thrusterPowerThrottle;
+					this.evaModule.PropellantConsumption = this.origPropConsumption * this.thrusterPowerThrottle;
 
-				this.lastPowerThrottle = this.thrusterPowerThrottle;
+					this.lastPowerThrottle = this.thrusterPowerThrottle;
+				}
 			}
 		}
 	}
