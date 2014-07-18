@@ -139,11 +139,15 @@ namespace TweakableEverything
 		// This runs once at the first update.  Any earlier and the current game doesn't have all the vessels yet.
 		public void Update()
 		{
-			if (runOnce)
+			if (
+				runOnce ||
+				HighLogic.CurrentGame == null ||
+				HighLogic.CurrentGame.flightState == null ||
+				HighLogic.CurrentGame.flightState.protoVessels == null
+			)
 			{
 				return;
 			}
-			runOnce = true;
 
 			// Tools.PostDebugMessage(this.GetType().Name + ": First Update.");
 
@@ -153,6 +157,8 @@ namespace TweakableEverything
 				.Where(pps => this.AffectedParts.Contains(pps.partName));
 
 			this.UpdateProtoPartSnapshots(affectedParts);
+
+			runOnce = true;
 		}
 	}
 
