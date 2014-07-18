@@ -53,32 +53,46 @@ namespace TweakableEVA
 
 							Part evaPart = loadedPart.partPrefab;
 
-							ConfigNode tweakableEVANode = new ConfigNode("MODULE");
-							tweakableEVANode.AddValue("name", typeof(ModuleTweakableEVA).Name);
-
-							Tools.PostDebugMessage(this, "ModuleTweakableEVA prefab built.");
-
-							try
+							if (!evaPart.hasModuleType<ModuleTweakableEVA>())
 							{
-								evaPart.AddModule(tweakableEVANode);
+								ConfigNode tweakableEVANode = new ConfigNode("MODULE");
+								tweakableEVANode.AddValue("name", typeof(ModuleTweakableEVA).Name);
+
+								Tools.PostDebugMessage(this, "ModuleTweakableEVA prefab built.");
+
+								try
+								{
+									evaPart.AddModule(tweakableEVANode);
+								}
+								catch (Exception ex)
+								{
+									Debug.Log(string.Format("TweakableEVAManager handled exception {0} while adding modules to kerbalEVA.",
+										ex.GetType().Name
+									));
+								}
+
+								Debug.Log("TweakableEVAManager added ModuleTweakableEVA to kerbalEVA part.");
+
+								this.runOnce = false;
+
+								GameObject.Destroy(this);
+
+								Tools.PostDebugMessage(this, "Destruction Requested.");
+
+								break;
 							}
-							catch (Exception ex)
-							{
-								Debug.Log(string.Format("TweakableEVAManager handled exception {0} while adding modules to kerbalEVA.",
-									ex.GetType().Name
-								));
-							}
-
-							Debug.Log("TweakableEVAManager added ModuleTweakableEVA to kerbalEVA part.");
-
-							this.runOnce = false;
-
-							break;
 						}
 					}
 				}
 			}
 		}
+
+		#if DEBUG
+		public void OnDestroy()
+		{
+			Tools.PostDebugMessage(this, "Destroyed.");
+		}
+		#endif
 	}
 }
 
