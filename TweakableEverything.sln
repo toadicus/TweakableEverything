@@ -57,12 +57,12 @@ Global
 		{182C9111-3F20-417F-ADF0-3083F8F503D3}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
 		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
 		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
-		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Debug_win|Any CPU.ActiveCfg = Debug_linux|Any CPU
-		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Debug_win|Any CPU.Build.0 = Debug_linux|Any CPU
+		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
 		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
 		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
-		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Release_win|Any CPU.ActiveCfg = Release_linux|Any CPU
-		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Release_win|Any CPU.Build.0 = Release_linux|Any CPU
+		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{42F2AF4D-3432-47C3-83A4-AAF1E0CD8169}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
 		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
 		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
 		{44171674-3C98-40EA-AC2A-1D4AFC100EC1}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
