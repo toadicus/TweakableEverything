@@ -85,7 +85,7 @@ namespace TweakableEverything
 			// Seed the stagingEnabled state so we make sure to run on the first update.
 			this.stagingState = !this.stagingEnabled;
 
-			if (this.stagingIcon != string.Empty)
+			if (this.stagingIcon != string.Empty && this.stagingIcon != null)
 			{
 				DefaultIcons icon = (DefaultIcons)Enum.Parse(typeof(DefaultIcons), this.stagingIcon);
 
@@ -98,13 +98,16 @@ namespace TweakableEverything
 				this.part.stackIcon.SetIcon(DefaultIcons.DECOUPLER_VERT);
 			}
 
-			if (this.stagingEnabled)
+			if (this.part.stackIcon != null)
 			{
-				this.part.stackIcon.CreateIcon();
-			}
-			else
-			{
-				this.part.stackIcon.RemoveIcon();
+				if (this.stagingEnabled)
+				{
+					this.part.stackIcon.CreateIcon();
+				}
+				else
+				{
+					this.part.stackIcon.RemoveIcon();
+				}
 			}
 
 			GameEvents.onPartAttach.Add(this.onPartAttach);
