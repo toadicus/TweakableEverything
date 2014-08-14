@@ -55,6 +55,20 @@ namespace TweakableIntakes
 			}
 		}
 
+		public override void OnStart(StartState state)
+		{
+			base.OnStart(state);
+
+			if (HighLogic.LoadedSceneIsEditor)
+			{
+				this.intakeModule.Events["Activate"].active = !this.intakeModule.intakeEnabled;
+				this.intakeModule.Events["Deactivate"].active = this.intakeModule.intakeEnabled;
+
+				this.intakeModule.Events["Activate"].guiActiveEditor = true;
+				this.intakeModule.Events["Deactivate"].guiActiveEditor = true;
+			}
+		}
+
 		[KSPAction("Open Intake")]
 		public void ActivateAction(KSPActionParam param)
 		{
