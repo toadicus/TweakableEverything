@@ -73,6 +73,15 @@ namespace TweakableEverything
 					this.jettisonModules.Add(jettisonModule);
 					this.jettisonTransforms[jettisonModule.jettisonName] = jettisonModule.jettisonTransform;
 					this.isJettisonedTable[jettisonModule.jettisonName] = jettisonModule.isJettisoned;
+
+					Tools.PostDebugMessage(this, "Found ModuleJettison:" +
+						"\n\tnjettisonName: {0}" +
+						"\n\tjettisonTransform: {1}" +
+						"\n\tisJettisoned: {2}",
+						jettisonModule.jettisonName,
+						jettisonModule.jettisonTransform,
+						jettisonModule.isJettisoned
+					);
 				}
 			}
 
@@ -126,8 +135,18 @@ namespace TweakableEverything
 							Tools.PostDebugMessage(this, "transform reset.");
 						}
 
-						jettisonModule.isJettisoned = !this.disableFairing |
+						Tools.PostDebugMessage(this, "disableFairing: {0}; isJettisoned {1}",
+							this.disableFairing,
+							jettisonModule.isJettisoned
+						);
+
+						jettisonModule.isJettisoned = this.disableFairing |
 							this.isJettisonedTable[jettisonModule.jettisonName];
+
+						Tools.PostDebugMessage(this, "setting isJettisoned = {0} for ModuleJettison {1}",
+							jettisonModule.isJettisoned,
+							jettisonModule.jettisonName
+						);
 					}
 				}
 			}
