@@ -159,7 +159,7 @@ namespace TweakableEverything
 					// ...and start the animation
 					this.animationWrapper.Start();
 
-					this.animationModule.Events["Toggle"].active = false;
+					this.animationModule.Events["Toggle"].guiActiveEditor = false;
 				}
 			}
 		}
