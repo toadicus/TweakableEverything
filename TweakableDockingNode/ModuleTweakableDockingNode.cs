@@ -43,8 +43,8 @@ namespace TweakableEverything
 		 * */
 		public ModuleTweakableDockingNode() : base()
 		{
-			this.StartOpened = false;
-			this.startOpenedState = false;
+			/*this.StartOpened = false;
+			this.startOpenedState = false;*/
 			this.lastOpenState = false;
 			this.AlwaysAllowStack = false;
 			this.fuelCrossFeed = true;
@@ -64,14 +64,14 @@ namespace TweakableEverything
 		 * */
 		// Stores the ModuleDockingNode we're wrapping.
 		protected ModuleDockingNode dockingNodeModule;
-
+/*
 		// Tweakable property to determine whether the docking port should start opened or closed.
 		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true),
 		UI_Toggle(disabledText = "Closed", enabledText = "Opened")]
 		public bool StartOpened;
 		// Save the state here so we can tell if StartOpened has changed.
 		protected bool startOpenedState;
-
+		*/
 		// Field that references the animationName of the ModuleAnimateGeneric doing the animating.
 		[KSPField(isPersistant = false)]
 		public string deployAnimationControllerName;
@@ -252,18 +252,20 @@ namespace TweakableEverything
 				this.attachNode = base.part.findAttachNode(this.TDNnodeName);
 			}
 
+			base.part.attachRules.allowStack = this.IsOpen | this.AlwaysAllowStack;
+/*
 			if (this.deployAnimation != null)
 			{
 				// Seed the start opened state and stack rules.  This is relevant mostly when loading a saved-open port.
 				this.startOpenedState = this.StartOpened;
-				base.part.attachRules.allowStack = this.StartOpened | this.AlwaysAllowStack;
+
 
 				Tools.PostDebugMessage(this, string.Format("Set allowStack to {0}", base.part.attachRules.allowStack));
 
 				// Seed the lastOpenState to the opposite of IsOpen, to force the node code to run once in the first update.
 				this.lastOpenState = !this.IsOpen;
 			}
-
+*/
 			this.partCrossFeed = this.fuelCrossFeed;
 
 			this.dockingNodeModule.Events["EnableXFeed"].guiActive = false;
@@ -329,7 +331,7 @@ namespace TweakableEverything
 
 					// If StartOpened has changed...
 					// TODO: Investigate if StartOpened can be compared against lastOpenState instead of startOpenedState.
-					if (this.StartOpened != this.startOpenedState)
+					/*if (this.StartOpened != this.startOpenedState)
 					{
 						// Yay debugging!
 						Tools.PostDebugMessage(string.Format(
@@ -365,7 +367,7 @@ namespace TweakableEverything
 
 						// ...and store the new StartOpened state.
 						this.startOpenedState = this.StartOpened;
-					}
+					}*/
 
 
 					// ...if the port is closed and the attachNode icon is active...
