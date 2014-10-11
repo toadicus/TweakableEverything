@@ -43,8 +43,6 @@ namespace TweakableEverything
 		 * */
 		public ModuleTweakableDockingNode() : base()
 		{
-			/*this.StartOpened = false;
-			this.startOpenedState = false;*/
 			this.lastOpenState = false;
 			this.AlwaysAllowStack = false;
 			this.fuelCrossFeed = true;
@@ -64,14 +62,7 @@ namespace TweakableEverything
 		 * */
 		// Stores the ModuleDockingNode we're wrapping.
 		protected ModuleDockingNode dockingNodeModule;
-/*
-		// Tweakable property to determine whether the docking port should start opened or closed.
-		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true),
-		UI_Toggle(disabledText = "Closed", enabledText = "Opened")]
-		public bool StartOpened;
-		// Save the state here so we can tell if StartOpened has changed.
-		protected bool startOpenedState;
-		*/
+
 		// Field that references the animationName of the ModuleAnimateGeneric doing the animating.
 		[KSPField(isPersistant = false)]
 		public string deployAnimationControllerName;
@@ -94,13 +85,6 @@ namespace TweakableEverything
 		[KSPField(isPersistant = true, guiName = "Crossfeed", guiActiveEditor = true, guiActive = true),
 		UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
 		public bool fuelCrossFeed;
-
-		/*
-		 * This functionality is disabled until Squad fixes tweakable tips.
-		[KSPField(isPersistant = false, guiName = "Advanced Options", guiActiveEditor = true, guiActive = false)]
-		[UI_Toggle(enabledText = "Shown", disabledText = "Hidden")]
-		public bool showAdvanced;
-		*/
 
 		[KSPField(isPersistant = true, guiName = "Acquire Range (m)", guiActiveEditor = true, guiActive = false)]
 		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
@@ -189,19 +173,13 @@ namespace TweakableEverything
 				// ...go get the module reference from the Part...
 				this.deployAnimation = new TweakableAnimationWrapper(
 					base.part.Modules
-					.OfType<ModuleAnimateGeneric>()
-					.First(m => m.animationName == this.deployAnimationControllerName),
+						.OfType<ModuleAnimateGeneric>()
+							.First(m => m.animationName == this.deployAnimationControllerName),
 					new GameScenes[] { GameScenes.EDITOR, GameScenes.SPH, GameScenes.FLIGHT },
 					WrapMode.ClampForever,
 					TweakableAnimationWrapper.PlayPosition.Beginning,
 					TweakableAnimationWrapper.PlayDirection.Backward
 				);
-			}
-			// ...otherwise, we don't have a shield...
-			else
-			{
-				// ...so disable the option to start it open or closed.
-				this.Fields["StartOpened"].guiActiveEditor = false;
 			}
 
 			// Start the underlying ModuleDockingNode.
@@ -253,19 +231,7 @@ namespace TweakableEverything
 			}
 
 			base.part.attachRules.allowStack = this.IsOpen | this.AlwaysAllowStack;
-/*
-			if (this.deployAnimation != null)
-			{
-				// Seed the start opened state and stack rules.  This is relevant mostly when loading a saved-open port.
-				this.startOpenedState = this.StartOpened;
 
-
-				Tools.PostDebugMessage(this, string.Format("Set allowStack to {0}", base.part.attachRules.allowStack));
-
-				// Seed the lastOpenState to the opposite of IsOpen, to force the node code to run once in the first update.
-				this.lastOpenState = !this.IsOpen;
-			}
-*/
 			this.partCrossFeed = this.fuelCrossFeed;
 
 			this.dockingNodeModule.Events["EnableXFeed"].guiActive = false;
@@ -329,62 +295,12 @@ namespace TweakableEverything
 						));
 					}
 
-					// If StartOpened has changed...
-					// TODO: Investigate if StartOpened can be compared against lastOpenState instead of startOpenedState.
-					/*if (this.StartOpened != this.startOpenedState)
-					{
-						// Yay debugging!
-						Tools.PostDebugMessage(string.Format(
-							"{0}: Toggling animation module: StartOpened={1}, startOpenedState={2}",
-							this.GetType().Name,
-							this.StartOpened,
-							this.startOpenedState
-						));
-
-						// ...toggle the animation module
-						if (this.StartOpened)
-						{
-							this.deployAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.End);
-						}
-						else
-						{
-							this.deployAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.Beginning);
-						}
-
-						// If we are closing and have a part attached...
-						if (this.StartOpened == false && this.attachedPart != null)
-						{
-							// Yay debugging!
-							Tools.PostDebugMessage(string.Format(
-								"{0}: Updating.  attachedPart={1}",
-								this.GetType().Name,
-								this.attachedPart
-							));
-
-							// ...select the part, putting it on the mouse.
-							EditorLogic.fetch.PartSelected = this.attachedPart;
-						}
-
-						// ...and store the new StartOpened state.
-						this.startOpenedState = this.StartOpened;
-					}*/
-
-
 					// ...if the port is closed and the attachNode icon is active...
 					if (this.attachNode != null && this.attachNode.icon != null)
 					{
 						this.attachNode.icon.SetActive(this.IsOpen);
 					}
 				}
-
-				/*
-				 * This functionality is disabled until Squad fixes tweakable tips.
-				this.Fields["acquireRange"].guiActiveEditor = this.showAdvanced;
-				this.Fields["acquireForce"].guiActiveEditor = this.showAdvanced;
-				this.Fields["acquireTorque"].guiActiveEditor = this.showAdvanced;
-				this.Fields["undockEjectionForce"].guiActiveEditor = this.showAdvanced;
-				this.Fields["minDistanceToReEngage"].guiActiveEditor = this.showAdvanced;
-				*/
 			}
 
 			// If we are in flight...
