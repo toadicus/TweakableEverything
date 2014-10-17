@@ -77,15 +77,6 @@
     <Compile Include="..\..\ToadicusTools\PartExtensions.cs">
       <Link>PartExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\ToadicusTools\IModuleDB.cs">
-      <Link>IModuleDB.cs</Link>
-    </Compile>
-    <Compile Include="..\..\ToadicusTools\ModuleDBWrapper.cs">
-      <Link>ModuleDBWrapper.cs</Link>
-    </Compile>
-    <Compile Include="..\..\ToadicusTools\PrefabDBWrapper.cs">
-      <Link>PrefabDBWrapper.cs</Link>
-    </Compile>
     <Compile Include="..\..\ToadicusTools\Tools.cs">
       <Link>Tools.cs</Link>
     </Compile>
