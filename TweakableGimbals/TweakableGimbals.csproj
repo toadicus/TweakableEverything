@@ -81,6 +81,9 @@
     <Compile Include="..\..\ToadicusTools\PartExtensions.cs">
       <Link>PartExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\ToadicusTools\DebugPartModule.cs">
+      <Link>DebugPartModule.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TweakableGimbals.cfg" />

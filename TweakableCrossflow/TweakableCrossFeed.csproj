@@ -62,5 +62,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModuleTweakableCrossFeed.cs" />
+    <Compile Include="..\..\ToadicusTools\DebugPartModule.cs">
+      <Link>DebugPartModule.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>

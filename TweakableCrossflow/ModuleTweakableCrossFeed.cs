@@ -30,6 +30,7 @@ using KSP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ToadicusTools;
 using UnityEngine;
 
 namespace TweakableEverything

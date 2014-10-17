@@ -89,6 +89,9 @@
     <Compile Include="..\..\ToadicusTools\TweakableTools.cs">
       <Link>TweakableTools.cs</Link>
     </Compile>
+    <Compile Include="..\..\ToadicusTools\DebugPartModule.cs">
+      <Link>DebugPartModule.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

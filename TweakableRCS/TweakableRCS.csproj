@@ -80,6 +80,9 @@
     <Compile Include="..\..\ToadicusTools\Tools.cs">
       <Link>Tools.cs</Link>
     </Compile>
+    <Compile Include="..\..\ToadicusTools\DebugPartModule.cs">
+      <Link>DebugPartModule.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TweakableRCS.cfg" />
