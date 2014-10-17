@@ -34,7 +34,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableCrossFeed : DebugPartModule
+	#else
 	public class ModuleTweakableCrossFeed : PartModule
+	#endif
 	{
 		/*
 		 * Ctor

@@ -30,7 +30,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleStagingToggle : DebugPartModule
+	#else
 	public class ModuleStagingToggle : PartModule
+	#endif
 	{
 		#region Interface Elements
 		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.

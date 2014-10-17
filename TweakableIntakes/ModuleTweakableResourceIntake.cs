@@ -34,7 +34,11 @@ using UnityEngine;
 
 namespace TweakableIntakes
 {
+	#if DEBUG
+	public class ModuleTweakableResourceIntake : DebugPartModule
+	#else
 	public class ModuleTweakableResourceIntake : PartModule
+	#endif
 	{
 		protected ModuleResourceIntake intakeModule;
 

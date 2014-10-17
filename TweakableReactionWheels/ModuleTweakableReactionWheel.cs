@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableReactionWheel : DebugPartModule
+	#else
 	public class ModuleTweakableReactionWheel : PartModule
+	#endif
 	{
 		// Stores the reaction wheel module we're tweaking.
 		protected ModuleReactionWheel reactionWheelModule;

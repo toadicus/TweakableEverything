@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableLadder : DebugPartModule
+	#else
 	public class ModuleTweakableLadder : PartModule
+	#endif
 	{
 		// Stores whether or not the wheel will start enabled.
 		[KSPField(isPersistant = true, guiName = "Start", guiActive = false, guiActiveEditor = true)]

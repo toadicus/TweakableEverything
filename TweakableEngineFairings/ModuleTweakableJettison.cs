@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableJettison : DebugPartModule
+	#else
 	public class ModuleTweakableJettison : PartModule
+	#endif
 	{
 		protected List<ModuleJettison> jettisonModules;
 

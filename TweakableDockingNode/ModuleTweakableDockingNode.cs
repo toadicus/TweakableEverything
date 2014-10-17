@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableDockingNode : DebugPartModule
+	#else
 	public class ModuleTweakableDockingNode : PartModule
+	#endif
 	{
 		/*
 		 * Ctor

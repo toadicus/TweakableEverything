@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableDecouple : DebugPartModule
+	#else
 	public class ModuleTweakableDecouple : PartModule
+	#endif
 	{
 		// Stores the name of the decoupler module, since sometimes it is different.
 		[KSPField(isPersistant = false)]

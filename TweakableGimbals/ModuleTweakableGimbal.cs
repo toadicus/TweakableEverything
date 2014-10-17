@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableGimbal : DebugPartModule
+	#else
 	public class ModuleTweakableGimbal : PartModule
+	#endif
 	{
 		protected ModuleGimbal gimbalModule;
 

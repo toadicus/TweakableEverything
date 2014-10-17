@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableRCS
 {
+	#if DEBUG
+	public class ModuleTweakableRCS : DebugPartModule
+	#else
 	public class ModuleTweakableRCS : PartModule
+	#endif
 	{
 		protected ModuleRCS RCSModule;
 

@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableSolarPanel : DebugPartModule
+	#else
 	public class ModuleTweakableSolarPanel : PartModule
+	#endif
 	{
 		// Tweakable property to determine whether the solar panel should start opened or closed.
 		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true)]

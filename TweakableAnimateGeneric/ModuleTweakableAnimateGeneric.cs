@@ -35,7 +35,11 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	#if DEBUG
+	public class ModuleTweakableAnimateGeneric : DebugPartModule
+	#else
 	public class ModuleTweakableAnimateGeneric : PartModule
+	#endif
 	{
 		// Stores whether or not the animation will start completed.
 		[KSPField(isPersistant = true, guiName = "Start", guiActive = false, guiActiveEditor = true)]
