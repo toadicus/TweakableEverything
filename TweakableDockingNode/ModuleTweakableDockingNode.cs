@@ -149,8 +149,8 @@ namespace TweakableEverything
 			{
 				if (this.deployAnimation == null)
 				{
-					Tools.PostDebugMessage(this, "deployAnimation is null; open status falling back to False.");
-					return false;
+					Tools.PostDebugMessage(this, "deployAnimation is null; open status falling back to true.");
+					return true;
 				}
 				else
 				{
