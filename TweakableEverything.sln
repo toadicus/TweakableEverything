@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableSolarPanels", "Twe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableReactionWheels", "TweakableReactionWheels\TweakableReactionWheels.csproj", "{E5B0D4C8-F539-4825-8823-D9E37716ACEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableLadders", "TweakableLadders\TweakableLadders.csproj", "{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableGimbals", "TweakableGimbals\TweakableGimbals.csproj", "{A9127548-5542-47FC-B6C2-7129E6573E51}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableRCS", "TweakableRCS\TweakableRCS.csproj", "{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}"
@@ -101,14 +99,6 @@ Global
 		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
 		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
 		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
-		{D2D6E861-032F-4BBB-B6D6-8667C5BC4A53}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
 		{D472A279-0B6E-4524-9091-C06705569DFB}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
 		{D472A279-0B6E-4524-9091-C06705569DFB}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
 		{D472A279-0B6E-4524-9091-C06705569DFB}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU

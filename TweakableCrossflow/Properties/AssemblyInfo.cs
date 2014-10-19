@@ -1,6 +1,6 @@
-﻿// TweakableLadders, a TweakableEverything module
+﻿// TweakableCrossFeed, a TweakableEverything module
 //
-// TweakableLadders.cfg
+// AssemblyInfo.cs
 //
 // Copyright © 2014, toadicus
 // All rights reserved.
@@ -25,10 +25,30 @@
 // SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// This software uses the ModuleManager library © 2013-2014 sarbian & ialdabaoth (who is awesome), used under a Creative Commons Attribution-ShareAlike
-// 3.0 Unported License.
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
-@PART[*]:HAS[@MODULE[RetractableLadder]]:FOR[TweakableEverything]
-{
-}
+// Information about this assembly is defined by the following attributes.
+// Change them to the values specific to your project.
+
+[assembly: AssemblyTitle("TweakableCrossFeed")]
+[assembly: AssemblyDescription("Adds a tweakable to enable or disable fuel crossfeed for any part.")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("")]
+[assembly: AssemblyCopyright("toadicus")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
+// The form "{Major}.{Minor}.*" will automatically update the build and revision,
+// and "{Major}.{Minor}.{Build}.*" will update just the revision.
+
+[assembly: AssemblyVersion("1.5.*")]
+
+// The following attributes are used to specify the signing key for the assembly,
+// if desired. See the Mono documentation for more information about signing.
+
+//[assembly: AssemblyDelaySign(false)]
+//[assembly: AssemblyKeyFile("")]
+
