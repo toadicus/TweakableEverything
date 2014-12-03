@@ -63,6 +63,7 @@
     <CustomCommands>
       <CustomCommands>
         <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y  ${ProjectDir}\${ProjectName}.cfg ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
@@ -80,7 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModuleTweakableEVA.cs" />
-    <Compile Include="TweakableEVAManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -89,5 +89,8 @@
       <Name>ToadicusTools</Name>
       <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TweakableEVA.cfg" />
   </ItemGroup>
 </Project>

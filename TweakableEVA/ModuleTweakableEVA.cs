@@ -50,9 +50,25 @@ namespace TweakableEVA
 		private float origThrusterPower;
 		private float origPropConsumption;
 
-		public override void OnAwake()
+		public ModuleTweakableEVA()
 		{
 			this.thrusterPowerThrottle = 1f;
+
+			Tools.PostDebugMessage(this, "Constructed.");
+		}
+
+		public override void OnAwake()
+		{
+			base.OnAwake();
+
+			Tools.PostDebugMessage(this, "Awake.");
+		}
+
+		public override void OnLoad(ConfigNode node)
+		{
+			base.OnLoad(node);
+
+			Tools.PostDebugMessage(this, "Loaded.");
 		}
 
 		public void Update()
