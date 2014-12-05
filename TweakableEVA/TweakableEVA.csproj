@@ -47,6 +47,7 @@
     <CustomCommands>
       <CustomCommands>
         <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y  ${ProjectDir}\${ProjectName}.cfg ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
       </CustomCommands>
     </CustomCommands>
     <ConsolePause>false</ConsolePause>
