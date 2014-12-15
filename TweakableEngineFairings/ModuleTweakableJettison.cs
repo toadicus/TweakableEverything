@@ -81,10 +81,12 @@ namespace TweakableEverything
 					Tools.PostDebugMessage(this, "Found ModuleJettison:" +
 						"\n\tnjettisonName: {0}" +
 						"\n\tjettisonTransform: {1}" +
-						"\n\tisJettisoned: {2}",
+						"\n\tisJettisoned: {2}" +
+						"\n\tjettisonForce: {3}",
 						jettisonModule.jettisonName,
 						jettisonModule.jettisonTransform,
-						jettisonModule.isJettisoned
+						jettisonModule.isJettisoned,
+						jettisonModule.jettisonForce
 					);
 				}
 			}
@@ -92,7 +94,10 @@ namespace TweakableEverything
 			Tools.PostDebugMessage(this, string.Format("Found {0} ModuleJettisons.", this.jettisonModules.Count()));
 
 			// Seed the disableState for first-run behavior.
-			this.disableState = !this.disableFairing;
+			if (this.disableFairing || true)
+			{
+				this.disableState = !this.disableFairing;
+			}
 		}
 
 		public void LateUpdate()
