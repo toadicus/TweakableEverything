@@ -179,7 +179,7 @@ namespace TweakableEverything
 					base.part.Modules
 						.OfType<ModuleAnimateGeneric>()
 							.First(m => m.animationName == this.deployAnimationControllerName),
-					new GameScenes[] { GameScenes.EDITOR, GameScenes.SPH, GameScenes.FLIGHT },
+					new GameScenes[] { GameScenes.EDITOR, GameScenes.FLIGHT },
 					WrapMode.ClampForever,
 					TweakableAnimationWrapper.PlayPosition.Beginning,
 					TweakableAnimationWrapper.PlayDirection.Backward

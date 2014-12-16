@@ -154,7 +154,7 @@ namespace TweakableEverything
 					// data
 					this.animationWrapper = new TweakableAnimationWrapper(
 						this.animationModule,
-						new GameScenes[] { GameScenes.EDITOR, GameScenes.SPH },
+						new GameScenes[] { GameScenes.EDITOR },
 						WrapMode.ClampForever,
 						positionStart,
 						directionStart
