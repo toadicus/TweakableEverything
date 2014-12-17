@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug_win</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{22DD291E-E4BF-4759-BD6D-4EA736B937C4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>TweakableParachutes</RootNamespace>
+    <AssemblyName>TweakableParachutes</AssemblyName>
+    <ReleaseVersion>1.2</ReleaseVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_win|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="xcopy /Y ${ProjectDir}\${ProjectName}.cfg ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+      </CustomCommands>
+    </CustomCommands>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_win|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="xcopy /Y ${ProjectDir}\${ProjectName}.cfg ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+      </CustomCommands>
+    </CustomCommands>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\_KSPAssemblies\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>..\..\_KSPAssemblies\System.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\_KSPAssemblies\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\ToadicusTools\Tools.cs">
+      <Link>Tools.cs</Link>
+    </Compile>
+    <Compile Include="ModuleTweakableParachute.cs" />
+    <Compile Include="..\..\ToadicusTools\DebugPartModule.cs">
+      <Link>DebugPartModule.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ToadicusTools\PartExtensions.cs">
+      <Link>PartExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ToadicusTools\TweakableTools.cs">
+      <Link>TweakableTools.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TweakableParachutes.cfg" />
+  </ItemGroup>
+</Project>
