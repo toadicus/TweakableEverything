@@ -66,7 +66,13 @@ namespace TweakableSAS
 				this.SASServiceLevel = this.sasModule.SASServiceLevel;
 			}
 
-			if (researchedPartsLoaded || HighLogic.CurrentGame == null || PartLoader.LoadedPartsList == null)
+			if (researchedPartsLoaded)
+			{
+				this.SASServiceLevel = maxSASServiceLevel;
+				return;
+			}
+
+			if (HighLogic.CurrentGame == null || PartLoader.LoadedPartsList == null)
 			{
 				return;
 			}
@@ -74,29 +80,28 @@ namespace TweakableSAS
 			switch (HighLogic.CurrentGame.Mode)
 			{
 				case Game.Modes.CAREER:
-				case Game.Modes.SCIENCE_SANDBOX:
+					this.Fields["SASServiceLevel"].guiActiveEditor = true;
 					break;
 				default:
-					if (!researchedPartsLoaded)
-					{
-						foreach (var autopilotMode in Enum.GetValues(typeof(AutopilotSkill.Skills)))
-						{
-							try
-							{
-								maxSASServiceLevel = Math.Max(maxSASServiceLevel, (int)autopilotMode);
-							}
-							catch
-							{
-								Tools.PostDebugMessage(
-									"Failed converting {0}.{1} to int.",
-									typeof(AutopilotSkill.Skills).GetType().Name,
-									Enum.GetName(typeof(AutopilotSkill.Skills), autopilotMode)
-								);
-							}
-						}
+					this.Fields["SASServiceLevel"].guiActiveEditor = false;
 
-						researchedPartsLoaded = true;
+					foreach (var autopilotMode in Enum.GetValues(typeof(AutopilotSkill.Skills)))
+					{
+						try
+						{
+							maxSASServiceLevel = Math.Max(maxSASServiceLevel, (int)autopilotMode);
+						}
+						catch
+						{
+							Tools.PostDebugMessage(
+								"Failed converting {0}.{1} to int.",
+								typeof(AutopilotSkill.Skills).GetType().Name,
+								Enum.GetName(typeof(AutopilotSkill.Skills), autopilotMode)
+							);
+						}
 					}
+
+					researchedPartsLoaded = true;
 
 					Tools.PostDebugMessage(this, "Sandbox mode: maxSASServiceLevel = {0}", maxSASServiceLevel);
 
