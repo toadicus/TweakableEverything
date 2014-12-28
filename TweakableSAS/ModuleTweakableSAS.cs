@@ -61,6 +61,9 @@ namespace TweakableEverything
 		{
 			base.OnAwake();
 
+			GameEvents.onGameSceneLoadRequested.Add(this.GameSceneLoadHandler);
+			GameEvents.OnPartPurchased.Add(this.PartPurchasedHandler);
+
 			if (this.part.tryGetFirstModuleOfType<ModuleSAS>(out this.sasModule))
 			{
 				this.SASServiceLevel = this.sasModule.SASServiceLevel;
