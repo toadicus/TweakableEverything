@@ -43,30 +43,30 @@ namespace TweakableEverything
 	{
 		protected ModuleParachute chuteModule;
 
-		[KSPField(isPersistant = true, guiName = "Deploy Speed", guiActiveEditor = true)]
-		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = .1f)]
-		public float deploymentSpeed;
+		protected float prefabDeploySpeed;
+		protected float prefabSemiDeploySpeed;
 
-		[KSPField(isPersistant = true, guiName = "Semi-Deploy Speed", guiActiveEditor = true)]
-		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = .1f)]
-		public float semiDeploymentSpeed;
+		protected float lastDeployFactor;
+		protected float lastSemiDeployFactor;
+
+		[KSPField(isPersistant = true, guiName = "Deploy Factor", guiFormat = "×##0", guiActiveEditor = true)]
+		[UI_FloatRange(minValue = 1f, maxValue = 100f, stepIncrement = 5f)]
+		public float deploymentFactor;
+
+		[KSPField(isPersistant = true, guiName = "Semi-Deploy Factor", guiFormat = "×##0", guiActiveEditor = true)]
+		[UI_FloatRange(minValue = 1f, maxValue = 100f, stepIncrement = 5f)]
+		public float semiDeploymentFactor;
 
 		[KSPField(isPersistant = false)]
-		public float lowerMult;
+		public float maxFactor;
 
-		[KSPField(isPersistant = false)]
-		public float upperMult;
-
-		[KSPField(isPersistant = false)]
-		public float stepMult;
-
-		public ModuleTweakableParachute()
+		public override void OnAwake()
 		{
-			this.deploymentSpeed = -1f;
-			this.semiDeploymentSpeed = -1f;
-			this.lowerMult = 0f;
-			this.upperMult = 2f;
-			this.stepMult = 1f;
+			base.OnAwake();
+
+			this.deploymentFactor = 20f;
+			this.semiDeploymentFactor = 1f;
+			this.maxFactor = 100f;
 		}
 
 		public override void OnStart(StartState state)
@@ -74,37 +74,38 @@ namespace TweakableEverything
 			base.OnStart(state);
 
 			this.chuteModule = base.part.getFirstModuleOfType<ModuleParachute>();
+			ModuleParachute prefabChuteModule = base.part.partInfo.partPrefab.getFirstModuleOfType<ModuleParachute>();
 
 			if (this.chuteModule == null)
 			{
 				return;
 			}
 
-			Tools.InitializeTweakable<ModuleTweakableParachute>(
-				(UI_FloatRange)this.Fields["deploymentSpeed"].uiControlCurrent(),
-				ref this.deploymentSpeed,
-				ref this.chuteModule.deploymentSpeed,
-				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
-					.OfType<ModuleParachute>()
-					.FirstOrDefault()
-					.deploymentSpeed,
-				this.lowerMult,
-				this.upperMult,
-				this.stepMult
-			);
 
-			Tools.InitializeTweakable<ModuleTweakableParachute>(
-				(UI_FloatRange)this.Fields["semiDeploymentSpeed"].uiControlCurrent(),
-				ref this.semiDeploymentSpeed,
-				ref this.chuteModule.semiDeploymentSpeed,
-				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
-					.OfType<ModuleParachute>()
-					.FirstOrDefault()
-					.semiDeploymentSpeed,
-				this.lowerMult,
-				this.upperMult,
-				this.stepMult
-			);
+			this.prefabDeploySpeed = prefabChuteModule.deploymentSpeed;
+			this.prefabSemiDeploySpeed = prefabChuteModule.semiDeploymentSpeed;
+
+
+			this.chuteModule.Fields["deploymentSpeed"].guiActiveEditor = true;
+			this.chuteModule.Fields["deploymentSpeed"].guiName = "Deploy Spd";
+			this.chuteModule.Fields["deploymentSpeed"].guiFormat = "G3";
+
+			this.chuteModule.Fields["semiDeploymentSpeed"].guiActiveEditor = true;
+			this.chuteModule.Fields["semiDeploymentSpeed"].guiName = "Semi-Deploy Spd";
+			this.chuteModule.Fields["semiDeploymentSpeed"].guiFormat = "G3";
+
+			var deployField = this.Fields["deploymentFactor"].uiControlCurrent() as UI_FloatRange;
+			var semiDeployField = this.Fields["semiDeploymentFactor"].uiControlCurrent() as UI_FloatRange;
+
+			float step = Mathf.Pow(10f, (int)Mathf.Log10(this.maxFactor / 2f)) / 2f;
+
+			deployField.maxValue = this.maxFactor;
+			deployField.minValue = 1f;
+			deployField.stepIncrement = step;
+
+			semiDeployField.maxValue = this.maxFactor;
+			semiDeployField.minValue = 1f;
+			deployField.stepIncrement = step;
 		}
 
 		public void LateUpdate()
@@ -113,18 +114,23 @@ namespace TweakableEverything
 			{
 				return;
 			}
-				
-			if (HighLogic.LoadedSceneIsFlight)
-			{
-				if (this.chuteModule.deploymentSpeed != this.deploymentSpeed)
-				{
-					this.chuteModule.deploymentSpeed = this.deploymentSpeed;
-				}
 
-				if (this.chuteModule.semiDeploymentSpeed != this.semiDeploymentSpeed)
-				{
-					this.chuteModule.semiDeploymentSpeed = this.semiDeploymentSpeed;
-				}
+			if (this.deploymentFactor != this.lastDeployFactor)
+			{
+				this.deploymentFactor = Mathf.Max(1f, this.deploymentFactor);
+
+				this.chuteModule.deploymentSpeed = this.prefabDeploySpeed / this.deploymentFactor;
+
+				this.lastDeployFactor = this.deploymentFactor;
+			}
+
+			if (this.semiDeploymentFactor != this.lastSemiDeployFactor)
+			{
+				this.semiDeploymentFactor = Mathf.Max(1f, this.semiDeploymentFactor);
+
+				this.chuteModule.semiDeploymentSpeed = this.prefabSemiDeploySpeed /	this.semiDeploymentFactor;
+
+				this.lastSemiDeployFactor = this.semiDeploymentFactor;
 			}
 		}
 	}
