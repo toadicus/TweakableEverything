@@ -33,7 +33,7 @@ using System.Collections.Generic;
 using ToadicusTools;
 using UnityEngine;
 
-namespace TweakableSAS
+namespace TweakableEverything
 {
 	#if DEBUG
 	public class ModuleTweakableSAS : DebugPartModule
@@ -46,7 +46,7 @@ namespace TweakableSAS
 		private static bool researchedPartsLoaded = false;
 
 		#region Fields
-		[KSPField(isPersistant = true, guiName = "SAS Level", guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "SAS Autopilot", guiFormat = "Level #0", guiActiveEditor = true)]
 		[UI_FloatRange(maxValue = 3, minValue = 0, stepIncrement = 1)]
 		public float SASServiceLevel;
 
