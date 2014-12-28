@@ -94,6 +94,7 @@
     <Compile Include="..\..\ToadicusTools\TweakableTools.cs">
       <Link>TweakableTools.cs</Link>
     </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TweakableParachutes.cfg" />

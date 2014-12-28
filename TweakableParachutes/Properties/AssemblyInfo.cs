@@ -1,4 +1,4 @@
-﻿// TweakableSAS, a TweakableEverything module
+﻿// TweakableParachutes, a TweakableEverything module
 //
 // AssemblyInfo.cs
 //
@@ -31,8 +31,8 @@ using System.Runtime.CompilerServices;
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle("TweakableSAS")]
-[assembly: AssemblyDescription("Adds useful 'tweakable' configuration options for parts with SAS modules.")]
+[assembly: AssemblyTitle("TweakableParachutes")]
+[assembly: AssemblyDescription("Adds useful 'tweakable' configuration options for parts with parachute modules.")]
 [assembly: AssemblyCopyright("toadicus")]
 
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
