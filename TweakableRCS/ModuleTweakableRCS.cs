@@ -68,12 +68,17 @@ namespace TweakableRCS
 			base.OnStart(state);
 
 			this.RCSModule = base.part.getFirstModuleOfType<ModuleRCS>();
+			var prefabModule = this.part.partInfo.partPrefab.getFirstModuleOfType<ModuleRCS>();
 
 			// Only run the assignment if the module exists.
 			if (this.RCSModule != null)
 			{
 				this.startEnabledState = !this.startEnabled;
-				this.baseThrusterPower = this.RCSModule.thrusterPower;
+			}
+
+			if (prefabModule != null)
+			{
+				this.baseThrusterPower = prefabModule.thrusterPower;
 			}
 		}
 
@@ -99,13 +104,13 @@ namespace TweakableRCS
 					if (this.startEnabled)
 					{
 						// ...set the reaction wheel module to active
-						this.RCSModule.isEnabled = true;
+						this.RCSModule.rcsEnabled = true;
 					}
 					// ...otherwise, we're starting disabled...
 					else
 					{
 						// ...set the reaction wheel module to disabled
-						this.RCSModule.isEnabled = false;
+						this.RCSModule.rcsEnabled = false;
 					}
 				}
 			}
