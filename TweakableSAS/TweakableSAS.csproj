@@ -11,6 +11,7 @@
     <AssemblyName>TweakableSAS</AssemblyName>
     <ReleaseVersion>1.2</ReleaseVersion>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <UseMSBuildEngine>False</UseMSBuildEngine>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_linux|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
