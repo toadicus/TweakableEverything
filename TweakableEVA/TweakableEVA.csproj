@@ -46,8 +46,8 @@
     <WarningLevel>4</WarningLevel>
     <CustomCommands>
       <CustomCommands>
-        <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
-        <Command type="AfterBuild" command="xcopy /Y  ${ProjectDir}\${ProjectName}.cfg ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ${SolutionDir}\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y  ${ProjectDir}\${ProjectName}.cfg ${SolutionDir}\GameData\TweakableEverything\" />
       </CustomCommands>
     </CustomCommands>
     <ConsolePause>false</ConsolePause>
@@ -63,8 +63,8 @@
     <ConsolePause>false</ConsolePause>
     <CustomCommands>
       <CustomCommands>
-        <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
-        <Command type="AfterBuild" command="xcopy /Y  ${ProjectDir}\${ProjectName}.cfg ..\..\..\..\Games\KSP_win\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ${SolutionDir}\GameData\TweakableEverything\" />
+        <Command type="AfterBuild" command="xcopy /Y  ${ProjectDir}\${ProjectName}.cfg ${SolutionDir}\GameData\TweakableEverything\" />
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
