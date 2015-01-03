@@ -21,7 +21,6 @@
     <DefineConstants>DEBUG; TRACE</DefineConstants>
     <CustomCommands>
       <CustomCommands>
-        <Command type="AfterBuild" command="xcopy /Y ${ProjectDir}\${ProjectName}.cfg ${SolutionDir}\GameData\TweakableEverything\" />
         <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ${SolutionDir}\GameData\TweakableEverything\" />
       </CustomCommands>
     </CustomCommands>
@@ -32,7 +31,6 @@
     <WarningLevel>4</WarningLevel>
     <CustomCommands>
       <CustomCommands>
-        <Command type="AfterBuild" command="xcopy /Y ${ProjectDir}\${ProjectName}.cfg ${SolutionDir}\GameData\TweakableEverything\" />
         <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ${SolutionDir}\GameData\TweakableEverything\" />
       </CustomCommands>
     </CustomCommands>
@@ -43,7 +41,7 @@
     <WarningLevel>4</WarningLevel>
     <CustomCommands>
       <CustomCommands>
-        <Command type="AfterBuild" command="cp -afv ${ProjectDir}/${ProjectName}.cfg ${TargetFile} ${SolutionDir}/GameData/${SolutionName}/" />
+        <Command type="AfterBuild" command="cp -afv ${TargetFile} ${SolutionDir}/GameData/${SolutionName}/" />
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
@@ -55,7 +53,7 @@
     <WarningLevel>4</WarningLevel>
     <CustomCommands>
       <CustomCommands>
-        <Command type="AfterBuild" command="cp -afv ${ProjectDir}/${ProjectName}.cfg ${TargetFile} ${SolutionDir}/GameData/${SolutionName}/" />
+        <Command type="AfterBuild" command="cp -afv ${TargetFile} ${SolutionDir}/GameData/${SolutionName}/" />
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
