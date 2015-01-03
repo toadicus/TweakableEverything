@@ -85,7 +85,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableRCS.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableRCS.cfg" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

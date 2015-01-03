@@ -97,6 +97,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableParachutes.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableParachutes.cfg" />
   </ItemGroup>
 </Project>

@@ -86,7 +86,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableGimbals.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableGimbals.cfg" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

@@ -65,7 +65,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableSolarPanels.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableSolarPanels.cfg" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

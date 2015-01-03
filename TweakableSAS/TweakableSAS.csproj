@@ -66,6 +66,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableSAS.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableSAS.cfg" />
   </ItemGroup>
 </Project>

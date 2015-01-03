@@ -66,7 +66,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableDockingNode.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableDockingNode.cfg" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

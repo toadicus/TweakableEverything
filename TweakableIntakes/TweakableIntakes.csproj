@@ -91,6 +91,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableIntakes.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableIntakes.cfg" />
   </ItemGroup>
 </Project>

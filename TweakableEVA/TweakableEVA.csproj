@@ -92,6 +92,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TweakableEVA.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableEVA.cfg" />
   </ItemGroup>
 </Project>

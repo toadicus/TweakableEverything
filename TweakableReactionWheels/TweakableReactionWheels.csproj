@@ -88,7 +88,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="TweakableReactionWheels.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableReactionWheels.cfg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ToadicusTools\ToadicusTools.csproj">

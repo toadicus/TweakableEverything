@@ -95,6 +95,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="TweakableEngineFairings.cfg" />
+    <None Include="..\GameData\TweakableEverything\TweakableEngineFairings.cfg" />
   </ItemGroup>
 </Project>
