@@ -74,7 +74,19 @@ namespace TweakableEverything
 				if (module is ModuleJettison)
 				{
 					ModuleJettison jettisonModule = module as ModuleJettison;
+
+					if (jettisonModule == null)
+					{
+						continue;
+					}
+
 					this.jettisonModules.Add(jettisonModule);
+
+					if (jettisonModule.jettisonName == null)
+					{
+						continue;
+					}
+
 					this.jettisonTransforms[jettisonModule.jettisonName] = jettisonModule.jettisonTransform;
 					this.isJettisonedTable[jettisonModule.jettisonName] = jettisonModule.isJettisoned;
 
@@ -113,6 +125,11 @@ namespace TweakableEverything
 				// ...loop through the jettison modules and...
 				foreach (ModuleJettison jettisonModule in this.jettisonModules)
 				{
+					if (jettisonModule.jettisonName == null)
+					{
+						continue;
+					}
+
 					// ...if the jettison module has not already been jettisoned...
 					if (!jettisonModule.isJettisoned)
 					{
@@ -136,8 +153,8 @@ namespace TweakableEverything
 							jettisonModule.jettisonTransform = null;
 							Tools.PostDebugMessage(this, "transform set to null.");
 						}
-						// ...otherwise, the fairing is enabled...
-						else
+					// ...otherwise, the fairing is enabled...
+					else
 						{
 							// ...return the jettison module's transform
 							jettisonModule.jettisonTransform = jettisonTransform;
