@@ -49,6 +49,8 @@ namespace TweakableEverything
 		protected float lastDeployFactor;
 		protected float lastSemiDeployFactor;
 
+		protected ModuleParachute.deploymentStates lastChuteState;
+
 		[KSPField(isPersistant = true, guiName = "Deploy Factor", guiFormat = "×##0", guiActiveEditor = true)]
 		[UI_FloatRange(minValue = 1f, maxValue = 100f, stepIncrement = 5f)]
 		public float deploymentFactor;
@@ -81,10 +83,14 @@ namespace TweakableEverything
 				return;
 			}
 
+			this.chuteModule.Events["Repack"].guiActive = false;
+			this.chuteModule.Events["Repack"].guiActiveEditor = false;
+			this.chuteModule.Events["Repack"].guiActiveUnfocused = false;
 
 			this.prefabDeploySpeed = prefabChuteModule.deploymentSpeed;
 			this.prefabSemiDeploySpeed = prefabChuteModule.semiDeploymentSpeed;
 
+			this.lastChuteState = this.chuteModule.deploymentState;
 
 			this.chuteModule.Fields["deploymentSpeed"].guiActiveEditor = true;
 			this.chuteModule.Fields["deploymentSpeed"].guiName = "Deploy Spd";
@@ -132,6 +138,30 @@ namespace TweakableEverything
 
 				this.lastSemiDeployFactor = this.semiDeploymentFactor;
 			}
+
+			if (this.lastChuteState != this.chuteModule.deploymentState)
+			{
+				switch (this.chuteModule.deploymentState)
+				{
+					case ModuleParachute.deploymentStates.CUT:
+						this.Events["RepackWrapper"].active = true;
+						break;
+					default:
+						break;
+				}
+
+				this.lastChuteState = this.chuteModule.deploymentState;
+			}
+		}
+
+		[KSPEvent(guiName = "Repack Chute", guiActiveUnfocused = true, externalToEVAOnly = true, guiActive = false, unfocusedRange = 4)]
+		public void RepackWrapper()
+		{
+			this.chuteModule.Repack();
+
+			this.chuteModule.staged = false;
+
+			this.Events["RepackWrapper"].active = false;
 		}
 	}
 }
