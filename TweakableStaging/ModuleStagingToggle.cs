@@ -86,8 +86,18 @@ namespace TweakableEverything
 			Tools.PostDebugMessage(this, "guiActiveEditor: {0} guiActive: {1}",
 				this.Fields["stagingEnabled"].guiActiveEditor, this.activeInFlight);
 
-			// Seed the stagingEnabled state so we make sure to run on the first update.
-			this.stagingState = !this.stagingEnabled;
+			// If the part has a staging icon by default, and we are disabling staging, or 
+			// if the part does not have an icon by default, and we are enabling staging...
+			if (this.part.hasStagingIcon != this.stagingEnabled)
+			{
+				// ...invert stagingStage so we will run on the first update
+				this.stagingState = !this.stagingEnabled;
+			}
+			else
+			{
+				// ...otherwise, avoid running on the first update, because SwitchStaging is expensive.
+				this.stagingState = this.stagingEnabled;
+			}
 
 			if (this.stagingIcon != string.Empty && this.stagingIcon != null)
 			{
@@ -235,6 +245,7 @@ namespace TweakableEverything
 						}
 
 						iStage = ancestorPart.inverseStage;
+						break;
 					}
 				}
 			}
