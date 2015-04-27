@@ -67,16 +67,18 @@ namespace TweakableEverything
 		{
 			base.OnAwake();
 
-			// Default stagingEnabled to true for consistency with stock behavior.
+			this.LogDebug("OnAwake with defaultDisabled={0}", this.defaultDisabled);
 			this.stagingEnabled = !this.defaultDisabled;
-
-			Tools.PostDebugMessage(this, "OnAwake.  stagingEnabled: {0}, defaultDisabled: {1}",
-				this.stagingEnabled, this.defaultDisabled
-			);
 		}
 
 		public override void OnStart(StartState state)
 		{
+			this.LogDebug("OnStart with stagingEnabled={0}" +
+				"\npart.isInStagingList={1}",
+				this.stagingEnabled,
+				this.part.isInStagingList()
+			);
+
 			Tools.PostDebugMessage(this, "Starting with state {0}", state);
 			base.OnStart(state);
 
@@ -86,18 +88,7 @@ namespace TweakableEverything
 			Tools.PostDebugMessage(this, "guiActiveEditor: {0} guiActive: {1}",
 				this.Fields["stagingEnabled"].guiActiveEditor, this.activeInFlight);
 
-			// If the part has a staging icon by default, and we are disabling staging, or 
-			// if the part does not have an icon by default, and we are enabling staging...
-			if (this.part.hasStagingIcon != this.stagingEnabled)
-			{
-				// ...invert stagingStage so we will run on the first update
-				this.stagingState = !this.stagingEnabled;
-			}
-			else
-			{
-				// ...otherwise, avoid running on the first update, because SwitchStaging is expensive.
-				this.stagingState = this.stagingEnabled;
-			}
+			this.stagingState = !this.stagingEnabled;
 
 			if (this.stagingIcon != string.Empty && this.stagingIcon != null)
 			{
@@ -145,9 +136,11 @@ namespace TweakableEverything
 			{
 				Tools.PostDebugMessage(this, "Staging state changed." +
 					"\n\tstagingEnable: {0}" +
-					"\n\tpart.stackIcon.iconImage: {1}",
+					"\n\tpart.stackIcon.iconImage: {1}" +
+					"\n\tpart.isInStagingList: {2}",
 					this.stagingEnabled,
-					this.part.stackIcon.iconImage
+					this.part.stackIcon.iconImage,
+					this.part.isInStagingList()
 				);
 
 				// ...seed the last state
@@ -191,16 +184,32 @@ namespace TweakableEverything
 				}
 
 				// ...add our icon to the staging list
-				Tools.PostDebugMessage(this, "Assigning inverseStage " + this.part.inverseStage, "Stage Count: " + Staging.StageCount);
+				this.LogDebug("Assigning inverseStage " + this.part.inverseStage, "Stage Count: " + Staging.StageCount);
 				this.part.stackIcon.CreateIcon();
 			}
 			// ...otherwise, we're switching to disabled, so...
 			else
 			{
+				bool needsStageAssignment = false;
+				if (this.part.isInStagingList() != this.stagingEnabled)
+				{
+					needsStageAssignment = true;
+				}
+
 				// ...remove the icon from the list
 				this.part.stackIcon.RemoveIcon();
 
-				this.part.inverseStage = this.GetDecoupledStage();
+				if (needsStageAssignment)
+				{
+					this.part.inverseStage = this.GetDecoupledStage();
+					this.LogDebug("Removed from list, assigned inverseStage={0}", this.part.inverseStage);
+				}
+				#if DEBUG
+				else
+				{
+					this.LogDebug("Removed from list, no stage assigned.", this.part.inverseStage);
+				}
+				#endif
 			}
 
 			// Sort the staging list
