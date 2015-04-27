@@ -61,12 +61,16 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public float upperMult;
 
+		[KSPField(isPersistant = false)]
+		public bool disableStockLimiter;
+
 		public ModuleTweakableGimbal()
 		{
 			this.gimbalRange = -1f;
 			this.reverseGimbalControl = false;
 			this.lowerMult = 0f;
 			this.upperMult = 2f;
+			this.disableStockLimiter = true;
 		}
 
 		// Runs on PartModule startup.
@@ -114,6 +118,12 @@ namespace TweakableEverything
 					// ...and seed our last state.
 					this.reverseControlState = this.reverseGimbalControl;
 				}
+			}
+
+			if (this.disableStockLimiter)
+			{
+				this.gimbalModule.Fields["gimbalLimiter"].guiActive = false;
+				this.gimbalModule.Fields["gimbalLimiter"].guiActiveEditor = false;
 			}
 		}
 
