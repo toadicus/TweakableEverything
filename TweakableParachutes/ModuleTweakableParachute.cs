@@ -83,9 +83,9 @@ namespace TweakableEverything
 				return;
 			}
 
-			this.chuteModule.Events["Repack"].guiActive = false;
+			/*this.chuteModule.Events["Repack"].guiActive = false;
 			this.chuteModule.Events["Repack"].guiActiveEditor = false;
-			this.chuteModule.Events["Repack"].guiActiveUnfocused = false;
+			this.chuteModule.Events["Repack"].guiActiveUnfocused = false;*/
 
 			this.prefabDeploySpeed = prefabChuteModule.deploymentSpeed;
 			this.prefabSemiDeploySpeed = prefabChuteModule.semiDeploymentSpeed;
@@ -154,14 +154,14 @@ namespace TweakableEverything
 			}
 		}
 
-		[KSPEvent(guiName = "Repack Chute", guiActiveUnfocused = true, externalToEVAOnly = true, guiActive = false, unfocusedRange = 4)]
+		/*[KSPEvent(guiName = "Repack Chute", guiActiveUnfocused = true, externalToEVAOnly = true, guiActive = false, unfocusedRange = 4)]
 		public void RepackWrapper()
 		{
 			this.chuteModule.Repack();
 
-			this.chuteModule.staged = false;
+			// this.chuteModule. = false;
 
 			this.Events["RepackWrapper"].active = false;
-		}
+		}*/
 	}
 }
