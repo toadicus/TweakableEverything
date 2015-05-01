@@ -49,26 +49,22 @@ namespace TweakableEverything
 		protected float lastDeployFactor;
 		protected float lastSemiDeployFactor;
 
-		protected ModuleParachute.deploymentStates lastChuteState;
-
 		[KSPField(isPersistant = true, guiName = "Deploy Factor", guiFormat = "×##0", guiActiveEditor = true)]
-		[UI_FloatRange(minValue = 1f, maxValue = 100f, stepIncrement = 5f)]
+		[UI_FloatRange(minValue = 1f, maxValue = 20f, stepIncrement = 1f)]
 		public float deploymentFactor;
 
 		[KSPField(isPersistant = true, guiName = "Semi-Deploy Factor", guiFormat = "×##0", guiActiveEditor = true)]
-		[UI_FloatRange(minValue = 1f, maxValue = 100f, stepIncrement = 5f)]
+		[UI_FloatRange(minValue = 1f, maxValue = 20f, stepIncrement = 1f)]
 		public float semiDeploymentFactor;
 
 		[KSPField(isPersistant = false)]
 		public float maxFactor;
 
-		public override void OnAwake()
+		public ModuleTweakableParachute()
 		{
-			base.OnAwake();
-
-			this.deploymentFactor = 20f;
-			this.semiDeploymentFactor = 1f;
-			this.maxFactor = 100f;
+			this.deploymentFactor = 1f;
+			this.semiDeploymentFactor = 2f;
+			this.maxFactor = 20f;
 		}
 
 		public override void OnStart(StartState state)
@@ -85,8 +81,6 @@ namespace TweakableEverything
 
 			this.prefabDeploySpeed = prefabChuteModule.deploymentSpeed;
 			this.prefabSemiDeploySpeed = prefabChuteModule.semiDeploymentSpeed;
-
-			this.lastChuteState = this.chuteModule.deploymentState;
 
 			this.chuteModule.Fields["deploymentSpeed"].guiActiveEditor = true;
 			this.chuteModule.Fields["deploymentSpeed"].guiName = "Deploy Spd";
@@ -133,20 +127,6 @@ namespace TweakableEverything
 				this.chuteModule.semiDeploymentSpeed = this.prefabSemiDeploySpeed /	this.semiDeploymentFactor;
 
 				this.lastSemiDeployFactor = this.semiDeploymentFactor;
-			}
-
-			if (this.lastChuteState != this.chuteModule.deploymentState)
-			{
-				switch (this.chuteModule.deploymentState)
-				{
-					case ModuleParachute.deploymentStates.CUT:
-						this.Events["RepackWrapper"].active = true;
-						break;
-					default:
-						break;
-				}
-
-				this.lastChuteState = this.chuteModule.deploymentState;
 			}
 		}
 	}

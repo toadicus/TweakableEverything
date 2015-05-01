@@ -165,7 +165,6 @@ namespace TweakableEverything
 			}
 
 			this.SASServiceLevel = Math.Min(SASServiceLevel, maxSASServiceLevel);
-			// this.Fields["SASServiceLevel"].guiFormat = 
 		}
 		#endregion
 
