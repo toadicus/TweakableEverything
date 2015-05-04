@@ -66,6 +66,11 @@ namespace TweakableEverything
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float YawTorque;
 
+		// Stores our value for all-axis torque gain
+		[KSPField(isPersistant = true, guiName = "Torque Limiter", guiActive = true, guiActiveEditor = false)]
+		[UI_FloatRange(minValue = 0f, maxValue = 100f, stepIncrement = 2f)]
+		public float TorqueGain;
+
 		// Construct ALL the objects.
 		public ModuleTweakableReactionWheel()
 		{
@@ -76,6 +81,8 @@ namespace TweakableEverything
 			this.RollTorque = -1;
 			this.PitchTorque = -1;
 			this.YawTorque = -1;
+
+			this.TorqueGain = 100f;
 		}
 
 		// Runs on start.
@@ -144,6 +151,15 @@ namespace TweakableEverything
 						this.reactionWheelModule.State = ModuleReactionWheel.WheelState.Disabled;
 					}
 				}
+			}
+
+			if (HighLogic.LoadedSceneIsFlight && this.reactionWheelModule != null)
+			{
+				float gain = this.TorqueGain / 100f;
+
+				this.reactionWheelModule.RollTorque *= gain;
+				this.reactionWheelModule.PitchTorque *= gain;
+				this.reactionWheelModule.YawTorque *= gain;
 			}
 		}
 	}
