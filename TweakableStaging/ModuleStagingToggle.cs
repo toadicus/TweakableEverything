@@ -175,7 +175,7 @@ namespace TweakableEverything
 			this.timeSinceUpdate += Time.deltaTime;
 		}
 
-		public void Destroy()
+		public void OnDestroy()
 		{
 			GameEvents.onPartAttach.Remove(this.onPartAttach);
 			GameEvents.onPartCouple.Remove(this.onPartCouple);
