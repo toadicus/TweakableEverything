@@ -74,7 +74,7 @@ namespace TweakableEverything
 
 			this.LogDebug("OnAwake with defaultDisabled={0}", this.defaultDisabled);
 			this.stagingEnabled = !this.defaultDisabled;
-			this.updatePeriod = 1001f / 8000f;
+			this.updatePeriod = 0.125f;
 			this.timeSinceUpdate = 0f;
 
 			this.forceUpdate = false;
