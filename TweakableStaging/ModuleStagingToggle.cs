@@ -147,8 +147,7 @@ namespace TweakableEverything
 					this.queuedStagingSort = false;
 				}
 
-				this.LogDebug("Time to update, EditorLogic.fetch.isActiveAndEnabled={0}",
-					EditorLogic.fetch.isActiveAndEnabled);
+				this.LogDebug("Time to update, stagingEnabled={0}", this.stagingEnabled);
 
 				this.timeSinceUpdate = 0f;
 
@@ -341,7 +340,7 @@ namespace TweakableEverything
 			if (this.part.vessel != null && data.id == this.part.vessel.id)
 			{
 				this.LogDebug("{0}: Running onVesselChange.", this.part.craftID);
-				this.onGenericEvent();
+				this.forceUpdate = true;
 			}
 		}
 
@@ -349,13 +348,8 @@ namespace TweakableEverything
 		{
 			if (data.vessel != null && data.vessel.id == this.part.vessel.id)
 			{
-				this.onGenericEvent();
+				this.forceUpdate = true;
 			}
-		}
-
-		protected void onGenericEvent()
-		{
-			this.forceUpdate = true;
 		}
 		#endregion
 
