@@ -36,6 +36,8 @@ namespace TweakableEverything
 	public class ModuleStagingToggle : PartModule
 	#endif
 	{
+		public static bool stageSortQueued = false;
+
 		#region Interface Elements
 		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
 		[KSPField(isPersistant = true, guiName = "Staging", guiActive = true, guiActiveEditor = true)]
@@ -47,7 +49,6 @@ namespace TweakableEverything
 
 		[KSPField(isPersistant = false)]
 		public bool activeInFlight;
-
 		[KSPField(isPersistant = false)]
 		public bool defaultDisabled;
 
@@ -60,7 +61,11 @@ namespace TweakableEverything
 		#endregion
 
 		// Stores the last toggle state so we can only run when things change.
-		protected bool stagingState;
+		protected bool forceUpdate;
+		protected bool queuedStagingSort;
+
+		protected float updatePeriod;
+		protected float timeSinceUpdate;
 
 		#region LifeCycle Methods
 		public override void OnAwake()
@@ -69,6 +74,11 @@ namespace TweakableEverything
 
 			this.LogDebug("OnAwake with defaultDisabled={0}", this.defaultDisabled);
 			this.stagingEnabled = !this.defaultDisabled;
+			this.updatePeriod = 1001f / 8000f;
+			this.timeSinceUpdate = 0f;
+
+			this.forceUpdate = false;
+			this.queuedStagingSort = false;
 		}
 
 		public override void OnStart(StartState state)
@@ -87,8 +97,6 @@ namespace TweakableEverything
 
 			Tools.PostDebugMessage(this, "guiActiveEditor: {0} guiActive: {1}",
 				this.Fields["stagingEnabled"].guiActiveEditor, this.activeInFlight);
-
-			this.stagingState = !this.stagingEnabled;
 
 			if (this.stagingIcon != string.Empty && this.stagingIcon != null)
 			{
@@ -118,7 +126,7 @@ namespace TweakableEverything
 			GameEvents.onPartAttach.Add(this.onPartAttach);
 			GameEvents.onPartCouple.Add(this.onPartCouple);
 			GameEvents.onUndock.Add(this.onUndock);
-			GameEvents.onVesselChange.Add(this.onVesselEvent);
+			GameEvents.onVesselChange.Add(this.onVesselChange);
 
 			Tools.PostDebugMessage(this,
 				"Started." +
@@ -131,24 +139,40 @@ namespace TweakableEverything
 
 		public void LateUpdate()
 		{
-			// If our staging state has changed...
-			if (this.stagingState != this.stagingEnabled)
+			if (this.timeSinceUpdate > this.updatePeriod)
 			{
-				Tools.PostDebugMessage(this, "Staging state changed." +
+				if (this.queuedStagingSort)
+				{
+					stageSortQueued = false;
+					this.queuedStagingSort = false;
+				}
+
+				this.LogDebug("Time to update, EditorLogic.fetch.isActiveAndEnabled={0}",
+					EditorLogic.fetch.isActiveAndEnabled);
+
+				this.timeSinceUpdate = 0f;
+
+				// If our staging state has changed...
+				if (Staging.StageCount > 0 && (this.forceUpdate || this.stagingEnabled != this.part.isInStagingList()))
+				{
+					Tools.PostDebugMessage(this, "Staging state changed." +
 					"\n\tstagingEnable: {0}" +
 					"\n\tpart.stackIcon.iconImage: {1}" +
 					"\n\tpart.isInStagingList: {2}",
-					this.stagingEnabled,
-					this.part.stackIcon.iconImage,
-					this.part.isInStagingList()
-				);
+						this.stagingEnabled,
+						this.part.stackIcon.iconImage,
+						this.part.isInStagingList()
+					);
 
-				// ...seed the last state
-				this.stagingState = this.stagingEnabled;
+					// ...and switch the staging
+					this.SwitchStaging(this.stagingEnabled);
+	
 
-				// ...and switch the staging
-				this.SwitchStaging(this.stagingEnabled);
+					this.forceUpdate = false;
+				}
 			}
+
+			this.timeSinceUpdate += Time.deltaTime;
 		}
 
 		public void Destroy()
@@ -156,7 +180,7 @@ namespace TweakableEverything
 			GameEvents.onPartAttach.Remove(this.onPartAttach);
 			GameEvents.onPartCouple.Remove(this.onPartCouple);
 			GameEvents.onUndock.Remove(this.onUndock);
-			GameEvents.onVesselChange.Remove(this.onVesselEvent);
+			GameEvents.onVesselChange.Remove(this.onVesselChange);
 		}
 		#endregion
 
@@ -213,7 +237,15 @@ namespace TweakableEverything
 			}
 
 			// Sort the staging list
-			Staging.ScheduleSort();
+			if (!stageSortQueued)
+			{
+				this.LogDebug("Scheduling staging sort.");
+
+				Staging.ScheduleSort();
+
+				stageSortQueued = true;
+				this.queuedStagingSort = true;
+			}
 
 			if (this.OnToggle != null)
 			{
@@ -266,7 +298,7 @@ namespace TweakableEverything
 		#region Event Handlers
 		protected void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
 		{
-			Tools.PostDebugMessage(this, "Caught onPartAttach with host {0} and target {1}", data.host, data.target);
+			this.LogDebug("Caught onPartAttach with host {0} and target {1}", data.host, data.target);
 
 			// Do nothing if our part or the part being attached are null.
 			if (data.target == null || this.part == null)
@@ -284,6 +316,7 @@ namespace TweakableEverything
 		{
 			if (data.origin != null)
 			{
+				this.LogDebug("{0}: Running onUndock.", this.part.craftID);
 				this.onPartEvent(data.origin);
 			}
 		}
@@ -292,34 +325,37 @@ namespace TweakableEverything
 		{
 			if (data.from != null)
 			{
+				this.LogDebug("{0}: Running onPartCouple.", data.from.craftID);
 				this.onPartEvent(data.from);
 			}
 
 			if (data.to != null)
 			{
+				this.LogDebug("{0}: Running onPartCouple.", data.to.craftID);
 				this.onPartEvent(data.to);
 			}
 		}
 
-		protected void onVesselEvent(Vessel data)
+		protected void onVesselChange(Vessel data)
 		{
 			if (this.part.vessel != null && data.id == this.part.vessel.id)
 			{
+				this.LogDebug("{0}: Running onVesselChange.", this.part.craftID);
 				this.onGenericEvent();
 			}
 		}
 
 		protected void onPartEvent(Part data)
 		{
-			if (data.vessel != null)
+			if (data.vessel != null && data.vessel.id == this.part.vessel.id)
 			{
-				this.onVesselEvent(data.vessel);
+				this.onGenericEvent();
 			}
 		}
 
 		protected void onGenericEvent()
 		{
-			this.stagingState = !this.stagingEnabled;
+			this.forceUpdate = true;
 		}
 		#endregion
 
