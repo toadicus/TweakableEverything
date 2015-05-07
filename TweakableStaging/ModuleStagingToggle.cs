@@ -152,7 +152,7 @@ namespace TweakableEverything
 				this.timeSinceUpdate = 0f;
 
 				// If our staging state has changed...
-				if (Staging.StageCount > 0 && (this.forceUpdate || this.stagingEnabled != this.part.isInStagingList()))
+				if (this.forceUpdate || this.stagingEnabled != this.part.isInStagingList())
 				{
 					Tools.PostDebugMessage(this, "Staging state changed." +
 					"\n\tstagingEnable: {0}" +
