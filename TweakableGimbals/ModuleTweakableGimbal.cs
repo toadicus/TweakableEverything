@@ -27,6 +27,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
+#if USE_KSPAPIEXTENSIONS
+using KSPAPIExtensions;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,8 +47,13 @@ namespace TweakableEverything
 		protected ModuleGimbal gimbalModule;
 
 		// Stores our tweaked value for gimbal range.
-		[KSPField(isPersistant = true, guiName = "Gimbal Range", guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "Gimbal Range", guiUnits = "°", guiFormat = "F2",
+			guiActiveEditor = true)]
+		#if USE_KSPAPIEXTENSIONS
+		[UI_FloatEdit(minValue = float.MinValue, maxValue = float.MaxValue, incrementSlide = .1f)]
+		#else
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = .1f)]
+		#endif
 		public float gimbalRange;
 
 		// Stores our tweaked value for control reversal.
@@ -91,8 +99,12 @@ namespace TweakableEverything
 			}
 
 			// Initialize the gimbal range tweakable and value.
-			Tools.InitializeTweakable<ModuleTweakableGimbal>(
+			TweakableTools.InitializeTweakable<ModuleTweakableGimbal>(
+				#if USE_KSPAPIEXTENSIONS
+				(UI_FloatEdit)this.Fields["gimbalRange"].uiControlCurrent(),
+				#else
 				(UI_FloatRange)this.Fields["gimbalRange"].uiControlCurrent(),
+				#endif
 				ref this.gimbalRange,
 				ref this.gimbalModule.gimbalRange,
 				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules

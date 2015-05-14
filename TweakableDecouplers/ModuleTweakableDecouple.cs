@@ -27,6 +27,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
+#if USE_KSPAPIEXTENSIONS
+using KSPAPIExtensions;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,8 +52,13 @@ namespace TweakableEverything
 		protected PartModule decoupleModule;
 
 		// Stores the tweaked ejectionForce for clobbering the value in the real decouplerModule.
-		[KSPField(isPersistant = true, guiName = "Ejection Force (kN)", guiActiveEditor = true, guiActive = false)]
+		[KSPField(isPersistant = true, guiName = "Ejection Force", guiUnits = "N", guiFormat = "S2+3",
+			guiActiveEditor = true, guiActive = false)]
+		#if USE_KSPAPIEXTENSIONS
+		[UI_FloatEdit(minValue = float.MinValue, maxValue = float.MaxValue, incrementSlide = 1f)]
+		#else
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float ejectionForce;
 
 		// Stores the configurable multiplier for the lower bound on the FloatRange
@@ -104,8 +112,12 @@ namespace TweakableEverything
 
 				// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
 				// prefab, and current value from persistence
-				Tools.InitializeTweakable<ModuleTweakableDecouple>(
+				TweakableTools.InitializeTweakable<ModuleTweakableDecouple>(
+					#if USE_KSPAPIEXTENSIONS
+					(UI_FloatEdit)this.Fields["ejectionForce"].uiControlCurrent(),
+					#else
 					(UI_FloatRange)this.Fields["ejectionForce"].uiControlCurrent(),
+					#endif
 					ref this.ejectionForce,
 					ref remoteEjectionForce,
 					prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),

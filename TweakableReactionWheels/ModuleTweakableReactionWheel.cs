@@ -27,6 +27,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
+#if USE_KSPAPIEXTENSIONS
+using KSPAPIExtensions;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,18 +55,33 @@ namespace TweakableEverything
 		protected bool startEnabledState;
 
 		// Stores our tweaked value for roll torque.
-		[KSPField(isPersistant = true, guiName = "Roll Torque (kN-m)", guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "Roll Torque", guiUnits = "kN-m",
+			guiFormat = "F2", guiActiveEditor = true)]
+		#if USE_KSPAPIEXTENSIONS
+		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
+		#else
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float RollTorque;
 
 		// Stores our tweaked value for pitch torque.
-		[KSPField(isPersistant = true, guiName = "Pitch Torque (kN-m)", guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "Pitch Torque", guiUnits = "kN-m",
+			guiFormat = "F2", guiActiveEditor = true)]
+		#if USE_KSPAPIEXTENSIONS
+		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
+		#else
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float PitchTorque;
 
 		// Stores our tweaked value for yaw torque.
-		[KSPField(isPersistant = true, guiName = "Yaw Torque (kN-m)", guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "Yaw Torque", guiUnits = "kN-m",
+			guiFormat = "F2", guiActiveEditor = true)]
+		#if USE_KSPAPIEXTENSIONS
+		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
+		#else
 		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float YawTorque;
 
 		// Stores our value for all-axis torque gain
@@ -102,22 +120,34 @@ namespace TweakableEverything
 				if (PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab
 					.tryGetFirstModuleOfType<ModuleReactionWheel>(out prefabModule))
 				{
-					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
+						#if USE_KSPAPIEXTENSIONS
+						(UI_FloatEdit)this.Fields["RollTorque"].uiControlCurrent(),
+						#else
 						(UI_FloatRange)this.Fields["RollTorque"].uiControlCurrent(),
+						#endif
 						ref this.RollTorque,
 						ref this.reactionWheelModule.RollTorque,
 						prefabModule.RollTorque
 					);
 
-					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
+						#if USE_KSPAPIEXTENSIONS
+						(UI_FloatEdit)this.Fields["PitchTorque"].uiControlCurrent(),
+						#else
 						(UI_FloatRange)this.Fields["PitchTorque"].uiControlCurrent(),
+						#endif
 						ref this.PitchTorque,
 						ref this.reactionWheelModule.PitchTorque,
 						prefabModule.PitchTorque
 					);
 
-					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
+						#if USE_KSPAPIEXTENSIONS
+						(UI_FloatEdit)this.Fields["YawTorque"].uiControlCurrent(),
+						#else
 						(UI_FloatRange)this.Fields["YawTorque"].uiControlCurrent(),
+						#endif
 						ref this.YawTorque,
 						ref this.reactionWheelModule.YawTorque,
 						prefabModule.YawTorque
