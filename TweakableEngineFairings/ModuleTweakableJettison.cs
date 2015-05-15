@@ -69,8 +69,10 @@ namespace TweakableEverything
 			base.OnStart(state);
 
 			// Fetch all of the ModuleJettisons from the part, filling a list of modules and a dict of transforms
-			foreach (PartModule module in base.part.Modules)
+			PartModule module;
+			for (int mIdx = 0; mIdx < base.part.Modules.Count; mIdx++)
 			{
+				module = base.part.Modules[mIdx];
 				if (module is ModuleJettison)
 				{
 					ModuleJettison jettisonModule = module as ModuleJettison;
@@ -123,8 +125,11 @@ namespace TweakableEverything
 				this.disableState = this.disableFairing;
 
 				// ...loop through the jettison modules and...
-				foreach (ModuleJettison jettisonModule in this.jettisonModules)
+				ModuleJettison jettisonModule;
+				for (int jIdx = 0; jIdx < this.jettisonModules.Count; jIdx++)
 				{
+					jettisonModule = this.jettisonModules[jIdx];
+
 					if (jettisonModule.jettisonName == null)
 					{
 						continue;

@@ -48,8 +48,11 @@ namespace TweakableIntakes
 			this.Actions["ActivateAction"].active = false;
 			this.Actions["DeactivateAction"].active = false;
 
-			foreach (PartModule module in this.part.Modules)
+			PartModule module;
+			for (int idx = 0; idx < this.part.Modules.Count; idx++)
 			{
+				module = this.part.Modules[idx];
+
 				if (module is ModuleResourceIntake)
 				{
 					this.intakeModule = module as ModuleResourceIntake;

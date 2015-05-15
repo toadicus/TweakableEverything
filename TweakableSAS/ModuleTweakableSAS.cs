@@ -89,18 +89,22 @@ namespace TweakableEverything
 				default:
 					this.Fields["SASServiceLevel"].guiActiveEditor = false;
 
-					foreach (var autopilotMode in Enum.GetValues(typeof(AutopilotSkill.Skills)))
+					Array apModes = Enum.GetValues(typeof(AutopilotSkill.Skills));
+					int autopilotMode;
+					for (int idx = 0; idx < apModes.Length; idx++)
 					{
 						try
 						{
-							maxSASServiceLevel = Math.Max(maxSASServiceLevel, (int)autopilotMode);
+							autopilotMode = (int)apModes.GetValue(idx);
+
+							maxSASServiceLevel = Math.Max(maxSASServiceLevel, autopilotMode);
 						}
 						catch
 						{
-							Tools.PostDebugMessage(
+							Tools.PostErrorMessage(
 								"Failed converting {0}.{1} to int.",
 								typeof(AutopilotSkill.Skills).GetType().Name,
-								Enum.GetName(typeof(AutopilotSkill.Skills), autopilotMode)
+								Enum.GetName(typeof(AutopilotSkill.Skills), apModes.GetValue(idx))
 							);
 						}
 					}
@@ -116,8 +120,11 @@ namespace TweakableEverything
 
 			var logger = Tools.DebugLogger.New(this);
 
-			foreach (AvailablePart part in PartLoader.LoadedPartsList)
+			AvailablePart part;
+			for (int idx = 0; idx < PartLoader.LoadedPartsList.Count; idx++)
 			{
+				part = PartLoader.LoadedPartsList[idx];
+
 				logger.AppendFormat("Checking {0}...", part.title);
 
 				if (ResearchAndDevelopment.PartTechAvailable(part))

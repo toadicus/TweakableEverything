@@ -118,8 +118,10 @@ namespace TweakableRCS
 
 			this.RCSModule.thrusterPower = this.baseThrusterPower * this.thrustLimit / 100f;
 
-			foreach (FXGroup fx in this.RCSModule.thrusterFX)
+			FXGroup fx;
+			for (int idx = 0; idx < this.RCSModule.thrusterFX.Count; idx++)
 			{
+				fx = this.RCSModule.thrusterFX[idx];
 				fx.Power *= this.thrustLimit / 100f;
 			}
 		}

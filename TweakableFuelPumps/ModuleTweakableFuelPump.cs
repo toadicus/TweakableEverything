@@ -61,8 +61,11 @@ namespace TweakableFuelPumps
 			{
 				string[] names = this.ResourceNames.Split(',');
 
-				foreach (string name in names)
+				string name;
+				for (int idx = 0; idx < names.Length; idx++)
 				{
+					name = names[idx];
+
 					string trimmedName = name.Trim();
 
 					if (this.part.Resources.Contains(trimmedName))
@@ -133,8 +136,11 @@ namespace TweakableFuelPumps
 				return;
 			}
 
-			foreach (PartResource resource in this.resources)
+			PartResource resource;
+			for (int idx = 0; idx < this.resources.Count; idx++)
 			{
+				resource = this.resources[idx];
+
 				if (resource == null)
 				{
 					continue;
@@ -152,8 +158,10 @@ namespace TweakableFuelPumps
 				return;
 			}
 
-			foreach (PartResource resource in this.resources)
+			PartResource resource;
+			for (int idx = 0; idx < this.resources.Count; idx++)
 			{
+				resource = this.resources[idx];
 				if (resource == null)
 				{
 					continue;
@@ -171,8 +179,10 @@ namespace TweakableFuelPumps
 				return;
 			}
 
-			foreach (PartResource resource in this.resources)
+			PartResource resource;
+			for (int idx = 0; idx < this.resources.Count; idx++)
 			{
+				resource = this.resources[idx];
 				if (resource == null)
 				{
 					continue;

@@ -68,16 +68,37 @@ namespace TweakableEverything
 		}
 
 		// Check each of the affected parts snapshots to see if they are missing any AttachNodes.  If so, add them.
-		protected virtual void UpdateProtoPartSnapshots(IEnumerable<ProtoPartSnapshot> affectedParts)
+		protected virtual void UpdateProtoPartSnapshots(IList<ProtoPartSnapshot> affectedParts)
 		{
-			foreach (ProtoPartSnapshot affectedPart in affectedParts)
+			List<AttachNode> missingPrefabNodes = new List<AttachNode>();
+
+			ProtoPartSnapshot affectedPart;
+			for (int pIdx = 0; pIdx < affectedParts.Count; pIdx++)
 			{
+				affectedPart = affectedParts[pIdx];
+
 				List<AttachNodeSnapshot> protoNodes = affectedPart.attachNodes;
 				List<AttachNode> prefabNodes =
 					PartLoader.getPartInfoByName(affectedPart.partName).partPrefab.attachNodes;
+				
+				missingPrefabNodes.Clear();
 
-				IEnumerable<AttachNode> missingProtoNodes = prefabNodes
-					.Where(pfN => !protoNodes.Select(prN => prN.id).Contains(pfN.id));
+				AttachNode prefabNode;
+				AttachNodeSnapshot protoNode;
+				for (int pfIdx = 0; pfIdx < prefabNodes.Count; pfIdx++)
+				{
+					prefabNode = prefabNodes[pfIdx];
+
+					for (int pnIdx = 0; pnIdx < protoNodes.Count; pnIdx++)
+					{
+						protoNode = protoNodes[pnIdx];
+
+						if (prefabNode.id == protoNode.id)
+						{
+							missingPrefabNodes.Add(prefabNode);
+						}
+					}
+				}
 
 				/*Tools.PostDebugMessage(string.Format(
 					"{0}: found affected part '{1}' in vessel '{2}'" +
@@ -92,18 +113,19 @@ namespace TweakableEverything
 					string.Join("; ", missingProtoNodes.Select(n => n.id).ToArray())
 				));*/
 
-				if (missingProtoNodes.Count() > 0)
+				if (missingPrefabNodes.Count() > 0)
 				{
-					foreach (AttachNode missingProtoNode in missingProtoNodes)
+					AttachNode missingPrefabNode;
+					for (int nIdx = 0; nIdx < missingPrefabNodes.Count; nIdx++)
 					{
+						missingPrefabNode = missingPrefabNodes[nIdx];
+
 						/*Tools.PostDebugMessage(string.Format(
 							"{0}: Adding new AttachNodeSnapshot '{1}'",
 							this.GetType().Name,
 							missingProtoNode.id
 						));*/
-						protoNodes.Add(
-							new AttachNodeSnapshot(missingProtoNode.id + ", -1")
-						);
+						protoNodes.Add(new AttachNodeSnapshot(missingPrefabNode.id + ", -1"));
 					}
 
 					KSPLog.print(string.Format(
@@ -152,9 +174,24 @@ namespace TweakableEverything
 			// Tools.PostDebugMessage(this.GetType().Name + ": First Update.");
 
 			// Fetch all the affected parts from the current game's list of prototype vessels.
-			IEnumerable<ProtoPartSnapshot> affectedParts = HighLogic.CurrentGame.flightState.protoVessels
-				.SelectMany(pv => pv.protoPartSnapshots)
-				.Where(pps => this.AffectedParts.Contains(pps.partName));
+			List<ProtoPartSnapshot> affectedParts = new List<ProtoPartSnapshot>();
+
+			ProtoVessel pv;
+			for (int pvIdx = 0; pvIdx < HighLogic.CurrentGame.flightState.protoVessels.Count; pvIdx++)
+			{
+				pv = HighLogic.CurrentGame.flightState.protoVessels[pvIdx];
+
+				ProtoPartSnapshot pps;
+				for (int ppIdx = 0; ppIdx < pv.protoPartSnapshots.Count; ppIdx++)
+				{
+					pps = pv.protoPartSnapshots[ppIdx];
+
+					if (this.AffectedParts.Contains(pps.partName))
+					{
+						affectedParts.Add(pps);
+					}
+				}
+			}
 
 			this.UpdateProtoPartSnapshots(affectedParts);
 
@@ -180,9 +217,29 @@ namespace TweakableEverything
 			// Tools.PostDebugMessage(this.GetType().Name + ": Awake started.  Flight StartupBehavior: " + FlightDriver.StartupBehaviour);
 
 			// Fetch all the affected parts from the flight state cache.
-			IEnumerable<ProtoPartSnapshot> affectedParts = FlightDriver.FlightStateCache.flightState.protoVessels
+			/*IEnumerable<ProtoPartSnapshot> affectedParts = FlightDriver.FlightStateCache.flightState.protoVessels
 				.SelectMany(pv => pv.protoPartSnapshots)
-				.Where(pps => this.AffectedParts.Contains(pps.partName));
+				.Where(pps => this.AffectedParts.Contains(pps.partName));*/
+
+			List<ProtoPartSnapshot> affectedParts = new List<ProtoPartSnapshot>();
+
+			ProtoVessel pv;
+			for (int pvIdx = 0; pvIdx < FlightDriver.FlightStateCache.flightState.protoVessels.Count; pvIdx++)
+			{
+				pv = FlightDriver.FlightStateCache.flightState.protoVessels[pvIdx];
+
+				ProtoPartSnapshot pps;
+				for (int ppIdx = 0; ppIdx < pv.protoPartSnapshots.Count; ppIdx++)
+				{
+					pps = pv.protoPartSnapshots[ppIdx];
+
+					if (this.AffectedParts.Contains(pps.partName))
+					{
+						affectedParts.Add(pps);
+					}
+				}
+			}
+
 
 			this.UpdateProtoPartSnapshots(affectedParts);
 		}
