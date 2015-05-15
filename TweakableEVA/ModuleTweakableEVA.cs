@@ -27,6 +27,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
+using KSPAPIEL;
 using System;
 using System.Collections.Generic;
 using ToadicusTools;
@@ -40,7 +41,7 @@ namespace TweakableEVA
 	public class ModuleTweakableEVA : PartModule
 	#endif
 	{
-		[UI_FloatRange(minValue = 0f, maxValue = 1f, stepIncrement = 0.05f, controlEnabled = true)]
+		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = 0.05f, controlEnabled = true)]
 		[KSPField(guiName = "Thruster Throttle", guiFormat = "P0", guiActive = true, isPersistant = true)]
 		public float thrusterPowerThrottle;
 		private float lastPowerThrottle;
