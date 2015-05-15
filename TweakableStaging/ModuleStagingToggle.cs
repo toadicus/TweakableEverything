@@ -30,12 +30,10 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
-	#if DEBUG
-	public class ModuleStagingToggle : DebugPartModule
-	#else
 	public class ModuleStagingToggle : PartModule
-	#endif
 	{
+		private static Tools.DebugLogger log;
+
 		public static bool stageSortQueued = false;
 
 		#region Interface Elements
@@ -70,94 +68,122 @@ namespace TweakableEverything
 		#region LifeCycle Methods
 		public override void OnAwake()
 		{
+			#if DEBUG
+			if (log == null)
+			{
+				log = Tools.DebugLogger.New(this);
+			}
+			#endif
+
+			log.Clear();
+
+			log.AppendFormat("{0}: Waking up.", this);
+
 			base.OnAwake();
 
-			this.LogDebug("OnAwake with defaultDisabled={0}", this.defaultDisabled);
+			log.AppendFormat("\n\tOnAwake with defaultDisabled={0}", this.defaultDisabled);
 			this.stagingEnabled = !this.defaultDisabled;
-			this.updatePeriod = 0.125f;
+			this.updatePeriod = 0.03125f;
 			this.timeSinceUpdate = 0f;
 
 			this.forceUpdate = false;
 			this.queuedStagingSort = false;
+
+			log.AppendFormat("\n{0}: Awake; stagingEnabled={1}.\n", this, this.stagingEnabled);
+
+			log.Print();
 		}
 
 		public override void OnStart(StartState state)
 		{
-			this.LogDebug("OnStart with stagingEnabled={0}" +
-				"\npart.isInStagingList={1}",
-				this.stagingEnabled,
-				this.part.isInStagingList()
+			log.Clear();
+
+			log.AppendFormat("{0}: Starting up.", this);
+
+			log.AppendFormat("\n\tOnStart with stagingEnabled={0}"/* +
+				"\npart.isInStagingList={1}"*/,
+				this.stagingEnabled/*,
+				this.part.isInStagingList()*/
 			);
 
-			Tools.PostDebugMessage(this, "Starting with state {0}", state);
+			log.AppendFormat("\n\tStarting with state {0}", state);
 			base.OnStart(state);
 
 			this.Fields["stagingEnabled"].guiActiveEditor = this.activeInEditor;
 			this.Fields["stagingEnabled"].guiActive = this.activeInFlight;
 
-			Tools.PostDebugMessage(this, "guiActiveEditor: {0} guiActive: {1}",
+			log.AppendFormat("\n\tguiActiveEditor: {0} guiActive: {1}",
 				this.Fields["stagingEnabled"].guiActiveEditor, this.activeInFlight);
 
 			if (this.stagingIcon != string.Empty && this.stagingIcon != null)
 			{
+				log.AppendFormat("\n\tstagingIcon={0}, setting icon.");
 				DefaultIcons icon = (DefaultIcons)Enum.Parse(typeof(DefaultIcons), this.stagingIcon);
 
 				this.part.stagingIcon = this.stagingIcon;
 				this.part.stackIcon.SetIcon(icon);
+				log.AppendFormat("\n\ticon set to {0} ({1})", icon, this.part.stackIcon);
 			}
 			else if (!this.part.hasStagingIcon)
 			{
+				log.AppendFormat("\n\tstagingIcon is null or empty, and the part does not have a stagingIcon");
+				log.AppendFormat("\n\tbuilding a new DECOUPLER_VERT icon");
 				this.part.stagingIcon = Enum.GetName(typeof(DefaultIcons), DefaultIcons.DECOUPLER_VERT);
 				this.part.stackIcon.SetIcon(DefaultIcons.DECOUPLER_VERT);
 			}
-
-			if (this.part.stackIcon != null)
+			#if DEBUG
+			else
 			{
-				if (this.stagingEnabled)
-				{
-					this.part.stackIcon.CreateIcon();
-				}
-				else
-				{
-					this.part.stackIcon.RemoveIcon();
-				}
+				log.AppendFormat("\n\tThe part or some other module has already taken care of the stagingIcon.");
+			}
+			#endif
+
+			if (this.part.inverseStage < 0)
+			{
+				log.AppendFormat("\n\tFound part with negative inverseStage={0}; zeroing.", this.part.inverseStage);
+				this.part.inverseStage = 0;
 			}
 
+			log.AppendFormat("\n\tRegistering events");
 			GameEvents.onPartAttach.Add(this.onPartAttach);
 			GameEvents.onPartCouple.Add(this.onPartCouple);
 			GameEvents.onUndock.Add(this.onUndock);
 			GameEvents.onVesselChange.Add(this.onVesselChange);
 
-			Tools.PostDebugMessage(this,
-				"Started." +
-				"\n\tstagingEnabled: {0}" +
-				"part.stackIcon.iconImage: {1}",
-				this.stagingEnabled,
-				this.part.stackIcon.iconImage
-			);
+			log.AppendFormat("\nStarted; stagingEnabled: {0}, part.stackIcon.iconImage: {1}\n",
+				this.stagingEnabled, this.part.stackIcon.iconImage);
+
+			log.Print();
 		}
 
 		public void LateUpdate()
 		{
 			if (this.timeSinceUpdate > this.updatePeriod)
 			{
-				if (this.queuedStagingSort)
+				log.Clear();
+
+				log.AppendFormat("{0}: Time to update, stagingEnabled={1}, isInStagingList={2}",
+					this, this.stagingEnabled, this.part.isInStagingList());
+
+				if (stageSortQueued && this.queuedStagingSort)
 				{
+					log.AppendFormat("\n\tThis module queued a staging event last update; scheduling it now.");
+
+					Staging.ScheduleSort();
+
 					stageSortQueued = false;
 					this.queuedStagingSort = false;
 				}
-
-				this.LogDebug("Time to update, stagingEnabled={0}", this.stagingEnabled);
 
 				this.timeSinceUpdate = 0f;
 
 				// If our staging state has changed...
 				if (this.forceUpdate || this.stagingEnabled != this.part.isInStagingList())
 				{
-					Tools.PostDebugMessage(this, "Staging state changed." +
-					"\n\tstagingEnable: {0}" +
-					"\n\tpart.stackIcon.iconImage: {1}" +
-					"\n\tpart.isInStagingList: {2}",
+					log.AppendFormat("\n\tStaging state changed." +
+					"\n\t\tstagingEnable: {0}" +
+					"\n\t\tpart.stackIcon.iconImage: {1}" +
+					"\n\t\tpart.isInStagingList: {2}",
 						this.stagingEnabled,
 						this.part.stackIcon.iconImage,
 						this.part.isInStagingList()
@@ -166,20 +192,31 @@ namespace TweakableEverything
 					// ...and switch the staging
 					this.SwitchStaging(this.stagingEnabled);
 	
-
 					this.forceUpdate = false;
 				}
+
+				log.Append("\nLateUpdate done.\n");
+
+				log.Print();
 			}
 
-			this.timeSinceUpdate += Time.deltaTime;
+			this.timeSinceUpdate += Time.smoothDeltaTime;
 		}
 
 		public void OnDestroy()
 		{
+			log.Clear();
+
+			log.AppendFormat("{0}: Destroying", this);
+
 			GameEvents.onPartAttach.Remove(this.onPartAttach);
 			GameEvents.onPartCouple.Remove(this.onPartCouple);
 			GameEvents.onUndock.Remove(this.onUndock);
 			GameEvents.onVesselChange.Remove(this.onVesselChange);
+
+			log.AppendFormat("...events deregistered.");
+
+			log.Print();
 		}
 		#endregion
 
@@ -188,7 +225,7 @@ namespace TweakableEverything
 		{
 			if (this.part == null)
 			{
-				Tools.PostDebugMessage(this, "could not switch staging: part reference is null.");
+				log.AppendFormat("\n\t...could not switch staging: part reference is null.");
 				return;
 			}
 
@@ -197,6 +234,9 @@ namespace TweakableEverything
 			{
 				this.part.inverseStage = Math.Max(this.part.inverseStage, 0);
 
+				log.AppendFormat("\n\tSwitching staging to enabled, default new inverseStage={0}",
+					this.part.inverseStage);
+
 				// ..and if our part has fallen off the staging list...
 				if (Staging.StageCount < this.part.inverseStage + 1)
 				{
@@ -204,33 +244,41 @@ namespace TweakableEverything
 					Staging.AddStageAt(Staging.StageCount);
 					// ...and move our part to it
 					this.part.inverseStage = Staging.StageCount - 1;
+
+					log.AppendFormat("\n\t\tinverseStage had fallen off the list, fixed to {0}",
+						this.part.inverseStage);
 				}
 
 				// ...add our icon to the staging list
-				this.LogDebug("Assigning inverseStage " + this.part.inverseStage, "Stage Count: " + Staging.StageCount);
+				log.Append("\n\tCreating our staging icon in the staging list.");
 				this.part.stackIcon.CreateIcon();
 			}
 			// ...otherwise, we're switching to disabled, so...
 			else
 			{
+				log.Append("\n\tSwitching staging to disabled");
+
 				bool needsStageAssignment = false;
-				if (this.part.isInStagingList() != this.stagingEnabled)
+				if (this.part.isInStagingList() != enabled)
 				{
+					log.Append("\n\t\tThe part is in the staging list, so we need a new stage assignment");
 					needsStageAssignment = true;
 				}
 
+				log.Append("\n\tRemoving our staging icon from the staging list");
 				// ...remove the icon from the list
 				this.part.stackIcon.RemoveIcon();
 
 				if (needsStageAssignment)
 				{
+					log.Append("\n\t\tWe removed our icon from staging, so fetching a new inverseStage");
 					this.part.inverseStage = this.GetDecoupledStage();
-					this.LogDebug("Removed from list, assigned inverseStage={0}", this.part.inverseStage);
+					log.AppendFormat("={0}", this.part.inverseStage);
 				}
 				#if DEBUG
 				else
 				{
-					this.LogDebug("Removed from list, no stage assigned.", this.part.inverseStage);
+					log.Append("\n\t\tOur icon was already not in staging, so not assigning a new inverseStage.");
 				}
 				#endif
 			}
@@ -238,9 +286,7 @@ namespace TweakableEverything
 			// Sort the staging list
 			if (!stageSortQueued)
 			{
-				this.LogDebug("Scheduling staging sort.");
-
-				Staging.ScheduleSort();
+				log.Append("\n\tNo other module has queued a staging sort this update; queueing now.");
 
 				stageSortQueued = true;
 				this.queuedStagingSort = true;
@@ -248,18 +294,17 @@ namespace TweakableEverything
 
 			if (this.OnToggle != null)
 			{
+				log.Append("\n\tWe have OnToggle subscribers; firing OnToggle event for them now.");
 				this.OnToggle(this, new BoolArg(this.stagingEnabled));
 			}
-			else
-			{
-				Tools.PostDebugMessage(this, "cannot raise OnToggle: no subscribers to call.");
-			}
+
+			log.Append("\n\tStaging switch done");
 		}
 
-		// Gets the inverse stage in which this decoupler's part will be removed from the craft, or -1 if not
+		// Gets the inverse stage in which this decoupler's part will be removed from the craft
 		protected int GetDecoupledStage()
 		{
-			int iStage = -1;
+			int iStage = 0;
 
 			if (this.stagingEnabled)
 			{
