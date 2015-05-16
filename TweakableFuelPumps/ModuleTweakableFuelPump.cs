@@ -29,8 +29,7 @@
 using KSP;
 using System;
 using System.Collections.Generic;
-// @TODO: Remove Linq.
-using System.Linq;
+using System.Text;
 using ToadicusTools;
 using UnityEngine;
 
@@ -91,27 +90,38 @@ namespace TweakableFuelPumps
 
 				if (this.resources.Count > 0)
 				{
-					string joinedResources = string.Join(", ", this.resources.Select(r => r.resourceName).ToArray());
+					StringBuilder joinedResources = new StringBuilder();
+
+					for (int rIdx = 0; rIdx < this.resources.Count; rIdx++)
+					{
+						if (joinedResources.Length > 0)
+						{
+							joinedResources.Append(", ");
+						}
+
+						joinedResources.Append(this.resources[rIdx]);
+					}
+
 					string pluralChar = this.resources.Count > 1 ? "s" : string.Empty;
 
 					this.Actions["EnableFuelPumpAction"].guiName = string.Format(
 						"{0} {1} Pump{2}",
 						"Enable",
-						joinedResources,
+						joinedResources.ToString(),
 						pluralChar
 					);
 
 					this.Actions["DisableFuelPumpAction"].guiName = string.Format(
 						"{0} {1} Pump{2}",
 						"Disable",
-						joinedResources,
+						joinedResources.ToString(),
 						pluralChar
 					);
 
 					this.Actions["ToggleFuelPumpAction"].guiName = string.Format(
 						"{0} {1} Pump{2}",
 						"Toggle",
-						joinedResources,
+						joinedResources.ToString(),
 						pluralChar
 					);
 				}
