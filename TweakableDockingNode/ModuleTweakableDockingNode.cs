@@ -30,8 +30,6 @@ using KSP;
 using KSPAPIEL;
 using System;
 using System.Collections.Generic;
-// @TODO: Remove Linq.
-using System.Linq;
 using ToadicusTools;
 using UnityEngine;
 
@@ -178,14 +176,29 @@ namespace TweakableEverything
 		{
 			this.dockingNodeModule = (ModuleDockingNode)base.part.Modules["ModuleDockingNode"];
 
+			ModuleAnimateGeneric magToWrap = null;
+			PartModule needle;
+
+			for (int idx = 0; idx < base.part.Modules.Count; idx++)
+			{
+				needle = base.part.Modules[idx];
+
+				if (needle is ModuleAnimateGeneric)
+				{
+					if (((ModuleAnimateGeneric)needle).animationName == this.deployAnimationControllerName)
+					{
+						magToWrap = (ModuleAnimateGeneric)needle;
+						break;
+					}
+				}
+			}
+
 			// If we've loaded a deployAnimationControllerName from the cfg...
-			if (this.deployAnimationControllerName != string.Empty)
+			if (this.deployAnimationControllerName != string.Empty && magToWrap != null)
 			{
 				// ...go get the module reference from the Part...
 				this.deployAnimation = new TweakableAnimationWrapper(
-					base.part.Modules
-						.OfType<ModuleAnimateGeneric>()
-							.First(m => m.animationName == this.deployAnimationControllerName),
+					magToWrap,
 					new GameScenes[] { GameScenes.EDITOR, GameScenes.FLIGHT },
 					WrapMode.ClampForever,
 					TweakableAnimationWrapper.PlayPosition.Beginning,
@@ -196,9 +209,8 @@ namespace TweakableEverything
 			// Start the underlying ModuleDockingNode.
 			base.OnStart(st);
 
-			ModuleDockingNode prefabModule = PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab.Modules
-				.OfType<ModuleDockingNode>()
-				.FirstOrDefault();
+			ModuleDockingNode prefabModule = PartLoader.getPartInfoByName(this.part.partInfo.name)
+				.partPrefab.getFirstModuleOfType<ModuleDockingNode>();
 
 			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatEdit)this.Fields["acquireRange"].uiControlCurrent(),
