@@ -30,8 +30,6 @@ using KSP;
 using KSPAPIEL;
 using System;
 using System.Collections.Generic;
-// @TODO: Remove Linq.
-using System.Linq;
 using ToadicusTools;
 using UnityEngine;
 
@@ -93,18 +91,24 @@ namespace TweakableEverything
 				return;
 			}
 
-			// Initialize the gimbal range tweakable and value.
-			TweakableTools.InitializeTweakable<ModuleTweakableGimbal>(
-				(UI_FloatEdit)this.Fields["gimbalRange"].uiControlCurrent(),
-				ref this.gimbalRange,
-				ref this.gimbalModule.gimbalRange,
-				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
-					.OfType<ModuleGimbal>()
-					.FirstOrDefault()
-					.gimbalRange,
-				this.lowerMult,
-				this.upperMult
-			);
+			//PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
+				/*.OfType<ModuleGimbal>()
+				.FirstOrDefault()
+				.gimbalRange*/
+
+			ModuleGimbal gimbalPrefab;
+			if (PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.tryGetFirstModuleOfType(out gimbalPrefab))
+			{
+				// Initialize the gimbal range tweakable and value.
+				TweakableTools.InitializeTweakable<ModuleTweakableGimbal>(
+					(UI_FloatEdit)this.Fields["gimbalRange"].uiControlCurrent(),
+					ref this.gimbalRange,
+					ref this.gimbalModule.gimbalRange,
+					gimbalPrefab.gimbalRange,
+					this.lowerMult,
+					this.upperMult
+				);
+			}
 
 			// If we're in flight mode...
 			if (HighLogic.LoadedSceneIsFlight)

@@ -29,8 +29,6 @@
 using KSP;
 using System;
 using System.Collections.Generic;
-// @TODO: Remove Linq.
-using System.Linq;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -61,10 +59,12 @@ namespace TweakableEverything
 			string AffectedPartsString = config.GetValue<string>("AffectedParts", string.Empty);
 			if (AffectedPartsString != string.Empty)
 			{
-				this.AffectedParts = AffectedPartsString
-					.Split(this.configStringSplitChar)
-					.Select(s => s.Trim())
-					.ToArray();
+				string[] partStrings = AffectedPartsString.Split(this.configStringSplitChar);
+
+				for (int idx = 0; idx < partStrings.Length; idx++)
+				{
+					partStrings[idx] = partStrings[idx].Trim();
+				}
 			}
 		}
 
@@ -74,6 +74,9 @@ namespace TweakableEverything
 			List<AttachNode> missingPrefabNodes = new List<AttachNode>();
 
 			ProtoPartSnapshot affectedPart;
+			AttachNode prefabNode;
+			AttachNodeSnapshot protoNode;
+
 			for (int pIdx = 0; pIdx < affectedParts.Count; pIdx++)
 			{
 				affectedPart = affectedParts[pIdx];
@@ -84,8 +87,7 @@ namespace TweakableEverything
 				
 				missingPrefabNodes.Clear();
 
-				AttachNode prefabNode;
-				AttachNodeSnapshot protoNode;
+
 				for (int pfIdx = 0; pfIdx < prefabNodes.Count; pfIdx++)
 				{
 					prefabNode = prefabNodes[pfIdx];
@@ -114,7 +116,7 @@ namespace TweakableEverything
 					string.Join("; ", missingProtoNodes.Select(n => n.id).ToArray())
 				));*/
 
-				if (missingPrefabNodes.Count() > 0)
+				if (missingPrefabNodes.Count > 0)
 				{
 					AttachNode missingPrefabNode;
 					for (int nIdx = 0; nIdx < missingPrefabNodes.Count; nIdx++)
@@ -129,6 +131,28 @@ namespace TweakableEverything
 						protoNodes.Add(new AttachNodeSnapshot(missingPrefabNode.id + ", -1"));
 					}
 
+					System.Text.StringBuilder joinedProtoNodes = new System.Text.StringBuilder();
+					for (int idx = 0; idx < protoNodes.Count; idx++)
+					{
+						if (joinedProtoNodes.Length > 0)
+						{
+							joinedProtoNodes.Append(", ");
+						}
+
+						joinedProtoNodes.Append(protoNodes[idx].id);
+					}
+
+					System.Text.StringBuilder joinedPrefabNodes = new System.Text.StringBuilder();
+					for (int idx = 0; idx < prefabNodes.Count; idx++)
+					{
+						if (joinedPrefabNodes.Length > 0)
+						{
+							joinedPrefabNodes.Append(", ");
+						}
+
+						joinedProtoNodes.Append(prefabNodes[idx].id);
+					}
+
 					KSPLog.print(string.Format(
 						"{0}: after adding nodes to affected part '{1}' in vessel '{2}'" +
 						"\n\tprotoNodes: {3}" +
@@ -136,8 +160,8 @@ namespace TweakableEverything
 						this.GetType().Name,
 						affectedPart.partName,
 						affectedPart.pVesselRef.vesselName,
-						string.Join("; ", protoNodes.Select(n => n.id).ToArray()),
-						string.Join("; ", prefabNodes.Select(n => n.id).ToArray())
+						joinedProtoNodes.ToString(),
+						joinedPrefabNodes.ToString()
 					));
 				}
 			}
@@ -178,18 +202,23 @@ namespace TweakableEverything
 			List<ProtoPartSnapshot> affectedParts = new List<ProtoPartSnapshot>();
 
 			ProtoVessel pv;
+			ProtoPartSnapshot pps;
+
 			for (int pvIdx = 0; pvIdx < HighLogic.CurrentGame.flightState.protoVessels.Count; pvIdx++)
 			{
 				pv = HighLogic.CurrentGame.flightState.protoVessels[pvIdx];
 
-				ProtoPartSnapshot pps;
+
 				for (int ppIdx = 0; ppIdx < pv.protoPartSnapshots.Count; ppIdx++)
 				{
 					pps = pv.protoPartSnapshots[ppIdx];
 
-					if (this.AffectedParts.Contains(pps.partName))
+					for (int apIdx = 0; apIdx < this.AffectedParts.Length; apIdx++)
 					{
-						affectedParts.Add(pps);
+						if (this.AffectedParts[apIdx] == pps.partName)
+						{
+							affectedParts.Add(pps);
+						}
 					}
 				}
 			}
@@ -225,18 +254,23 @@ namespace TweakableEverything
 			List<ProtoPartSnapshot> affectedParts = new List<ProtoPartSnapshot>();
 
 			ProtoVessel pv;
+			ProtoPartSnapshot pps;
+
 			for (int pvIdx = 0; pvIdx < FlightDriver.FlightStateCache.flightState.protoVessels.Count; pvIdx++)
 			{
 				pv = FlightDriver.FlightStateCache.flightState.protoVessels[pvIdx];
 
-				ProtoPartSnapshot pps;
+
 				for (int ppIdx = 0; ppIdx < pv.protoPartSnapshots.Count; ppIdx++)
 				{
 					pps = pv.protoPartSnapshots[ppIdx];
 
-					if (this.AffectedParts.Contains(pps.partName))
+					for (int apIdx = 0; apIdx < this.AffectedParts.Length; apIdx++)
 					{
-						affectedParts.Add(pps);
+						if (this.AffectedParts[apIdx] == pps.partName)
+						{
+							affectedParts.Add(pps);
+						}
 					}
 				}
 			}
