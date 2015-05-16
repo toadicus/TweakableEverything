@@ -30,8 +30,6 @@ using KSP;
 using KSPAPIEL;
 using System;
 using System.Collections.Generic;
-// @TODO: Remove Linq.
-using System.Linq;
 using ToadicusTools;
 using UnityEngine;
 
@@ -87,38 +85,33 @@ namespace TweakableEverything
 			base.OnStart(state);
 
 			// Fetch the generic decoupler module from the part by module name.
-			this.decoupleModule = base.part.Modules
-				.OfType<PartModule>()
-				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
-
-			if (this.decoupleModule != null)
+			if (base.part.tryGetFirstModuleByName(this.decouplerModuleName, out this.decoupleModule))
 			{
 				// Fetch the prefab for harvesting the actual stock value.  This is done to prevent copies in the editor
 				// from inheriting a tweaked value as their "center".
 				partInfo = PartLoader.getPartInfoByName(base.part.partInfo.name);
+
 				// Fetch the prefab module for the above purpose.
-				prefabModule = partInfo.partPrefab.Modules
-				.OfType<PartModule>()
-				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
+				if (partInfo.partPrefab.tryGetFirstModuleByName(this.decouplerModuleName, out prefabModule))
+				{// Fetch the ejectionForce field from our generic decoupler module.
+					float remoteEjectionForce =
+						this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
 
-				// Fetch the ejectionForce field from our generic decoupler module.
-				float remoteEjectionForce =
-					this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
+					// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
+					// prefab, and current value from persistence
+					TweakableTools.InitializeTweakable<ModuleTweakableDecouple>(
+						(UI_FloatEdit)this.Fields["ejectionForce"].uiControlCurrent(),
+						ref this.ejectionForce,
+						ref remoteEjectionForce,
+						prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),
+						this.lowerMult,
+						this.upperMult
+					);
 
-				// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
-				// prefab, and current value from persistence
-				TweakableTools.InitializeTweakable<ModuleTweakableDecouple>(
-					(UI_FloatEdit)this.Fields["ejectionForce"].uiControlCurrent(),
-					ref this.ejectionForce,
-					ref remoteEjectionForce,
-					prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),
-					this.lowerMult,
-					this.upperMult
-				);
-
-				// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
-				// this sets the ejectionForce from our persistent value when the part is started.
-				this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
+					// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
+					// this sets the ejectionForce from our persistent value when the part is started.
+					this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
+				}
 
 				ModuleStagingToggle stagingToggleModule;
 

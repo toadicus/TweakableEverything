@@ -29,8 +29,6 @@
 using KSP;
 using System;
 using System.Collections.Generic;
-// @TODO: Remove Linq.
-using System.Linq;
 using ToadicusTools;
 using UnityEngine;
 
@@ -106,7 +104,7 @@ namespace TweakableEverything
 				}
 			}
 
-			Tools.PostDebugMessage(this, string.Format("Found {0} ModuleJettisons.", this.jettisonModules.Count()));
+			Tools.PostDebugMessage(this, string.Format("Found {0} ModuleJettisons.", this.jettisonModules.Count));
 
 			// Seed the disableState for first-run behavior.
 			if (this.disableFairing || true)
