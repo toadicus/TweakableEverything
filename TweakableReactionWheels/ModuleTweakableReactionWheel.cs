@@ -35,7 +35,7 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
-	#if DEBUG
+	#if DEBUG && false
 	public class ModuleTweakableReactionWheel : DebugPartModule
 	#else
 	public class ModuleTweakableReactionWheel : PartModule
@@ -91,42 +91,71 @@ namespace TweakableEverything
 		// Runs on start.
 		public override void OnStart(StartState state)
 		{
+			Tools.DebugLogger log = Tools.DebugLogger.New(this);
+
+			#if DEBUG
+			try {
+			#endif
+			
+			log.AppendFormat("{0}: starting up", this.ToString());
+
 			// Start up the underlying PartModule stuff.
 			base.OnStart(state);
 
+			log.Append("\n\tbase started up");
+
 			// Seed the startEnabledState to the opposite of startEnabled to force first-update processing.
 			this.startEnabledState = !this.startEnabled;
+
+			log.AppendFormat("\n\tlast state seeded ({0} != {1})", this.startEnabledState, this.startEnabled);
 
 			ModuleReactionWheel prefabModule;
 
 			// Fetch the reaction wheel module.
 			if (this.part.tryGetFirstModuleOfType<ModuleReactionWheel>(out this.reactionWheelModule))
 			{
+				log.AppendFormat("\n\tFound ModuleReactionWheel {0}", this.reactionWheelModule);
+
 				if (PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab
 					.tryGetFirstModuleOfType<ModuleReactionWheel>(out prefabModule))
 				{
+					log.AppendFormat("\n\tFound prefab module {0}", prefabModule);
+
 					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
-						(UI_FloatEdit)this.Fields["RollTorque"].uiControlCurrent(),
+						this.Fields["RollTorque"].uiControlCurrent(),
 						ref this.RollTorque,
 						ref this.reactionWheelModule.RollTorque,
 						prefabModule.RollTorque
 					);
 
+					log.Append("\n\tRollTorque setup");
+
 					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
-						(UI_FloatEdit)this.Fields["PitchTorque"].uiControlCurrent(),
+						this.Fields["PitchTorque"].uiControlCurrent(),
 						ref this.PitchTorque,
 						ref this.reactionWheelModule.PitchTorque,
 						prefabModule.PitchTorque
 					);
 
+					log.Append("\n\tPitchTorque setup");
+
 					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
-						(UI_FloatEdit)this.Fields["YawTorque"].uiControlCurrent(),
+						this.Fields["YawTorque"].uiControlCurrent(),
 						ref this.YawTorque,
 						ref this.reactionWheelModule.YawTorque,
 						prefabModule.YawTorque
 					);
+
+					log.Append("\n\tYawTorque setup");
 				}
 			}
+
+			log.Append("\n\tStarted!");
+			#if DEBUG
+			} finally {
+			log.Print();
+			}
+			#endif
 		}
 
 		// Runs late in the update cycle

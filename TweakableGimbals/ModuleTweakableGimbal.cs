@@ -101,7 +101,7 @@ namespace TweakableEverything
 			{
 				// Initialize the gimbal range tweakable and value.
 				TweakableTools.InitializeTweakable<ModuleTweakableGimbal>(
-					(UI_FloatEdit)this.Fields["gimbalRange"].uiControlCurrent(),
+					this.Fields["gimbalRange"].uiControlCurrent(),
 					ref this.gimbalRange,
 					ref this.gimbalModule.gimbalRange,
 					gimbalPrefab.gimbalRange,

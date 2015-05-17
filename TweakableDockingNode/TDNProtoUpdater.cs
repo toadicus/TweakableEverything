@@ -30,6 +30,7 @@ using KSP;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ToadicusTools;
 
 namespace TweakableEverything
 {
@@ -71,26 +72,64 @@ namespace TweakableEverything
 		// Check each of the affected parts snapshots to see if they are missing any AttachNodes.  If so, add them.
 		protected virtual void UpdateProtoPartSnapshots(IList<ProtoPartSnapshot> affectedParts)
 		{
-			List<AttachNode> missingPrefabNodes = new List<AttachNode>();
-
 			ProtoPartSnapshot affectedPart;
 			AttachNode prefabNode;
 			AttachNodeSnapshot protoNode;
+			List<AttachNodeSnapshot> protoNodes;
+			List<AttachNode> prefabNodes;
+
+			bool nodeIsMissing;
+
+			System.Text.StringBuilder joinedProtoNodes = new System.Text.StringBuilder();
+			System.Text.StringBuilder joinedPrefabNodes = new System.Text.StringBuilder();
 
 			for (int pIdx = 0; pIdx < affectedParts.Count; pIdx++)
 			{
 				affectedPart = affectedParts[pIdx];
 
-				List<AttachNodeSnapshot> protoNodes = affectedPart.attachNodes;
-				List<AttachNode> prefabNodes =
-					PartLoader.getPartInfoByName(affectedPart.partName).partPrefab.attachNodes;
-				
-				missingPrefabNodes.Clear();
+				protoNodes = affectedPart.attachNodes;
+				prefabNodes = PartLoader.getPartInfoByName(affectedPart.partName).partPrefab.attachNodes;
 
+				#if DEBUG
+				joinedProtoNodes.Length = 0;
+				for (int prNIdx = 0; prNIdx < protoNodes.Count; prNIdx++)
+				{
+					if (joinedProtoNodes.Length > 0)
+					{
+						joinedProtoNodes.Append(", ");
+					}
+
+					joinedProtoNodes.Append(protoNodes[prNIdx].id);
+				}
+
+				joinedPrefabNodes.Length = 0;
+				for (int pfNIdx = 0; pfNIdx < prefabNodes.Count; pfNIdx++)
+				{
+					if (joinedPrefabNodes.Length > 0)
+					{
+						joinedPrefabNodes.Append(", ");
+					}
+
+					joinedPrefabNodes.Append(prefabNodes[pfNIdx].id);
+				}
+
+				KSPLog.print(string.Format(
+					"{0}: before adding nodes to affected part '{1}' in vessel '{2}'" +
+					"\n\tprotoNodes: {3}" +
+					"\n\tprefabNodes: {4}",
+					this.GetType().Name,
+					affectedPart.partName,
+					affectedPart.pVesselRef.vesselName,
+					joinedProtoNodes.ToString(),
+					joinedPrefabNodes.ToString()
+				));
+				#endif
 
 				for (int pfIdx = 0; pfIdx < prefabNodes.Count; pfIdx++)
 				{
 					prefabNode = prefabNodes[pfIdx];
+
+					nodeIsMissing = true;
 
 					for (int pnIdx = 0; pnIdx < protoNodes.Count; pnIdx++)
 					{
@@ -98,72 +137,60 @@ namespace TweakableEverything
 
 						if (prefabNode.id == protoNode.id)
 						{
-							missingPrefabNodes.Add(prefabNode);
+							Tools.PostDebugMessage(string.Format(
+								"{0}: Skipping prefab node '{1}', already in protoNodes",
+								this.GetType().Name,
+								prefabNode.id
+							));
+
+							nodeIsMissing = false;
+							break;
 						}
+					}
+
+					if (nodeIsMissing)
+					{
+						Tools.PostDebugMessage(string.Format(
+							"{0}: Adding new AttachNodeSnapshot '{1}'",
+							this.GetType().Name,
+							prefabNode.id
+						));
+						protoNodes.Add(new AttachNodeSnapshot(prefabNode.id + ", -1"));
 					}
 				}
 
-				/*Tools.PostDebugMessage(string.Format(
-					"{0}: found affected part '{1}' in vessel '{2}'" +
+				joinedProtoNodes.Length = 0;
+				for (int prNIdx = 0; prNIdx < protoNodes.Count; prNIdx++)
+				{
+					if (joinedProtoNodes.Length > 0)
+					{
+						joinedProtoNodes.Append(", ");
+					}
+
+					joinedProtoNodes.Append(protoNodes[prNIdx].id);
+				}
+
+				joinedPrefabNodes.Length = 0;
+				for (int pfNIdx = 0; pfNIdx < prefabNodes.Count; pfNIdx++)
+				{
+					if (joinedPrefabNodes.Length > 0)
+					{
+						joinedPrefabNodes.Append(", ");
+					}
+
+					joinedPrefabNodes.Append(prefabNodes[pfNIdx].id);
+				}
+
+				KSPLog.print(string.Format(
+					"{0}: after adding nodes to affected part '{1}' in vessel '{2}'" +
 					"\n\tprotoNodes: {3}" +
-					"\n\tprefabNodes: {4}" +
-					"\n\tmissingNodes: {5}",
+					"\n\tprefabNodes: {4}",
 					this.GetType().Name,
 					affectedPart.partName,
 					affectedPart.pVesselRef.vesselName,
-					string.Join("; ", protoNodes.Select(n => n.id).ToArray()),
-					string.Join("; ", prefabNodes.Select(n => n.id).ToArray()),
-					string.Join("; ", missingProtoNodes.Select(n => n.id).ToArray())
-				));*/
-
-				if (missingPrefabNodes.Count > 0)
-				{
-					AttachNode missingPrefabNode;
-					for (int nIdx = 0; nIdx < missingPrefabNodes.Count; nIdx++)
-					{
-						missingPrefabNode = missingPrefabNodes[nIdx];
-
-						/*Tools.PostDebugMessage(string.Format(
-							"{0}: Adding new AttachNodeSnapshot '{1}'",
-							this.GetType().Name,
-							missingProtoNode.id
-						));*/
-						protoNodes.Add(new AttachNodeSnapshot(missingPrefabNode.id + ", -1"));
-					}
-
-					System.Text.StringBuilder joinedProtoNodes = new System.Text.StringBuilder();
-					for (int idx = 0; idx < protoNodes.Count; idx++)
-					{
-						if (joinedProtoNodes.Length > 0)
-						{
-							joinedProtoNodes.Append(", ");
-						}
-
-						joinedProtoNodes.Append(protoNodes[idx].id);
-					}
-
-					System.Text.StringBuilder joinedPrefabNodes = new System.Text.StringBuilder();
-					for (int idx = 0; idx < prefabNodes.Count; idx++)
-					{
-						if (joinedPrefabNodes.Length > 0)
-						{
-							joinedPrefabNodes.Append(", ");
-						}
-
-						joinedProtoNodes.Append(prefabNodes[idx].id);
-					}
-
-					KSPLog.print(string.Format(
-						"{0}: after adding nodes to affected part '{1}' in vessel '{2}'" +
-						"\n\tprotoNodes: {3}" +
-						"\n\tprefabNodes: {4}",
-						this.GetType().Name,
-						affectedPart.partName,
-						affectedPart.pVesselRef.vesselName,
-						joinedProtoNodes.ToString(),
-						joinedPrefabNodes.ToString()
-					));
-				}
+					joinedProtoNodes.ToString(),
+					joinedPrefabNodes.ToString()
+				));
 			}
 		}
 

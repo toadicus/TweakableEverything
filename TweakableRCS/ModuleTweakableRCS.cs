@@ -109,7 +109,7 @@ namespace TweakableRCS
 					// ...otherwise, we're starting disabled...
 					else
 					{
-						// ...set the reaction wheel module to disabled
+						// ...set heel module to disabled
 						this.RCSModule.rcsEnabled = false;
 					}
 				}
