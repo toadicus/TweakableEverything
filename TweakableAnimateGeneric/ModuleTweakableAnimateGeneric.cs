@@ -67,14 +67,11 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public string fieldDisabledText;
 
-		// The animation module being wrapped
-		private ModuleAnimateGeneric animationModule;
-		private Animation animation;
-		private AnimationState animState;
+		// The animation wrapper
+		private AnimationWrapper animationWrapper;
 
 		// Declare enum values for parsing from string values
-		private PlayPosition positionStart;
-		private PlayDirection directionStart;
+		private PlayDirection direction;
 
 		// The animation wrapper used for easy interface
 		// private TweakableAnimationWrapper animationWrapper;
@@ -101,16 +98,17 @@ namespace TweakableEverything
 		public ModuleTweakableAnimateGeneric()
 		{
 			this.startCompleted = false;
-			this.startPosition = "Beginning";
 			this.startDirection = "Backward";
 		}
 
 		// Start when KSP tells us to start.
 		public override void OnStart(StartState state)
 		{
+			ModuleAnimateGeneric magToWrap;
+
 			// Only do any work if we're in the editor and we have an animation module.
 			if (state == StartState.Editor &&
-			    this.part.tryGetFirstModuleOfType<ModuleAnimateGeneric>(out this.animationModule))
+				this.part.tryGetFirstModuleOfType<ModuleAnimateGeneric>(out magToWrap))
 			{
 				// Start the base PartModule, just in case.
 				base.OnStart(state);
@@ -140,9 +138,10 @@ namespace TweakableEverything
 				this.startCompletedState = !this.startCompleted;
 
 				// If we didn't get a module, or we can't parse enums from startPosition or startDirection...
-				if (this.animationModule == null ||
-				    !Tools.TryParse(this.startPosition, out this.positionStart) ||
-				    !Tools.TryParse(this.startDirection, out this.directionStart))
+				if (
+					magToWrap == null ||
+				    !Tools.TryParse(this.startDirection, out this.direction)
+				)
 				{
 					// ...disable the control and stop processing.
 					this.Abort();
@@ -151,35 +150,15 @@ namespace TweakableEverything
 				// ...otherwise...
 				else
 				{
-					Animation[] animators = base.part.FindModelAnimators(this.animationModule.animationName);
+					this.animationWrapper = new AnimationWrapper(magToWrap, direction);
 
-					if (animators.Length > 0)
-					{
-						this.animation = animators[0];
-
-						this.animState = this.animation[this.animationModule.animationName];
-					}
-
-					// ...build a new animation wrapper from the animation module and our parsed position and direction
-					// data
-					/*this.animationWrapper = new TweakableAnimationWrapper(
-						this.animationModule,
-						new GameScenes[] { GameScenes.EDITOR },
-						WrapMode.ClampForever,
-						positionStart,
-						directionStart
-					);*/
-
-					// ...and start the animation
-					// this.animationWrapper.Start();
-
-					this.animationModule.Events["Toggle"].guiActiveEditor = false;
+					this.animationWrapper.module.Events["Toggle"].guiActiveEditor = false;
 				}
 			}
 
 			this.LogDebug(
 				"Started up.  animationModule={0}, startCompleted={1}, startPosition={2}, startDirection={3}",
-				this.animationModule == null ? "null" : this.animationModule.ToString(),
+				this.animationWrapper == null ? "null" : this.animationWrapper.ToString(),
 				this.startCompleted,
 				this.startPosition,
 				this.startDirection
@@ -190,14 +169,11 @@ namespace TweakableEverything
 		public void LateUpdate()
 		{
 			// Only do any work if we're in the editor and have an animation wrapper.
-			if (
-				HighLogic.LoadedSceneIsEditor && this.animationModule != null &&
-				this.animation != null && this.animState != null
-			)
+			if (HighLogic.LoadedSceneIsEditor && this.animationWrapper != null)
 			{
-				if (this.animation.IsPlaying(this.animationModule.animationName))
+				if (this.animationWrapper.IsPlaying())
 				{
-					this.animation.Stop(this.animationModule.animationName);
+					this.animationWrapper.animation.Stop();
 				}
 
 				// If startCompleted has changed...
@@ -208,38 +184,10 @@ namespace TweakableEverything
 					switch (this.startCompleted)
 					{
 						case false:
-							switch (this.directionStart)
-							{
-								case PlayDirection.Forward:
-									this.animationModule.animTime = 1f;
-									this.animState.normalizedTime = 1f;
-									this.animState.speed = 1f;
-									this.animation.Play(this.animationModule.animationName);
-									break;
-								case PlayDirection.Backward:
-									this.animationModule.animTime = 0f;
-									this.animState.normalizedTime = 0f;
-									this.animState.speed = -1f;
-									this.animation.Play(this.animationModule.animationName);
-									break;
-							}
+							this.animationWrapper.SkipTo(PlayPosition.End);
 							break;
 						case true:
-							switch (this.directionStart)
-							{
-								case PlayDirection.Forward:
-									this.animationModule.animTime = 0f;
-									this.animState.normalizedTime = 0f;
-									this.animState.speed = -1f;
-									this.animation.Play(this.animationModule.animationName);
-									break;
-								case PlayDirection.Backward:
-									this.animationModule.animTime = 1f;
-									this.animState.normalizedTime = 1f;
-									this.animState.speed = 1f;
-									this.animation.Play(this.animationModule.animationName);
-									break;
-							}
+							this.animationWrapper.SkipTo(PlayPosition.Beginning);
 							break;
 					}
 
@@ -253,23 +201,11 @@ namespace TweakableEverything
 		// If we need to abort, disable the UI elements.
 		public void Abort()
 		{
-			this.animationModule = null;
+			this.animationWrapper = null;
 			this.startField.guiActiveEditor = false;
 			this.startUIControl.controlEnabled = false;
 
-			this.LogDebug("Startup aborted");
-		}
-
-		public enum PlayPosition
-		{
-			Beginning = 0,
-			End = 1
-		}
-
-		public enum PlayDirection
-		{
-			Forward = 1,
-			Backward = -1
+			this.LogError("Startup aborted!");
 		}
 	}
 }

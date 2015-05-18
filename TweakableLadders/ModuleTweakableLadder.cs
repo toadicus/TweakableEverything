@@ -49,7 +49,7 @@ namespace TweakableEverything
 
 		protected RetractableLadder ladderModule;
 
-		protected TweakableAnimationWrapper ladderAnimation;
+		protected AnimationWrapper ladderAnimation;
 
 		public ModuleTweakableLadder()
 		{
@@ -69,22 +69,15 @@ namespace TweakableEverything
 			if (this.part.tryGetFirstModuleOfType<RetractableLadder>(out this.ladderModule))
 			{
 				// Fetch the UnityEngine.Animation object from the solar ladder module.
-				this.ladderAnimation = new TweakableAnimationWrapper(
+				this.ladderAnimation = new AnimationWrapper(
 					base.part.FindModelTransform(this.ladderModule.ladderAnimationRootName).animation,
 					this.ladderModule.ladderRetractAnimationName,
-					new GameScenes[] { GameScenes.EDITOR },
-					WrapMode.ClampForever,
-					TweakableAnimationWrapper.PlayPosition.End,
-					TweakableAnimationWrapper.PlayDirection.Forward,
-					1f
+					PlayDirection.Forward
 				);
 
 				// If we are in the editor and have an animation...
 				if (HighLogic.LoadedSceneIsEditor && this.ladderAnimation != null)
 				{
-					//  ...start the animation
-					this.ladderAnimation.Start();
-
 					// ...and disable Squad's tweakables, since they play out the animation
 					this.ladderModule.Events["Extend"].guiActiveEditor = false;
 					this.ladderModule.Events["Retract"].guiActiveEditor = false;
@@ -110,7 +103,7 @@ namespace TweakableEverything
 						Tools.PostDebugMessage(this, "Extending ladder.");
 
 						// ...move the animation to the end with a "forward" play speed.
-						this.ladderAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.End);
+						this.ladderAnimation.SkipTo(PlayPosition.End);
 
 						// ...flag the ladder as extended.
 						this.ladderModule.StateName = "Extended";
@@ -122,7 +115,7 @@ namespace TweakableEverything
 						Tools.PostDebugMessage(this, "Retracting ladder.");
 
 						// ...move the animation to the beginning with a "backward" play speed.
-						this.ladderAnimation.SkipTo(TweakableAnimationWrapper.PlayPosition.Beginning);
+						this.ladderAnimation.SkipTo(PlayPosition.Beginning);
 
 						// ...flag the ladder as retracted.
 						this.ladderModule.StateName = "Retracted";

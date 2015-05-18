@@ -71,7 +71,7 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public string deployAnimationControllerName;
 		// Wrap the animation.
-		protected TweakableAnimationWrapper deployAnimation;
+		protected ModuleAnimateGeneric deployAnimation;
 
 		// String containing the name of the AttachNode that we will toggle.
 		[KSPField(isPersistant = false)]
@@ -163,7 +163,7 @@ namespace TweakableEverything
 				}
 				else
 				{
-					return (this.deployAnimation.normalizedTime >= 1);
+					return (this.deployAnimation.animTime >= 1f - float.Epsilon * 2f);
 				}
 			}
 		}
@@ -176,7 +176,6 @@ namespace TweakableEverything
 		{
 			this.dockingNodeModule = (ModuleDockingNode)base.part.Modules["ModuleDockingNode"];
 
-			ModuleAnimateGeneric magToWrap = null;
 			PartModule needle;
 
 			for (int idx = 0; idx < base.part.Modules.Count; idx++)
@@ -187,24 +186,13 @@ namespace TweakableEverything
 				{
 					if (((ModuleAnimateGeneric)needle).animationName == this.deployAnimationControllerName)
 					{
-						magToWrap = (ModuleAnimateGeneric)needle;
+						this.deployAnimation = (ModuleAnimateGeneric)needle;
 						break;
 					}
 				}
 			}
 
 			// If we've loaded a deployAnimationControllerName from the cfg...
-			if (this.deployAnimationControllerName != string.Empty && magToWrap != null)
-			{
-				// ...go get the module reference from the Part...
-				this.deployAnimation = new TweakableAnimationWrapper(
-					magToWrap,
-					new GameScenes[] { GameScenes.EDITOR, GameScenes.FLIGHT },
-					WrapMode.ClampForever,
-					TweakableAnimationWrapper.PlayPosition.Beginning,
-					TweakableAnimationWrapper.PlayDirection.Backward
-				);
-			}
 
 			// Start the underlying ModuleDockingNode.
 			base.OnStart(st);
@@ -332,7 +320,6 @@ namespace TweakableEverything
 				// ...and if we have a deploy animation module and are ready...
 				if (
 					this.deployAnimation != null &&
-					this.deployAnimation.module != null &&
 					this.dockingNodeModule.state == "Ready"
 				)
 				{
@@ -340,13 +327,13 @@ namespace TweakableEverything
 					if (this.attachedPart != null)
 					{
 						// ...disable the deploy animation.
-						this.deployAnimation.module.Events["Toggle"].active = false;
+						this.deployAnimation.Events["Toggle"].active = false;
 					}
 					// ...otherwise...
 					else
 					{
 						// ...enable the deploy animation.
-						this.deployAnimation.module.Events["Toggle"].active = true;
+						this.deployAnimation.Events["Toggle"].active = true;
 					}
 				}
 
