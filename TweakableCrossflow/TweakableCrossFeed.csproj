@@ -76,5 +76,8 @@
       <Link>DebugPartModule.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\..\ToadicusTools\Tools.cs">
+      <Link>Tools.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>
