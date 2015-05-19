@@ -63,15 +63,6 @@ namespace TweakableEverything
 		// Stores the solar panel animation we're clobbering.
 		protected AnimationWrapper panelAnimation;
 
-		// Gets the animationName field from the panel module.
-		protected string panelAnimationName
-		{
-			get
-			{
-				return this.panelModule.animationName;
-			}
-		}
-
 		// Construct ALL the objects.
 		public ModuleTweakableSolarPanel()
 		{
@@ -104,6 +95,13 @@ namespace TweakableEverything
 
 				// Fetch the UnityEngine.Animation object from the solar panel module.
 				Animation anim = this.panelModule.GetComponentInChildren<Animation>();
+
+				// If the animation is null, bailout.
+				if (anim == null)
+				{
+					this.LogDebug("No animation objects found in panel module; bailing out.");
+					return;
+				}
 
 				// Build an AnimationWrapper
 				this.panelAnimation = new AnimationWrapper(anim, this.panelModule.animationName, PlayDirection.Forward);
@@ -149,6 +147,7 @@ namespace TweakableEverything
 			// Do nothing if the panel module is null
 			if (this.panelModule == null)
 			{
+				this.LogDebug("panel module is null, bailing out.");
 				return;
 			}
 
@@ -158,6 +157,8 @@ namespace TweakableEverything
 				// ...if StartOpened has changed and we have an Animation...
 				if (this.startOpenedState != this.StartOpened)
 				{
+					this.LogDebug("Start-opened state changed, skipping animation.");
+
 					// ...refresh startOpenedState
 					this.startOpenedState = this.StartOpened;
 
@@ -202,18 +203,22 @@ namespace TweakableEverything
 			// If this panel is tracking-enabled and our sun tracking state has changed...
 			if (this.panelModule.sunTracking && this.sunTrackingEnabled != this.sunTrackingState)
 			{
+				this.LogDebug("Sun tracking toggled; updating.");
+
 				// ..refresh our sunTrackingState
 				this.sunTrackingState = this.sunTrackingEnabled;
 
 				// ...and if we're tracking the sun...
 				if (this.sunTrackingEnabled)
 				{
+					this.LogDebug("Setting panel module's sunTrackingSpeed to {0}", this.baseTrackingSpeed);
 					// ...ensure the panel's tracking speed is set per it's original value
 					this.panelModule.trackingSpeed = this.baseTrackingSpeed;
 				}
 				// ...otherwise, we're not tracking the sun...
 				else
 				{
+					this.LogDebug("Setting panel module's sunTrackingSpeed to 0");
 					// ...so set the panel's tracking speed to zero
 					this.panelModule.trackingSpeed = 0;
 				}
