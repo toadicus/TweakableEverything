@@ -41,7 +41,7 @@ namespace TweakableEverything
 	#endif
 	{
 		// Tweakable property to determine whether the solar panel should start opened or closed.
-		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true)]
+		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true, guiActive = false)]
 		[UI_Toggle(disabledText = "Retracted", enabledText = "Extended")]
 		public bool StartOpened;
 		// Save the state here so we can tell if StartOpened has changed.
@@ -61,7 +61,7 @@ namespace TweakableEverything
 		// Stores the solar panel module we're tweaking
 		protected ModuleDeployableSolarPanel panelModule;
 		// Stores the solar panel animation we're clobbering.
-		protected Animation panelAnimation;
+		protected AnimationWrapper panelAnimation;
 
 		// Gets the animationName field from the panel module.
 		protected string panelAnimationName
@@ -103,12 +103,14 @@ namespace TweakableEverything
 				);
 
 				// Fetch the UnityEngine.Animation object from the solar panel module.
-				this.panelAnimation = this.panelModule.GetComponentInChildren<Animation>();
+				Animation anim = this.panelModule.GetComponentInChildren<Animation>();
+
+				// Build an AnimationWrapper
+				this.panelAnimation = new AnimationWrapper(anim, this.panelModule.animationName, PlayDirection.Forward);
 
 				// Yay debugging!
 				Tools.PostDebugMessage(this,
-					"panelAnimation: " + this.panelAnimation,
-					"animationState: " + this.panelAnimation[this.panelModule.animationName]
+					"panelAnimation: " + this.panelAnimation
 				);
 
 				// If we are in the editor and have an animation...
@@ -116,21 +118,6 @@ namespace TweakableEverything
 				{
 					// ...pre-set the panel's currentRotation...
 					this.panelModule.currentRotation = this.panelModule.originalRotation;
-
-					// ...and if our animation has an AnimationState named in the panel module...
-					if (this.panelAnimation[this.panelModule.animationName])
-					{
-						// ...Set up the AnimationState for later use.
-						this.panelAnimation.wrapMode = WrapMode.ClampForever;
-						this.panelAnimation[this.panelAnimationName].enabled = true;
-						this.panelAnimation[this.panelAnimationName].speed = 0f;
-						this.panelAnimation[this.panelAnimationName].weight = 1f;
-
-						// Yay debuggin!
-						Tools.PostDebugMessage(this,
-							"panelAnimation set wrapMode, enabled, speed, and weight."
-						);
-					}
 				}
 
 				/* 
@@ -181,11 +168,12 @@ namespace TweakableEverything
 						Tools.PostDebugMessage(this, "Extending panel.");
 
 						// ...move the animation to the end with a "forward" play speed.
-						this.panelAnimation[this.panelAnimationName].speed = 1f;
-						this.panelAnimation[this.panelAnimationName].normalizedTime = 1f;
+						this.panelAnimation.SkipTo(PlayPosition.End);
+						this.panelModule.storedAnimationTime = 1f;
 
 						// ...flag the panel as extended.
 						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.EXTENDED;
+						this.panelModule.status = "Extended";
 					}
 					// ...otherwise, we are starting closed...
 					else
@@ -194,19 +182,18 @@ namespace TweakableEverything
 						Tools.PostDebugMessage(this, "Retracting panel.");
 
 						// ...move the animation to the beginning with a "backward" play speed.
-						this.panelAnimation[this.panelAnimationName].speed = -1f;
-						this.panelAnimation[this.panelAnimationName].normalizedTime = 0f;
+						this.panelAnimation.SkipTo(PlayPosition.Beginning);
+						this.panelModule.storedAnimationTime = 0f;
 
 						// ...flag the panel as retracted.
 						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.RETRACTED;
+						this.panelModule.status = "Retracted";
 					}
 
 					// ...play the animation, because it's so very pretty.
-					this.panelAnimation.Play(this.panelAnimationName);
 
 					// ...update the persistence data for the solar panel accordingly.
-					this.panelModule.storedAnimationTime = this.panelAnimation[this.panelAnimationName].normalizedTime;
-					this.panelModule.storedAnimationSpeed = this.panelAnimation[this.panelAnimationName].speed;
+
 					this.panelModule.stateString =
 						Enum.GetName(typeof(ModuleDeployableSolarPanel.panelStates), this.panelModule.panelState);
 				}
