@@ -27,7 +27,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
-using KSPAPIEL;
+using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools;

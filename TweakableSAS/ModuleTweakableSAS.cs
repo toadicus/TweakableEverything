@@ -28,7 +28,7 @@
 
 using Experience.Effects;
 using KSP;
-using KSPAPIEL;
+using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools;
