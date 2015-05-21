@@ -189,9 +189,9 @@ namespace TweakableEverything
 			{
 				float gain = this.TorqueGain / 100f;
 
-				this.reactionWheelModule.RollTorque *= gain;
-				this.reactionWheelModule.PitchTorque *= gain;
-				this.reactionWheelModule.YawTorque *= gain;
+				this.reactionWheelModule.RollTorque = this.RollTorque * gain;
+				this.reactionWheelModule.PitchTorque = this.PitchTorque * gain;
+				this.reactionWheelModule.YawTorque = this.YawTorque * gain;
 			}
 		}
 	}
