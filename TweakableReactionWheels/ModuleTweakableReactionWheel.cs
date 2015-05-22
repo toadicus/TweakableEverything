@@ -89,6 +89,16 @@ namespace TweakableEverything
 			this.TorqueGain = 1f;
 		}
 
+		public override void OnLoad(ConfigNode node)
+		{
+			base.OnLoad(node);
+
+			if (this.TorqueGain > 1f)
+			{
+				this.TorqueGain /= 100f;
+			}
+		}
+
 		// Runs on start.
 		public override void OnStart(StartState state)
 		{
@@ -149,6 +159,16 @@ namespace TweakableEverything
 
 					log.Append("\n\tYawTorque setup");
 				}
+			}
+
+			var torqueGainCtl = this.Fields["TorqueGain"].uiControlCurrent();
+
+			if (torqueGainCtl is UI_FloatEdit)
+			{
+				var torqueGainSlider = torqueGainCtl as UI_FloatEdit;
+
+				torqueGainSlider.maxValue = 1f;
+				torqueGainSlider.incrementSlide = 0.025f;
 			}
 
 			log.Append("\n\tStarted!");

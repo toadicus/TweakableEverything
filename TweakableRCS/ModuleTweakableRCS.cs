@@ -52,7 +52,7 @@ namespace TweakableRCS
 
 		// Stores our thrust limiter value for the RCS block.
 		[KSPField(isPersistant = true, guiName = "Thrust Limiter", guiFormat = "P0",  guiActiveEditor = true, guiActive = true)]
-		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = .01f)]
+		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = .025f)]
 		public float thrustLimit;
 
 		protected float baseThrusterPower;
@@ -61,6 +61,16 @@ namespace TweakableRCS
 		{
 			this.startEnabled = true;
 			this.thrustLimit = 1f;
+		}
+
+		public override void OnLoad(ConfigNode node)
+		{
+			base.OnLoad(node);
+
+			if (this.thrustLimit > 1f)
+			{
+				this.thrustLimit /= 100f;
+			}
 		}
 
 		public override void OnStart(StartState state)
@@ -79,6 +89,16 @@ namespace TweakableRCS
 			if (prefabModule != null)
 			{
 				this.baseThrusterPower = prefabModule.thrusterPower;
+			}
+
+			var thrustLimitCtl = this.Fields["thrustLimit"].uiControlCurrent();
+
+			if (thrustLimitCtl is UI_FloatEdit)
+			{
+				var thrustLimitSlider = thrustLimitCtl as UI_FloatEdit;
+
+				thrustLimitSlider.maxValue = 1f;
+				thrustLimitSlider.incrementSlide = 0.025f;
 			}
 		}
 
