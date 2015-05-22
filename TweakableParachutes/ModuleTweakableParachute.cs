@@ -93,7 +93,16 @@ namespace TweakableEverything
 			var deployField = this.Fields["deploymentFactor"].uiControlCurrent() as UI_FloatEdit;
 			var semiDeployField = this.Fields["semiDeploymentFactor"].uiControlCurrent() as UI_FloatEdit;
 
-			float step = Mathf.Pow(10f, (int)Mathf.Log10(this.maxFactor / 2f)) / 2f;
+			float step;
+
+			if (this.maxFactor >= 5f)
+			{
+				step = Mathf.Round(Mathf.Pow(10f, (int)Mathf.Log10(this.maxFactor) - 1)) / 2f;
+			}
+			else
+			{
+				step = 0.1f;
+			}
 
 			deployField.maxValue = this.maxFactor;
 			deployField.minValue = 1f;
