@@ -79,7 +79,7 @@
       <HintPath>..\..\_KSPAssemblies\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="KSPAPIExtensions">
-      <HintPath>..\..\..\KSPAPIExtensions\KSPAPIExtensions\GameData\KSPAPIExtensions.dll</HintPath>
+      <HintPath>..\GameData\TweakableEverything\KSPAPIExtensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

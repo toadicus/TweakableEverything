@@ -44,7 +44,7 @@ namespace TweakableEverything
 		protected ModuleGimbal gimbalModule;
 
 		// Stores our tweaked value for gimbal range.
-		[KSPField(isPersistant = true, guiName = "Gimbal Range", guiUnits = "°", guiFormat = "F2",
+		[KSPField(isPersistant = true, guiName = "Gimbal Range", guiUnits = "°", guiFormat = "F1",
 			guiActiveEditor = true)]
 		[UI_FloatEdit(minValue = float.MinValue, maxValue = float.MaxValue, incrementSlide = .1f)]
 		public float gimbalRange;
