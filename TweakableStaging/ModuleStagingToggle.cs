@@ -178,7 +178,10 @@ namespace TweakableEverything
 				this.timeSinceUpdate = 0f;
 
 				// If our staging state has changed...
-				if (this.forceUpdate || this.stagingEnabled != this.part.isInStagingList())
+				if (EditorLogic.RootPart != null &&
+					this.part.hasAncestorPart(EditorLogic.RootPart) &&
+					(this.forceUpdate || this.stagingEnabled != this.part.isInStagingList())
+				)
 				{
 					log.AppendFormat("\n\tStaging state changed." +
 					"\n\t\tstagingEnable: {0}" +
