@@ -235,7 +235,7 @@ namespace TweakableEverything
 			// If we're switching to enabled...
 			if (enabled)
 			{
-				this.part.inverseStage = Math.Max(this.part.inverseStage, 0);
+				this.part.inverseStage = Math.Max(this.part.inverseStage - this.part.stageOffset, 0);
 
 				log.AppendFormat("\n\tSwitching staging to enabled, default new inverseStage={0}",
 					this.part.inverseStage);
