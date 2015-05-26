@@ -25,6 +25,7 @@
 
 using KSP;
 using System;
+using System.Reflection;
 using ToadicusTools;
 using UnityEngine;
 
@@ -33,6 +34,9 @@ namespace TweakableEverything
 	public class ModuleStagingToggle : PartModule
 	{
 		private static Tools.DebugLogger log;
+
+		private static FieldInfo stagingInstanceField;
+		private static Staging stagingInstance;
 
 		public static bool stageSortQueued = false;
 
@@ -89,6 +93,29 @@ namespace TweakableEverything
 			this.forceUpdate = false;
 			this.queuedStagingSort = false;
 
+			if (stagingInstanceField == null)
+			{
+				FieldInfo[] staticStagingFields = typeof(Staging).GetFields(
+					BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default
+				);
+
+				FieldInfo field;
+				for (int fIdx = 0; fIdx < staticStagingFields.Length; fIdx++)
+				{
+					field = staticStagingFields[fIdx];
+
+					if (field.FieldType == typeof(Staging))
+					{
+						stagingInstanceField = field;
+
+						this.Log("Got Staging instance field: {0}",
+							stagingInstanceField == null ? "null" : stagingInstanceField.ToString());
+						
+						break;
+					}
+				}
+			}
+
 			log.AppendFormat("\n{0}: Awake; stagingEnabled={1}.\n", this, this.stagingEnabled);
 
 			log.Print();
@@ -144,6 +171,13 @@ namespace TweakableEverything
 				this.part.inverseStage = 0;
 			}
 
+			if (stagingInstanceField != null && stagingInstance == null)
+			{
+				stagingInstance = stagingInstanceField.GetValue(null) as Staging;
+
+				this.Log("Got Staging instance: {0}", stagingInstance == null ? "null" : stagingInstance.ToString());
+			}
+
 			log.AppendFormat("\n\tRegistering events");
 			GameEvents.onPartAttach.Add(this.onPartAttach);
 			GameEvents.onPartCouple.Add(this.onPartCouple);
@@ -158,7 +192,7 @@ namespace TweakableEverything
 
 		public void LateUpdate()
 		{
-			if (this.timeSinceUpdate > this.updatePeriod)
+			if (this.timeSinceUpdate > this.updatePeriod && stagingInstance != null)
 			{
 				log.Clear();
 
@@ -177,9 +211,23 @@ namespace TweakableEverything
 
 				this.timeSinceUpdate = 0f;
 
+				Part rootPart;
+				switch (HighLogic.LoadedScene)
+				{
+					case GameScenes.EDITOR:
+						rootPart = EditorLogic.RootPart;
+						break;
+					case GameScenes.FLIGHT:
+						rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
+						break;
+					default:
+						rootPart = null;
+						break;
+				}
+
 				// If our staging state has changed...
-				if (EditorLogic.RootPart != null &&
-					this.part.hasAncestorPart(EditorLogic.RootPart) &&
+				if (rootPart != null &&
+					this.part.hasAncestorPart(rootPart) &&
 					(this.forceUpdate || this.stagingEnabled != this.part.isInStagingList())
 				)
 				{
@@ -235,18 +283,18 @@ namespace TweakableEverything
 			// If we're switching to enabled...
 			if (enabled)
 			{
-				this.part.inverseStage = Math.Max(this.part.inverseStage - this.part.stageOffset, 0);
+				this.part.inverseStage = Math.Max(this.part.inverseStage, 0);
 
 				log.AppendFormat("\n\tSwitching staging to enabled, default new inverseStage={0}",
 					this.part.inverseStage);
 
 				// ..and if our part has fallen off the staging list...
-				if (Staging.StageCount < this.part.inverseStage + 1)
+				if (stagingInstance.stages.Count < this.part.inverseStage + 1)
 				{
 					// ...add a new stage at the end
-					Staging.AddStageAt(Staging.StageCount);
+					// Staging.AddStageAt(stagingInstance.stages.Count);
 					// ...and move our part to it
-					this.part.inverseStage = Staging.StageCount - 1;
+					this.part.inverseStage = stagingInstance.stages.Count - 1;
 
 					log.AppendFormat("\n\t\tinverseStage had fallen off the list, fixed to {0}",
 						this.part.inverseStage);
@@ -285,6 +333,8 @@ namespace TweakableEverything
 				}
 				#endif
 			}
+
+			this.part.inverseStage = Math.Max(Math.Min(this.part.defaultInverseStage, stagingInstance.stages.Count - 1), 0);
 
 			// Sort the staging list
 			if (!stageSortQueued)
