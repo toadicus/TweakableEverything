@@ -87,7 +87,7 @@ namespace TweakableEverything
 
 			log.AppendFormat("\n\tOnAwake with defaultDisabled={0}", this.defaultDisabled);
 			this.stagingEnabled = !this.defaultDisabled;
-			this.updatePeriod = 0.03125f;
+			this.updatePeriod = 0.0625f;
 			this.timeSinceUpdate = 0f;
 
 			this.forceUpdate = false;
@@ -192,7 +192,12 @@ namespace TweakableEverything
 
 		public void LateUpdate()
 		{
-			if (this.timeSinceUpdate > this.updatePeriod && stagingInstance != null)
+			if (
+				this.timeSinceUpdate > this.updatePeriod &&
+				stagingInstance != null &&
+				stagingInstance.stages.Count > 0 &&
+				!Staging.stackLocked
+			)
 			{
 				log.Clear();
 
@@ -283,7 +288,7 @@ namespace TweakableEverything
 			// If we're switching to enabled...
 			if (enabled)
 			{
-				this.part.inverseStage = Math.Max(this.part.inverseStage, 0);
+				this.part.inverseStage = Math.Max(this.part.inverseStage - this.part.stageOffset, 0);
 
 				log.AppendFormat("\n\tSwitching staging to enabled, default new inverseStage={0}",
 					this.part.inverseStage);
@@ -292,7 +297,17 @@ namespace TweakableEverything
 				if (stagingInstance.stages.Count < this.part.inverseStage + 1)
 				{
 					// ...add a new stage at the end
-					// Staging.AddStageAt(stagingInstance.stages.Count);
+					log.AppendFormat("\n\tTrying to add new stage at {0}", stagingInstance.stages.Count);
+
+					try
+					{
+						Staging.AddStageAt(stagingInstance.stages.Count);
+					}
+					catch (ArgumentOutOfRangeException)
+					{
+						log.AppendFormat("\n\t...Handled ArgumentOutOfRangeException instead.");
+					}
+
 					// ...and move our part to it
 					this.part.inverseStage = stagingInstance.stages.Count - 1;
 
