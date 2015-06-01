@@ -350,7 +350,7 @@ namespace TweakableEverything
 		{
 			base.OnActive();
 
-			if (this.stagingEnabled)
+			if (this.stagingEnabled && this.attachedPart != null)
 			{
 				this.dockingNodeModule.Decouple();
 			}
