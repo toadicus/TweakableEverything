@@ -350,9 +350,20 @@ namespace TweakableEverything
 		{
 			base.OnActive();
 
-			if (this.stagingEnabled && this.attachedPart != null)
+			if (this.stagingEnabled && this.dockingNodeModule != null)
 			{
-				this.dockingNodeModule.Decouple();
+				switch (this.dockingNodeModule.state.ToLower())
+				{
+					case "preattached":
+					case "docked (dockee)":
+					case "docked (docker)":
+					case "docked (same vessel)":
+						this.dockingNodeModule.Decouple();
+						break;
+					default:
+						break;
+				}
+
 			}
 		}
 
