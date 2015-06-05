@@ -61,11 +61,16 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public float upperMult;
 
+		[KSPField(isPersistant = true)]
+		public bool staged;
+
 		// Construct ALL the objects.
 		public ModuleTweakableDecouple() : base()
 		{
 			// We'll use -1 to mean "uninitialized" for purposes of defaulting to the base module's value
 			this.ejectionForce = -1;
+
+			this.staged = true;
 
 			// Set the default multipler bounds.
 			this.lowerMult = 0f;
@@ -111,6 +116,8 @@ namespace TweakableEverything
 					// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
 					// this sets the ejectionForce from our persistent value when the part is started.
 					this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
+
+					this.decoupleModule.Fields["staged"].SetValue(this.staged, this.decoupleModule);
 				}
 
 				ModuleStagingToggle stagingToggleModule;
@@ -148,9 +155,11 @@ namespace TweakableEverything
 			if (this.decoupleModule == null)
 				return;
 
-			Tools.PostDebugMessage(this, "OnStagingToggle called.");
+			this.LogDebug("OnStagingToggle called.");
+
 			// Clobber the "staged" field in the decoupler module
 			this.decoupleModule.Fields["staged"].SetValue(arg.Value, this.decoupleModule);
+			this.staged = arg.Value;
 		}
 	}
 }
