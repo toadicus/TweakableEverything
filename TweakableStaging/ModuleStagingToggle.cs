@@ -363,7 +363,7 @@ namespace TweakableEverything
 			if (this.OnToggle != null)
 			{
 				log.Append("\n\tWe have OnToggle subscribers; firing OnToggle event for them now.");
-				this.OnToggle(this, new BoolArg(this.stagingEnabled));
+				this.OnToggle(this, this.stagingEnabled ? BoolArg.True : BoolArg.False);
 			}
 
 			log.Append("\n\tStaging switch done");
@@ -468,6 +468,15 @@ namespace TweakableEverything
 
 		public class BoolArg : EventArgs
 		{
+			public static readonly BoolArg True;
+			public static readonly BoolArg False;
+
+			static BoolArg()
+			{
+				True = new BoolArg(true);
+				False = new BoolArg(false);
+			}
+
 			public bool Value { get; protected set; }
 
 			private BoolArg() {}
