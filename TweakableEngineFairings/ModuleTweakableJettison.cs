@@ -40,9 +40,13 @@ namespace TweakableEverything
 	public class ModuleTweakableJettison : PartModule
 	#endif
 	{
+		private static readonly KSPActionParam actionParam = new KSPActionParam(
+			KSPActionGroup.None, KSPActionType.Activate);
+
 		private List<ModuleJettison> jettisonModules;
 
 		private Dictionary<string, Transform> jettisonTransforms;
+		private Dictionary<string, bool> hasJettisonedTable;
 
 		private AttachNode bottomNode;
 
@@ -77,6 +81,7 @@ namespace TweakableEverything
 
 			this.jettisonModules = new List<ModuleJettison>();
 			this.jettisonTransforms = new Dictionary<string, Transform>();
+			this.hasJettisonedTable = new Dictionary<string, bool>();
 		}
 
 		public override void OnStart(StartState state)
@@ -108,8 +113,52 @@ namespace TweakableEverything
 
 					this.jettisonTransforms[jettisonModule.jettisonName] = jettisonModule.jettisonTransform;
 
-					Tools.PostDebugMessage(this, "Found ModuleJettison:" +
-						"\n\tnjettisonName: {0}" +
+					// Seed the hasJettisoned table with the module's state at start up to avoid loading up a shroud
+					// when we shouldn't have one.
+					this.hasJettisonedTable[jettisonModule.jettisonName] = jettisonModule.isJettisoned;
+
+					BaseEvent moduleJettisonEvent = new BaseEvent(
+						this.Events,
+						string.Format("{0}{1}", jettisonModule.jettisonName, "jettisonEvent"),
+						(BaseEventDelegate)delegate
+						{
+							this.JettisonEvent(jettisonModule, actionParam);
+						}
+					);
+
+					moduleJettisonEvent.active = true;
+					moduleJettisonEvent.guiActive = jettisonModule.isJettisoned && !this.disableFairing;
+					moduleJettisonEvent.guiActiveEditor = false;
+					moduleJettisonEvent.guiName = "Jettison";
+
+					this.Events.Add(moduleJettisonEvent);
+
+					this.LogDebug("Added new Jettison event wrapper {0}", moduleJettisonEvent);
+
+					jettisonModule.Events["Jettison"].active = false;
+					jettisonModule.Events["Jettison"].guiActive = false;
+					jettisonModule.Events["Jettison"].guiActiveEditor = false;
+					jettisonModule.Events["Jettison"].guiName += "(DEPRECATED)";
+
+					BaseAction moduleJettisonAction = new BaseAction(
+						this.Actions,
+						string.Format("{0}{1}", jettisonModule.jettisonName, "jettisonAction"),
+						(BaseActionDelegate)delegate(KSPActionParam param)
+						{
+							this.JettisonEvent(jettisonModule, param);
+						},
+						new KSPAction("Jettison")
+					);
+
+					this.Actions.Add(moduleJettisonAction);
+
+					this.LogDebug("Added new JettisonAction action wrapper {0}", moduleJettisonAction);
+
+					jettisonModule.Actions["JettisonAction"].active = false;
+					jettisonModule.Actions["JettisonAction"].guiName += "(DEPRECRATED)";
+
+					this.LogDebug("Found ModuleJettison:" +
+						"\n\tjettisonName: {0}" +
 						"\n\tjettisonTransform: {1}" +
 						"\n\tisJettisoned: {2}" +
 						"\n\tjettisonForce: {3}",
@@ -149,9 +198,9 @@ namespace TweakableEverything
 			this.disableState = this.disableFairing;
 			this.hadAttachedPart = this.hasAttachedPart;
 
-			bool shouldHaveFairing = !this.disableFairing && this.hasAttachedPart;
+			bool partMayHaveFairing = !this.disableFairing && this.hasAttachedPart;
 
-			this.LogDebug("shouldHaveFairing: {0}", shouldHaveFairing);
+			this.LogDebug("partMayHaveFairing: {0}", partMayHaveFairing);
 
 			// ...loop through the jettison modules and...
 			ModuleJettison jettisonModule;
@@ -169,16 +218,34 @@ namespace TweakableEverything
 				// ...fetch the transform...
 				Transform jettisonTransform = this.jettisonTransforms[jettisonModule.jettisonName];
 
+				this.LogDebug("this.hasJettisonedTable[{0}]={1}, LoadedSceneIsEditor={2}",
+					jettisonModule.jettisonName,
+					this.hasJettisonedTable[jettisonModule.jettisonName],
+					HighLogic.LoadedSceneIsEditor
+				);
+
+				// Disable fairings if we know to have loaded with them already jettisoned, but allow them to be 
+				// re-enabled in the editor.
+				bool moduleShouldHaveFairing =
+					partMayHaveFairing &&
+					(
+						!this.hasJettisonedTable[jettisonModule.jettisonName] ||
+						HighLogic.LoadedSceneIsEditor
+					);
+
+				this.LogDebug("moduleShouldHaveFairing={0}", moduleShouldHaveFairing);
+
 				// ...set the module as jettisoned (or not) as appropriate...
-				jettisonModule.isJettisoned = !shouldHaveFairing;
+				jettisonModule.isJettisoned = !moduleShouldHaveFairing;
 				// ...set the module's jettison event as active (or not) as appropriate...
-				jettisonModule.Events["Jettison"].guiActive = !shouldHaveFairing;
+				string jettisonEventName = string.Format("{0}{1}", jettisonModule.jettisonName, "jettisonEvent");
+				this.Events[jettisonEventName].guiActive = moduleShouldHaveFairing;
 
 				// ...set the transform's gameObject as active (or not) as appropriate...
-				jettisonTransform.gameObject.SetActive(shouldHaveFairing);
+				jettisonTransform.gameObject.SetActive(moduleShouldHaveFairing);
 
 				// ...if we should have a fairing...
-				if (shouldHaveFairing)
+				if (moduleShouldHaveFairing)
 				{
 					// ...Restore the transform
 					jettisonModule.jettisonTransform = jettisonTransform;
@@ -189,6 +256,17 @@ namespace TweakableEverything
 					jettisonModule.jettisonTransform = null;
 				}
 			}
+		}
+
+		public void JettisonEvent(ModuleJettison jettisonModule, KSPActionParam param)
+		{
+			this.LogDebug("JettisonEvent called for {0} with param={1}", jettisonModule.jettisonName, param);
+
+			jettisonModule.JettisonAction(param);
+
+			this.hasJettisonedTable[jettisonModule.jettisonName] = true;
+
+			this.Events[string.Format("{0}{1}", jettisonModule.jettisonName, "jettisonEvent")].guiActive = false;
 		}
 	}
 }
