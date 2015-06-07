@@ -99,4 +99,12 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
+  <ItemGroup>
+    <None Include="..\Extras\EngineStagingToggle.cfg">
+      <Link>EngineStagingToggle.cfg</Link>
+    </None>
+    <None Include="..\Extras\FairingStagingToggle.cfg">
+      <Link>FairingStagingToggle.cfg</Link>
+    </None>
+  </ItemGroup>
 </Project>
