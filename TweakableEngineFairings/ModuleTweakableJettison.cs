@@ -98,9 +98,27 @@ namespace TweakableEverything
 				{
 					ModuleJettison jettisonModule = module as ModuleJettison;
 
-					if (jettisonModule == null || jettisonModule.jettisonName == string.Empty)
+					if (
+						jettisonModule == null ||
+						string.IsNullOrEmpty(jettisonModule.jettisonName) ||
+						jettisonModule.jettisonTransform == null
+					)
 					{
-						this.LogError("Skipping problematic jettisonModule");
+						string err = string.Format("Skipping problematic jettisonModule;" +
+				             " this may be a part design problem" +
+				             "\n\tjettisonModule={0}" +
+				             "\n\tjettisonModule.jettisonName={1}" +
+				             "\n\tjettisonModule.jettisonTransform={2}",
+							jettisonModule == null ? "null" : jettisonModule.ToString(),
+							jettisonModule == null ? "n/a" :
+								jettisonModule.jettisonName == null ? "null" : jettisonModule.jettisonName,
+							jettisonModule == null ? "n/a" :
+								jettisonModule.jettisonTransform == null ? "null" :
+									jettisonModule.jettisonTransform.ToString()
+						);
+
+						this.LogError(err);
+
 						continue;
 					}
 
@@ -172,6 +190,13 @@ namespace TweakableEverything
 
 			this.LogDebug("Found {0} ModuleJettisons.", this.jettisonModules.Count);
 
+			if (this.jettisonModules.Count < 1)
+			{
+				this.Fields["disableFairing"].guiActive = false;
+				this.Fields["disableFairing"].guiActiveEditor = false;
+				this.Fields["disableFairing"].uiControlCurrent().controlEnabled = false;
+			}
+
 			// Seed the disableState for first-run behavior.
 			if (this.disableFairing || true)
 			{
@@ -182,7 +207,13 @@ namespace TweakableEverything
 		public void LateUpdate()
 		{
 			// If nothing has changed...
-			if (this.hasAttachedPart == this.hadAttachedPart && this.disableState == this.disableFairing)
+			if (
+				this.jettisonModules.Count < 1 ||
+				(
+					this.hasAttachedPart == this.hadAttachedPart &&
+					this.disableState == this.disableFairing
+				)
+			)
 			{
 				// ...move on with life
 				return;
@@ -209,14 +240,23 @@ namespace TweakableEverything
 				jettisonModule = this.jettisonModules[jIdx];
 
 				// ...skip the module if something is wrong with it
-				if (jettisonModule == null || jettisonModule.jettisonName == string.Empty)
+				if (jettisonModule == null || string.IsNullOrEmpty(jettisonModule.jettisonName))
 				{
-					this.LogError("Skipping problematic jettisonModule");
+					this.LogError("Skipping problematic jettisonModule at index {0}", jIdx);
 					continue;
 				}
 				// ...otherwise...
 				// ...fetch the transform...
 				Transform jettisonTransform = this.jettisonTransforms[jettisonModule.jettisonName];
+
+				if (jettisonTransform == null)
+				{
+					this.LogError(
+						"jettisonTransform named {0} in module index {1} for part {2} is null; this is probably a bug",
+						jettisonModule.jettisonName, jIdx, this.part.partInfo.name)
+					;
+					continue;
+				}
 
 				this.LogDebug("this.hasJettisonedTable[{0}]={1}, LoadedSceneIsEditor={2}",
 					jettisonModule.jettisonName,
@@ -237,8 +277,10 @@ namespace TweakableEverything
 
 				// ...set the module as jettisoned (or not) as appropriate...
 				jettisonModule.isJettisoned = !moduleShouldHaveFairing;
+
 				// ...set the module's jettison event as active (or not) as appropriate...
 				string jettisonEventName = string.Format("{0}{1}", jettisonModule.jettisonName, "jettisonEvent");
+
 				this.Events[jettisonEventName].guiActive = moduleShouldHaveFairing;
 
 				// ...set the transform's gameObject as active (or not) as appropriate...
