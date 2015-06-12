@@ -102,8 +102,8 @@ namespace TweakableEverything
 						// Yay debugging!
 						Tools.PostDebugMessage(this, "Extending ladder.");
 
-						// ...move the animation to the end with a "forward" play speed.
-						this.ladderAnimation.SkipTo(PlayPosition.End);
+						// ...skip to the beginning...
+						this.ladderAnimation.SkipTo(PlayPosition.Beginning);
 
 						// ...flag the ladder as extended.
 						this.ladderModule.StateName = "Extended";
@@ -114,8 +114,8 @@ namespace TweakableEverything
 						// Yay debugging!
 						Tools.PostDebugMessage(this, "Retracting ladder.");
 
-						// ...move the animation to the beginning with a "backward" play speed.
-						this.ladderAnimation.SkipTo(PlayPosition.Beginning);
+						// ...skip to the end...
+						this.ladderAnimation.SkipTo(PlayPosition.End);
 
 						// ...flag the ladder as retracted.
 						this.ladderModule.StateName = "Retracted";
