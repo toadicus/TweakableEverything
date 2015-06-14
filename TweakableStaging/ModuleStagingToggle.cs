@@ -22,7 +22,7 @@
 // SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+#define DEBUG
 using KSP;
 using System;
 using System.Reflection;
@@ -39,6 +39,8 @@ namespace TweakableEverything
 		private static Staging stagingInstance;
 
 		public static bool stageSortQueued = false;
+
+		private bool stagingEnabledState;
 
 		#region Interface Elements
 		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
@@ -178,6 +180,8 @@ namespace TweakableEverything
 				this.Log("Got Staging instance: {0}", stagingInstance == null ? "null" : stagingInstance.ToString());
 			}
 
+			this.stagingEnabledState = this.stagingEnabled;
+
 			log.AppendFormat("\n\tRegistering events");
 			GameEvents.onPartAttach.Add(this.onPartAttach);
 			GameEvents.onPartCouple.Add(this.onPartCouple);
@@ -285,6 +289,21 @@ namespace TweakableEverything
 				return;
 			}
 
+			if (this.part.isInStagingList())
+			{
+				log.Append("\n\t\tWe removed our icon from staging, so fetching a new inverseStage");
+				this.part.inverseStage = this.GetDecoupledStage() + this.part.stageOffset;
+				log.AppendFormat("={0}", this.part.inverseStage);
+			}
+			#if DEBUG
+			else
+			{
+				log.Append("\n\t\tOur icon was already not in staging, so not assigning a new inverseStage.");
+			}
+			#endif
+
+			log.AppendFormat("\n\t...doStageAssignment: {0}", this.part.isInStagingList());
+
 			// If we're switching to enabled...
 			if (enabled)
 			{
@@ -293,8 +312,11 @@ namespace TweakableEverything
 				log.AppendFormat("\n\tSwitching staging to enabled, default new inverseStage={0}",
 					this.part.inverseStage);
 
-				// ..and if our part has fallen off the staging list...
-				if (stagingInstance.stages.Count < this.part.inverseStage + 1)
+				// ..and if we've toggled staging and our part has fallen off the staging list...
+				if (
+					this.stagingEnabledState != this.stagingEnabled &&
+					stagingInstance.stages.Count < this.part.inverseStage + 1
+				)
 				{
 					// ...add a new stage at the end
 					log.AppendFormat("\n\tTrying to add new stage at {0}", stagingInstance.stages.Count);
@@ -324,32 +346,12 @@ namespace TweakableEverything
 			{
 				log.Append("\n\tSwitching staging to disabled");
 
-				bool needsStageAssignment = false;
-				if (this.part.isInStagingList() != enabled)
-				{
-					log.Append("\n\t\tThe part is in the staging list, so we need a new stage assignment");
-					needsStageAssignment = true;
-				}
-
 				log.Append("\n\tRemoving our staging icon from the staging list");
 				// ...remove the icon from the list
 				this.part.stackIcon.RemoveIcon();
-
-				if (needsStageAssignment)
-				{
-					log.Append("\n\t\tWe removed our icon from staging, so fetching a new inverseStage");
-					this.part.inverseStage = this.GetDecoupledStage();
-					log.AppendFormat("={0}", this.part.inverseStage);
-				}
-				#if DEBUG
-				else
-				{
-					log.Append("\n\t\tOur icon was already not in staging, so not assigning a new inverseStage.");
-				}
-				#endif
 			}
 
-			this.part.inverseStage = Math.Max(Math.Min(this.part.defaultInverseStage, stagingInstance.stages.Count - 1), 0);
+			// this.part.inverseStage = Math.Max(Math.Min(this.part.defaultInverseStage, stagingInstance.stages.Count - 1), 0);
 
 			// Sort the staging list
 			if (!stageSortQueued)
@@ -365,6 +367,8 @@ namespace TweakableEverything
 				log.Append("\n\tWe have OnToggle subscribers; firing OnToggle event for them now.");
 				this.OnToggle(this, this.stagingEnabled ? BoolArg.True : BoolArg.False);
 			}
+
+			this.stagingEnabledState = this.stagingEnabled;
 
 			log.Append("\n\tStaging switch done");
 		}
