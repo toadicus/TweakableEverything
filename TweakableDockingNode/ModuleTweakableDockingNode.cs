@@ -30,7 +30,7 @@ using KSP;
 using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
-using ToadicusTools;
+using ToadicusTools.Extensions;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -158,7 +158,7 @@ namespace TweakableEverything
 			{
 				if (this.deployAnimation == null)
 				{
-					Tools.PostDebugMessage(this, "deployAnimation is null; open status falling back to true.");
+					this.LogDebug("deployAnimation is null; open status falling back to true.");
 					return true;
 				}
 				else
@@ -263,7 +263,7 @@ namespace TweakableEverything
 			}
 
 			// Yay debugging!
-			Tools.PostDebugMessage(this,
+			this.LogDebug(
 				"{0}: Started with assembly version {4}." +
 				"\n\tdeployAnimationModule={1}, attachNode={2}, TDNnodeName={3}, attachedPart={5}, fuelCrossFeed={6}",
 				this.GetType().Name,
@@ -297,13 +297,13 @@ namespace TweakableEverything
 						base.part.attachRules.allowStack = this.IsOpen | this.AlwaysAllowStack;
 
 						// Yay debugging!
-						Tools.PostDebugMessage(string.Format(
+						this.LogDebug(
 							"{0}: IsOpen changed to: {1}, part contains node: {2}, allowStack: {3}",
 							this.GetType().Name,
 							this.IsOpen,
 							base.part.attachNodes.Contains(this.attachNode),
 							base.part.attachRules.allowStack
-						));
+						);
 					}
 
 					// ...if the port is closed and the attachNode icon is active...
@@ -378,7 +378,7 @@ namespace TweakableEverything
 
 		protected void OnStagingToggle(object sender, ModuleStagingToggle.BoolArg arg)
 		{
-			Tools.PostDebugMessage(this, "OnStagingToggle called.");
+			this.LogDebug("OnStagingToggle called.");
 			this.stagingEnabled = arg.Value;
 		}
 	}

@@ -30,7 +30,7 @@ using KSP;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using ToadicusTools;
+using ToadicusTools.Extensions;
 
 namespace TweakableEverything
 {
@@ -137,11 +137,11 @@ namespace TweakableEverything
 
 						if (prefabNode.id == protoNode.id)
 						{
-							Tools.PostDebugMessage(string.Format(
+							this.LogDebug(
 								"{0}: Skipping prefab node '{1}', already in protoNodes",
 								this.GetType().Name,
 								prefabNode.id
-							));
+							);
 
 							nodeIsMissing = false;
 							break;
@@ -150,11 +150,11 @@ namespace TweakableEverything
 
 					if (nodeIsMissing)
 					{
-						Tools.PostDebugMessage(string.Format(
+						this.LogDebug(
 							"{0}: Adding new AttachNodeSnapshot '{1}'",
 							this.GetType().Name,
 							prefabNode.id
-						));
+						);
 						protoNodes.Add(new AttachNodeSnapshot(prefabNode.id + ", -1"));
 					}
 				}

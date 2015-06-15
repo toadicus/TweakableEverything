@@ -26,14 +26,15 @@
 using KSP;
 using System;
 using System.Reflection;
-using ToadicusTools;
+using ToadicusTools.DebugTools;
+using ToadicusTools.Extensions;
 using UnityEngine;
 
 namespace TweakableEverything
 {
 	public class ModuleStagingToggle : PartModule
 	{
-		private static Tools.DebugLogger log;
+		private static PooledDebugLogger log;
 
 		private static FieldInfo stagingInstanceField;
 		private static Staging stagingInstance;
@@ -74,12 +75,10 @@ namespace TweakableEverything
 		#region LifeCycle Methods
 		public override void OnAwake()
 		{
-			#if DEBUG
 			if (log == null)
 			{
-				log = Tools.DebugLogger.New(this);
+				log = PooledDebugLogger.New(typeof(ModuleStagingToggle));
 			}
-			#endif
 
 			log.Clear();
 
