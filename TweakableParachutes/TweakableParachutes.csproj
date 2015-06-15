@@ -83,22 +83,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\ToadicusTools\Tools.cs">
-      <Link>Tools.cs</Link>
-    </Compile>
     <Compile Include="ModuleTweakableParachute.cs" />
-    <Compile Include="..\..\ToadicusTools\DebugPartModule.cs">
-      <Link>DebugPartModule.cs</Link>
-    </Compile>
-    <Compile Include="..\..\ToadicusTools\PartExtensions.cs">
-      <Link>PartExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\ToadicusTools\TweakableTools.cs">
+    <Compile Include="..\..\ToadicusTools\TweakableTools\TweakableTools.cs">
       <Link>TweakableTools.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\GameData\TweakableEverything\TweakableParachutes.cfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ToadicusTools\ToadicusTools.csproj">
+      <Project>{D48A5542-6655-4149-BC27-B27DF0466F1C}</Project>
+      <Name>ToadicusTools</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
 </Project>

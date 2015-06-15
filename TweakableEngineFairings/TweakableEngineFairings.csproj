@@ -81,18 +81,19 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModuleTweakableJettison.cs" />
-    <Compile Include="..\..\ToadicusTools\Tools.cs">
-      <Link>Tools.cs</Link>
-    </Compile>
-    <Compile Include="..\..\ToadicusTools\TweakableTools.cs">
+    <Compile Include="..\..\ToadicusTools\TweakableTools\TweakableTools.cs">
       <Link>TweakableTools.cs</Link>
-    </Compile>
-    <Compile Include="..\..\ToadicusTools\DebugPartModule.cs">
-      <Link>DebugPartModule.cs</Link>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="..\GameData\TweakableEverything\TweakableEngineFairings.cfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ToadicusTools\ToadicusTools.csproj">
+      <Project>{D48A5542-6655-4149-BC27-B27DF0466F1C}</Project>
+      <Name>ToadicusTools</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
 </Project>
