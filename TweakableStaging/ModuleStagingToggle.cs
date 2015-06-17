@@ -120,7 +120,7 @@ namespace TweakableEverything
 
 			log.AppendFormat("\n{0}: Awake; stagingEnabled={1}.\n", this, this.stagingEnabled);
 
-			log.Print();
+			log.Print(false);
 		}
 
 		public override void OnStart(StartState state)
@@ -191,7 +191,7 @@ namespace TweakableEverything
 			log.AppendFormat("\nStarted; stagingEnabled: {0}, part.stackIcon.iconImage: {1}\n",
 				this.stagingEnabled, this.part.stackIcon.iconImage);
 
-			log.Print();
+			log.Print(false);
 		}
 
 		public void LateUpdate()
@@ -257,7 +257,7 @@ namespace TweakableEverything
 
 				log.Append("\nLateUpdate done.\n");
 
-				log.Print();
+				log.Print(false);
 			}
 
 			this.timeSinceUpdate += Time.smoothDeltaTime;
@@ -276,7 +276,7 @@ namespace TweakableEverything
 
 			log.AppendFormat("...events deregistered.");
 
-			log.Print();
+			log.Print(false);
 		}
 		#endregion
 
