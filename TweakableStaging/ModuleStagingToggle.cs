@@ -38,6 +38,8 @@ namespace TweakableEverything
 		private static FieldInfo stagingInstanceField;
 		private static Staging stagingInstance;
 
+		private static bool waitingForStaging;
+
 		public static bool stageSortQueued = false;
 
 		private bool stagingEnabledState;
@@ -129,6 +131,8 @@ namespace TweakableEverything
 
 			log.AppendFormat("{0}: Starting up.", this);
 
+			waitingForStaging = true;
+
 			log.AppendFormat("\n\tOnStart with stagingEnabled={0}"/* +
 				"\npart.isInStagingList={1}"*/,
 				this.stagingEnabled/*,
@@ -180,6 +184,39 @@ namespace TweakableEverything
 				this.Log("Got Staging instance: {0}", stagingInstance == null ? "null" : stagingInstance.ToString());
 			}
 
+			if (this.stagingEnabled && this.part.symmetryCounterparts != null)
+			{
+				for (int pIdx = 0; pIdx < this.part.symmetryCounterparts.Count; pIdx++)
+				{
+					Part symPartner = this.part.symmetryCounterparts[pIdx];
+
+					if (symPartner == null)
+					{
+						continue;
+					}
+
+					for (int mIdx = 0; mIdx < symPartner.Modules.Count; mIdx++)
+					{
+						PartModule module = symPartner.Modules[mIdx];
+
+						if (module == null || !(module is ModuleStagingToggle))
+						{
+							continue;
+						}
+
+						ModuleStagingToggle symModule = module as ModuleStagingToggle;
+
+						if (symModule.stagingEnabled == this.defaultDisabled)
+						{
+							this.stagingEnabled = symModule.stagingEnabled;
+
+							log.AppendFormat("\n\tAssigning stagingEnabled={0} because a symmetry partner" +
+								" with non-default options was found on startup", this.stagingEnabled);
+						}
+					}
+				}
+			}
+
 			this.stagingEnabledState = this.stagingEnabled;
 
 			log.AppendFormat("\n\tRegistering events");
@@ -196,10 +233,16 @@ namespace TweakableEverything
 
 		public void LateUpdate()
 		{
+			waitingForStaging &= stagingInstance.stages.Count < 1;
+
+			#if DEBUG
+			bool printLog = false;
+			#endif
+
 			if (
 				this.timeSinceUpdate > this.updatePeriod &&
 				stagingInstance != null &&
-				stagingInstance.stages.Count > 0 &&
+				!waitingForStaging &&
 				!Staging.stackLocked
 			)
 			{
@@ -210,12 +253,27 @@ namespace TweakableEverything
 
 				if (stageSortQueued && this.queuedStagingSort)
 				{
-					log.AppendFormat("\n\tThis module queued a staging event last update; scheduling it now.");
-
-					Staging.ScheduleSort();
-
+					// Un-queue the sort whether we can do it or not
 					stageSortQueued = false;
 					this.queuedStagingSort = false;
+
+					if (stagingInstance.stages.Count > 0)
+					{
+						log.AppendFormat("\n\tThis module queued a staging event last update; sorting now.");
+
+						Staging.SortNow();
+					}
+					#if DEBUG
+					else
+					{
+						log.AppendFormat(
+							"\n\tThis module queued a staging event last update, but now the stage list is empty." +
+							"\n\tun-queuing sort"
+						);
+					}
+
+					printLog = true;
+					#endif
 				}
 
 				this.timeSinceUpdate = 0f;
@@ -253,11 +311,20 @@ namespace TweakableEverything
 					this.SwitchStaging(this.stagingEnabled);
 	
 					this.forceUpdate = false;
+
+					#if DEBUG
+					printLog = true;
+					#endif
 				}
 
 				log.Append("\nLateUpdate done.\n");
 
-				log.Print(false);
+				#if DEBUG
+				if (printLog)
+				{
+					log.Print(false);
+				}
+				#endif
 			}
 
 			this.timeSinceUpdate += Time.smoothDeltaTime;
@@ -291,7 +358,7 @@ namespace TweakableEverything
 
 			if (this.part.isInStagingList())
 			{
-				log.Append("\n\t\tWe removed our icon from staging, so fetching a new inverseStage");
+				log.Append("\n\t\t...switching while in staging list, so fetching a new inverseStage");
 				this.part.inverseStage = this.GetDecoupledStage() + this.part.stageOffset;
 				log.AppendFormat("={0}", this.part.inverseStage);
 			}
@@ -349,6 +416,8 @@ namespace TweakableEverything
 				log.Append("\n\tRemoving our staging icon from the staging list");
 				// ...remove the icon from the list
 				this.part.stackIcon.RemoveIcon();
+
+				// if (stagingInstance.stages.Count > this.part.inverseStage)
 			}
 
 			// this.part.inverseStage = Math.Max(Math.Min(this.part.defaultInverseStage, stagingInstance.stages.Count - 1), 0);
