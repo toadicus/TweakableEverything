@@ -40,14 +40,11 @@ namespace TweakableEverything
 
 		private static bool waitingForStaging;
 
-		public static bool stageSortQueued = false;
-
-		private bool stagingEnabledState;
+		private static bool stageSortQueued = false;
 
 		#region Interface Elements
 		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
-		[KSPField(isPersistant = true, guiName = "Staging", guiActive = true, guiActiveEditor = true)]
-		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
+		[KSPField(isPersistant = true, guiName = "Staging", guiActive = false, guiActiveEditor = false)]
 		public bool stagingEnabled;
 
 		[KSPField(isPersistant = false)]
@@ -61,6 +58,9 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public string stagingIcon;
 
+		// Only one module should ever be running per part.
+		public bool partPrimary;
+
 		public event ToggleEventHandler OnToggle;
 
 		public delegate void ToggleEventHandler(object sender, ModuleStagingToggle.BoolArg args);
@@ -69,9 +69,6 @@ namespace TweakableEverything
 		// Stores the last toggle state so we can only run when things change.
 		protected bool forceUpdate;
 		protected bool queuedStagingSort;
-
-		protected float updatePeriod;
-		protected float timeSinceUpdate;
 
 		#region LifeCycle Methods
 		public override void OnAwake()
@@ -91,8 +88,6 @@ namespace TweakableEverything
 
 			log.AppendFormat("\n\tOnAwake with defaultDisabled={0}", this.defaultDisabled);
 			this.stagingEnabled = !this.defaultDisabled;
-			this.updatePeriod = 0.0625f;
-			this.timeSinceUpdate = 0f;
 
 			this.forceUpdate = false;
 			this.queuedStagingSort = false;
@@ -122,11 +117,49 @@ namespace TweakableEverything
 
 			log.AppendFormat("\n{0}: Awake; stagingEnabled={1}.\n", this, this.stagingEnabled);
 
+			bool otherModuleIsPrimary = false;
+
+			PartModule module;
+			for (int mIdx = 0; mIdx < this.part.Modules.Count; mIdx++)
+			{
+				module = this.part.Modules[mIdx];
+
+				if (module is ModuleStagingToggle && module != this)
+				{
+					ModuleStagingToggle stagingModule = module as ModuleStagingToggle;
+
+					log.AppendFormat("\nForeign module at index {0} is primary", mIdx);
+
+					if (stagingModule.partPrimary)
+					{
+						otherModuleIsPrimary = true;
+						break;
+					}
+				}
+			}
+
+			this.partPrimary = !otherModuleIsPrimary;
+
+			log.AppendFormat("This module is {0}primary", this.partPrimary ? "" : "not ");
+
 			log.Print(false);
 		}
 
 		public override void OnStart(StartState state)
 		{
+			if (!this.partPrimary)
+			{
+				this.LogWarning(
+					"Non-primary ModuleStagingToggle in part {0} with multiple ModuleStagingToggles not starting up.",
+					this.part.partInfo.title
+				);
+
+				this.Events["EnableEvent"].active = false;
+				this.Events["DisableEvent"].active = false;
+
+				return;
+			}
+
 			log.Clear();
 
 			log.AppendFormat("{0}: Starting up.", this);
@@ -142,8 +175,14 @@ namespace TweakableEverything
 			log.AppendFormat("\n\tStarting with state {0}", state);
 			base.OnStart(state);
 
-			this.Fields["stagingEnabled"].guiActiveEditor = this.activeInEditor;
-			this.Fields["stagingEnabled"].guiActive = this.activeInFlight;
+			this.Events["EnableEvent"].active = !this.stagingEnabled;
+			this.Events["DisableEvent"].active = this.stagingEnabled;
+
+			this.Events["EnableEvent"].guiActiveEditor = this.activeInEditor;
+			this.Events["DisableEvent"].guiActiveEditor = this.activeInEditor;
+
+			this.Events["EnableEvent"].guiActive = this.activeInFlight;
+			this.Events["DisableEvent"].guiActive = this.activeInFlight;
 
 			log.AppendFormat("\n\tguiActiveEditor: {0} guiActive: {1}",
 				this.Fields["stagingEnabled"].guiActiveEditor, this.activeInFlight);
@@ -217,7 +256,7 @@ namespace TweakableEverything
 				}
 			}
 
-			this.stagingEnabledState = this.stagingEnabled;
+			this.forceUpdate = true;
 
 			log.AppendFormat("\n\tRegistering events");
 			GameEvents.onPartAttach.Add(this.onPartAttach);
@@ -237,16 +276,19 @@ namespace TweakableEverything
 
 			#if DEBUG
 			bool printLog = false;
+			try {
 			#endif
-
+			
+			log.Clear();
+			
 			if (
-				this.timeSinceUpdate > this.updatePeriod &&
+				this.partPrimary &&
 				stagingInstance != null &&
 				!waitingForStaging &&
 				!Staging.stackLocked
 			)
 			{
-				log.Clear();
+
 
 				log.AppendFormat("{0}: Time to update, stagingEnabled={1}, isInStagingList={2}",
 					this, this.stagingEnabled, this.part.isInStagingList());
@@ -274,60 +316,37 @@ namespace TweakableEverything
 
 					printLog = true;
 					#endif
-				}
 
-				this.timeSinceUpdate = 0f;
+					if (this.forceUpdate)
+					{
+						if (this.stagingEnabled && !this.part.isInStagingList())
+						{
+							this.part.stackIcon.CreateIcon();
+						}
+						else if (!this.stagingEnabled && this.part.isInStagingList())
+						{
+							this.part.stackIcon.RemoveIcon();
+						}
 
-				Part rootPart;
-				switch (HighLogic.LoadedScene)
-				{
-					case GameScenes.EDITOR:
-						rootPart = EditorLogic.RootPart;
-						break;
-					case GameScenes.FLIGHT:
-						rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
-						break;
-					default:
-						rootPart = null;
-						break;
-				}
-
-				// If our staging state has changed...
-				if (rootPart != null &&
-					this.part.hasAncestorPart(rootPart) &&
-					(this.forceUpdate || this.stagingEnabled != this.part.isInStagingList())
-				)
-				{
-					log.AppendFormat("\n\tStaging state changed." +
-					"\n\t\tstagingEnable: {0}" +
-					"\n\t\tpart.stackIcon.iconImage: {1}" +
-					"\n\t\tpart.isInStagingList: {2}",
-						this.stagingEnabled,
-						this.part.stackIcon.iconImage,
-						this.part.isInStagingList()
-					);
-
-					// ...and switch the staging
-					this.SwitchStaging(this.stagingEnabled);
-	
-					this.forceUpdate = false;
-
-					#if DEBUG
-					printLog = true;
-					#endif
+						this.InvokeToggle();
+					}
 				}
 
 				log.Append("\nLateUpdate done.\n");
-
+			}
 				#if DEBUG
+			} catch (Exception x)
+			{
+				log.AppendFormat("Caught exception: {0}", x.ToString());
+			}
+			finally
+			{
 				if (printLog)
 				{
 					log.Print(false);
 				}
-				#endif
 			}
-
-			this.timeSinceUpdate += Time.smoothDeltaTime;
+			#endif
 		}
 
 		public void OnDestroy()
@@ -347,97 +366,119 @@ namespace TweakableEverything
 		}
 		#endregion
 
-		#region Utility Methods
-		protected void SwitchStaging(bool enabled)
+		#region KSPEvents
+		[KSPEvent(guiName = "Enable Staging")]
+		public void EnableEvent()
 		{
 			if (this.part == null)
 			{
-				log.AppendFormat("\n\t...could not switch staging: part reference is null.");
+				this.LogError("Cannot enable staging: part reference is null");
 				return;
 			}
 
-			if (this.part.isInStagingList())
+			this.stagingEnabled = true;
+
+			this.Events["EnableEvent"].active = false;
+			this.Events["DisableEvent"].active = true;
+
+			this.stagingEnabled = true;
+
+			this.part.stackIcon.CreateIcon();
+
+			this.InvokeToggle();
+
+			Part rootPart;
+			switch (HighLogic.LoadedScene)
 			{
-				log.Append("\n\t\t...switching while in staging list, so fetching a new inverseStage");
-				this.part.inverseStage = this.GetDecoupledStage() + this.part.stageOffset;
-				log.AppendFormat("={0}", this.part.inverseStage);
+				case GameScenes.EDITOR:
+					rootPart = EditorLogic.RootPart;
+					break;
+				case GameScenes.FLIGHT:
+					rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
+					break;
+				default:
+					rootPart = null;
+					break;
 			}
-			#if DEBUG
-			else
+
+			if (rootPart != null && this.part.hasAncestorPart(rootPart))
 			{
-				log.Append("\n\t\tOur icon was already not in staging, so not assigning a new inverseStage.");
-			}
-			#endif
+				Part parentDecouplerPart;
+				this.part.inverseStage = this.GetDecoupledStage(out parentDecouplerPart) + this.part.stageOffset;
 
-			log.AppendFormat("\n\t...doStageAssignment: {0}", this.part.isInStagingList());
-
-			// If we're switching to enabled...
-			if (enabled)
-			{
-				this.part.inverseStage = Math.Max(this.part.inverseStage, 0);
-
-				log.AppendFormat("\n\tSwitching staging to enabled, default new inverseStage={0}",
-					this.part.inverseStage);
-
-				// ..and if we've toggled staging and our part has fallen off the staging list...
-				if (
-					this.stagingEnabledState != this.stagingEnabled &&
-					stagingInstance.stages.Count < this.part.inverseStage + 1
-				)
+				if (parentDecouplerPart != null)
 				{
-					// ...add a new stage at the end
-					log.AppendFormat("\n\tTrying to add new stage at {0}", stagingInstance.stages.Count);
-
-					try
-					{
-						Staging.AddStageAt(stagingInstance.stages.Count);
-					}
-					catch (ArgumentOutOfRangeException)
-					{
-						log.AppendFormat("\n\t...Handled ArgumentOutOfRangeException instead.");
-					}
-
-					// ...and move our part to it
-					this.part.inverseStage = stagingInstance.stages.Count - 1;
-
-					log.AppendFormat("\n\t\tinverseStage had fallen off the list, fixed to {0}",
-						this.part.inverseStage);
+					this.part.inverseStage -= parentDecouplerPart.childStageOffset;
 				}
 
-				// ...add our icon to the staging list
-				log.Append("\n\tCreating our staging icon in the staging list.");
-				this.part.stackIcon.CreateIcon();
+				this.part.inverseStage = Math.Min(this.part.inverseStage, stagingInstance.stages.Count);
+
+				if (this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
+				{
+					Staging.AddStageAt(this.part.inverseStage);
+				}
+
+				if (!stageSortQueued)
+				{
+					stageSortQueued = true;
+					this.queuedStagingSort = true;
+				}
 			}
-			// ...otherwise, we're switching to disabled, so...
-			else
+		}
+
+		[KSPEvent(guiName = "Disable Staging")]
+		public void DisableEvent()
+		{
+			if (this.part == null)
 			{
-				log.Append("\n\tSwitching staging to disabled");
-
-				log.Append("\n\tRemoving our staging icon from the staging list");
-				// ...remove the icon from the list
-				this.part.stackIcon.RemoveIcon();
-
-				// if (stagingInstance.stages.Count > this.part.inverseStage)
+				this.LogError("Cannot disable staging: part reference is null");
+				return;
 			}
 
-			// this.part.inverseStage = Math.Max(Math.Min(this.part.defaultInverseStage, stagingInstance.stages.Count - 1), 0);
+			this.stagingEnabled = false;
 
-			// Sort the staging list
-			if (!stageSortQueued)
+			this.Events["EnableEvent"].active = true;
+			this.Events["DisableEvent"].active = false;
+
+			this.part.stackIcon.RemoveIcon();
+
+			this.InvokeToggle();
+
+			Part rootPart;
+			switch (HighLogic.LoadedScene)
 			{
-				log.Append("\n\tNo other module has queued a staging sort this update; queueing now.");
-
-				stageSortQueued = true;
-				this.queuedStagingSort = true;
+				case GameScenes.EDITOR:
+					rootPart = EditorLogic.RootPart;
+					break;
+				case GameScenes.FLIGHT:
+					rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
+					break;
+				default:
+					rootPart = null;
+					break;
 			}
 
+			if (rootPart != null && this.part.hasAncestorPart(rootPart))
+			{
+				this.part.inverseStage = 0;
+
+				if (!stageSortQueued)
+				{
+					stageSortQueued = true;
+					this.queuedStagingSort = true;
+				}
+			}
+		}
+		#endregion
+
+		#region Utility Methods
+		protected void InvokeToggle()
+		{
 			if (this.OnToggle != null)
 			{
 				log.Append("\n\tWe have OnToggle subscribers; firing OnToggle event for them now.");
 				this.OnToggle(this, this.stagingEnabled ? BoolArg.True : BoolArg.False);
 			}
-
-			this.stagingEnabledState = this.stagingEnabled;
 
 			log.Append("\n\tStaging switch done");
 		}
@@ -445,7 +486,15 @@ namespace TweakableEverything
 		// Gets the inverse stage in which this decoupler's part will be removed from the craft
 		protected int GetDecoupledStage()
 		{
+			Part _;
+			return this.GetDecoupledStage(out _);
+		}
+
+		protected int GetDecoupledStage(out Part parentDecouplerPart)
+		{
 			int iStage = 0;
+
+			parentDecouplerPart = null;
 
 			if (this.stagingEnabled)
 			{
@@ -471,6 +520,7 @@ namespace TweakableEverything
 						}
 
 						iStage = ancestorPart.inverseStage;
+						parentDecouplerPart = ancestorPart;
 						break;
 					}
 				}
