@@ -41,6 +41,58 @@ namespace TweakableEverything
 	public class ModuleTweakableDockingNode : PartModule
 	#endif
 	{
+		public static bool PartIsStagingDockingPort(Part part, out ModuleTweakableDockingNode firstTweakableNode)
+		{
+			firstTweakableNode = null;
+
+			if (part == null || part.Modules == null)
+			{
+				Tools.PostWarningMessage("[PartIsStagingDockingPort]: Part or Part.Modules are null, returning false");
+				return false;
+			}
+
+			bool partHasDockingNode = false;
+			bool partHasActiveStagingToggle = false;
+
+			PartModule module;
+			for (int i = 0; i < part.Modules.Count; i++)
+			{
+				module = part.Modules[i];
+
+				if (module is ModuleDockingNode)
+				{
+					partHasDockingNode = true;
+					part.LogDebug("has docking node {0}", module as ModuleDockingNode);
+				}
+
+				if (module is ModuleStagingToggle)
+				{
+					ModuleStagingToggle toggleModule = module as ModuleStagingToggle;
+
+					if (toggleModule.stagingEnabled)
+					{
+						partHasActiveStagingToggle = true;
+						part.LogDebug("has active staging toggle {0}", toggleModule);
+					}
+				}
+
+				if (module is ModuleTweakableDockingNode)
+				{
+					firstTweakableNode = module as ModuleTweakableDockingNode;
+					part.LogDebug("has tweakable docking node {0}", firstTweakableNode);
+				}
+
+				if (partHasDockingNode && partHasActiveStagingToggle && firstTweakableNode != null)
+				{
+					part.LogDebug("returning true");
+					return true;
+				}
+			}
+
+			part.LogDebug("returning false");
+			return false;
+		}
+
 		/*
 		 * Ctor
 		 * Build ALL the objects.
@@ -85,6 +137,8 @@ namespace TweakableEverything
 
 		// Stores the open/closed state of the shield.
 		protected bool lastOpenState;
+
+		private bool yieldedDecouple;
 
 		[KSPField(isPersistant = true, guiName = "Crossfeed", guiActiveEditor = true, guiActive = true),
 		UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
@@ -348,6 +402,28 @@ namespace TweakableEverything
 
 		public override void OnActive()
 		{
+			yieldedDecouple = false;
+
+			this.LogDebug("this.attachedPart={0}", this.attachedPart == null ? "null" : this.attachedPart.partInfo.title);
+
+			ModuleTweakableDockingNode attachedNode;
+			if (
+				this.attachedPart != null &&
+				PartIsStagingDockingPort(this.attachedPart, out attachedNode)
+			)
+			{
+				this.LogDebug("Attached part is staging docking port");
+
+				if (!attachedNode.yieldedDecouple)
+				{
+					this.LogDebug("Attached part has not yielded, yielding and returning.");
+					this.yieldedDecouple = true;
+					return;
+				}
+			}
+
+			this.LogDebug("OnActive");
+
 			base.OnActive();
 
 			if (this.stagingEnabled && this.dockingNodeModule != null)
@@ -363,7 +439,6 @@ namespace TweakableEverything
 					default:
 						break;
 				}
-
 			}
 		}
 
