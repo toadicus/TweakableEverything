@@ -376,6 +376,72 @@ namespace TweakableEverything
 				return;
 			}
 
+			this.Enable();
+
+			if (this.part.symmetryCounterparts != null)
+			{
+				Part symCounterPart;
+				for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
+				{
+					symCounterPart = this.part.symmetryCounterparts[sIdx];
+
+					ModuleStagingToggle symStagingToggle;
+					if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
+					{
+						symStagingToggle.Enable();
+					}
+				}
+			}
+
+			if (this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
+			{
+				Staging.AddStageAt(this.part.inverseStage);
+			}
+
+			if (!stageSortQueued)
+			{
+				stageSortQueued = true;
+				this.queuedStagingSort = true;
+			}
+		}
+
+		[KSPEvent(guiName = "Disable Staging")]
+		public void DisableEvent()
+		{
+			if (this.part == null)
+			{
+				this.LogError("Cannot disable staging: part reference is null");
+				return;
+			}
+
+			this.Disable();
+
+			if (this.part.symmetryCounterparts != null)
+			{
+				Part symCounterPart;
+				for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
+				{
+					symCounterPart = this.part.symmetryCounterparts[sIdx];
+
+					ModuleStagingToggle symStagingToggle;
+					if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
+					{
+						symStagingToggle.Disable();
+					}
+				}
+			}
+
+			if (!stageSortQueued)
+			{
+				stageSortQueued = true;
+				this.queuedStagingSort = true;
+			}
+		}
+		#endregion
+
+		#region Utility Methods
+		public void Enable()
+		{
 			this.stagingEnabled = true;
 
 			this.Events["EnableEvent"].active = false;
@@ -404,37 +470,31 @@ namespace TweakableEverything
 			if (rootPart != null && this.part.hasAncestorPart(rootPart))
 			{
 				Part parentDecouplerPart;
-				this.part.inverseStage = this.GetDecoupledStage(out parentDecouplerPart) + this.part.stageOffset;
+				int parentStage = this.GetDecoupledStage(out parentDecouplerPart);
 
-				if (parentDecouplerPart != null)
+				if (parentDecouplerPart != null && parentDecouplerPart.childStageOffset > 0)
 				{
-					this.part.inverseStage -= parentDecouplerPart.childStageOffset;
+					this.part.inverseStage = parentStage + parentDecouplerPart.childStageOffset;
 				}
 
-				this.part.inverseStage = Math.Min(this.part.inverseStage, stagingInstance.stages.Count);
+				this.part.inverseStage += this.part.stageOffset;
 
-				if (this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
+				if (this.part.stageBefore)
 				{
-					Staging.AddStageAt(this.part.inverseStage);
+					this.part.inverseStage++;
 				}
 
-				if (!stageSortQueued)
+				if (this.part.manualStageOffset > -1)
 				{
-					stageSortQueued = true;
-					this.queuedStagingSort = true;
+					this.part.inverseStage = this.part.manualStageOffset;
 				}
+
+				this.part.inverseStage = Mathf.Clamp(this.part.inverseStage, 0, stagingInstance.stages.Count);
 			}
 		}
 
-		[KSPEvent(guiName = "Disable Staging")]
-		public void DisableEvent()
+		public void Disable()
 		{
-			if (this.part == null)
-			{
-				this.LogError("Cannot disable staging: part reference is null");
-				return;
-			}
-
 			this.stagingEnabled = false;
 
 			this.Events["EnableEvent"].active = true;
@@ -460,18 +520,20 @@ namespace TweakableEverything
 
 			if (rootPart != null && this.part.hasAncestorPart(rootPart))
 			{
-				this.part.inverseStage = 0;
-
-				if (!stageSortQueued)
+				if (this.part.inverseStage < stagingInstance.stages.Count)
 				{
-					stageSortQueued = true;
-					this.queuedStagingSort = true;
+					StageGroup ourGroup = stagingInstance.stages[this.part.inverseStage];
+
+					if (ourGroup != null && ourGroup.icons.Count == 0)
+					{
+						Staging.DeleteStage(ourGroup);
+					}
 				}
+
+				this.part.inverseStage = 0;
 			}
 		}
-		#endregion
 
-		#region Utility Methods
 		protected void InvokeToggle()
 		{
 			if (this.OnToggle != null)
