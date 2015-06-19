@@ -36,13 +36,19 @@ namespace TweakableEverything
 	/// </summary>
 	public class ModuleStagingToggle : PartModule
 	{
+		// A log for debugging.  Yay?
 		private static Tools.DebugLogger log;
 
+		// The FieldInfo behind the more-useful stagingInstance, see below
 		private static FieldInfo stagingInstanceField;
+
+		// We want to look at the staging list directly, so we reflectively get the Staging instance.
 		private static Staging stagingInstance;
 
+		// False for all ModuleStagingToggles after any OnStart, until Staging has a positive stage count.
 		private static bool waitingForStaging;
 
+		// True when any ModuleStagingToggle has queued a sort, so we only queue one.
 		private static bool stageSortQueued = false;
 
 		#region Interface Elements
@@ -92,9 +98,13 @@ namespace TweakableEverything
 		public delegate void ToggleEventHandler(object sender, ModuleStagingToggle.BoolArg args);
 		#endregion
 
-		// Stores the last toggle state so we can only run when things change.
+		// When true, forces a call to EnableAtStage or Disable in the next LateUpdate
 		private bool forceUpdate;
+
+		// True only after OnStart, to defer queuing a Staging sort
 		private bool justStarted;
+
+		// True when this module has queued a Staging sort, so we know when to actually run the sort
 		private bool queuedStagingSort;
 
 		#region LifeCycle Methods
