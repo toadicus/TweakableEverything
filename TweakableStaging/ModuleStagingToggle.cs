@@ -22,7 +22,7 @@
 // SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+#define DEBUG
 using KSP;
 using System;
 using System.Reflection;
@@ -68,6 +68,7 @@ namespace TweakableEverything
 
 		// Stores the last toggle state so we can only run when things change.
 		protected bool forceUpdate;
+		protected bool justStarted;
 		protected bool queuedStagingSort;
 
 		#region LifeCycle Methods
@@ -258,6 +259,7 @@ namespace TweakableEverything
 			}
 
 			this.forceUpdate = true;
+			this.justStarted = true;
 
 			log.AppendFormat("\n\tRegistering events");
 			GameEvents.onPartAttach.Add(this.onPartAttach);
@@ -289,10 +291,29 @@ namespace TweakableEverything
 				!Staging.stackLocked
 			)
 			{
-
-
 				log.AppendFormat("{0}: Time to update, stagingEnabled={1}, isInStagingList={2}",
 					this, this.stagingEnabled, this.part.isInStagingList());
+
+				if (this.forceUpdate)
+				{
+					this.forceUpdate = false;
+
+					log.AppendFormat("\n\tUpdate forced...");
+					if (this.stagingEnabled)
+					{
+						this.EnableAtStage(this.part.inverseStage);
+						log.AppendFormat("enabled at stage {0}", this.part.inverseStage);
+					}
+					else if (!this.stagingEnabled)
+					{
+						this.Disable();
+						log.AppendFormat("disabled");
+					}
+
+					#if DEBUG
+					printLog = true;
+					#endif
+				}
 
 				if (stageSortQueued && this.queuedStagingSort)
 				{
@@ -317,20 +338,12 @@ namespace TweakableEverything
 
 					printLog = true;
 					#endif
+				}
 
-					if (this.forceUpdate)
-					{
-						if (this.stagingEnabled && !this.part.isInStagingList())
-						{
-							this.part.stackIcon.CreateIcon();
-						}
-						else if (!this.stagingEnabled && this.part.isInStagingList())
-						{
-							this.part.stackIcon.RemoveIcon();
-						}
-
-						this.InvokeToggle();
-					}
+				if (this.justStarted)
+				{
+					this.QueueStagingSort();
+					this.justStarted = false;
 				}
 
 				log.Append("\nLateUpdate done.\n");
@@ -377,83 +390,6 @@ namespace TweakableEverything
 				return;
 			}
 
-			this.Enable();
-
-			if (this.part.symmetryCounterparts != null)
-			{
-				Part symCounterPart;
-				for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
-				{
-					symCounterPart = this.part.symmetryCounterparts[sIdx];
-
-					ModuleStagingToggle symStagingToggle;
-					if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
-					{
-						symStagingToggle.Enable();
-					}
-				}
-			}
-
-			if (this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
-			{
-				Staging.AddStageAt(this.part.inverseStage);
-			}
-
-			if (!stageSortQueued)
-			{
-				stageSortQueued = true;
-				this.queuedStagingSort = true;
-			}
-		}
-
-		[KSPEvent(guiName = "Disable Staging")]
-		public void DisableEvent()
-		{
-			if (this.part == null)
-			{
-				this.LogError("Cannot disable staging: part reference is null");
-				return;
-			}
-
-			this.Disable();
-
-			if (this.part.symmetryCounterparts != null)
-			{
-				Part symCounterPart;
-				for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
-				{
-					symCounterPart = this.part.symmetryCounterparts[sIdx];
-
-					ModuleStagingToggle symStagingToggle;
-					if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
-					{
-						symStagingToggle.Disable();
-					}
-				}
-			}
-
-			if (!stageSortQueued)
-			{
-				stageSortQueued = true;
-				this.queuedStagingSort = true;
-			}
-		}
-		#endregion
-
-		#region Utility Methods
-		public void Enable()
-		{
-			this.LogDebug("Enabling");
-
-			this.Events["EnableEvent"].active = false;
-			this.Events["DisableEvent"].active = true;
-
-			this.stagingEnabled = true;
-
-			this.part.stackIcon.CreateIcon();
-
-			this.InvokeToggle();
-
 			Part rootPart;
 			switch (HighLogic.LoadedScene)
 			{
@@ -468,54 +404,130 @@ namespace TweakableEverything
 					break;
 			}
 
+			int newInverseStage = 0;
+
 			if (rootPart != null && this.part.hasAncestorPart(rootPart))
 			{
 				this.LogDebug("Part is on vessel; figuring new stage.");
 
 				Part parentDecouplerPart;
 
-				this.part.inverseStage = this.GetDecoupledStage(out parentDecouplerPart);
+				newInverseStage = this.GetDecoupledStage(out parentDecouplerPart);
 
 				this.LogDebug("parentDecouplerPart={0}, new inverseStage={1}",
 					parentDecouplerPart == null ? "null" : parentDecouplerPart.partInfo.title,
-					this.part.inverseStage
+					newInverseStage
 				);
 
 				if (parentDecouplerPart != null && parentDecouplerPart.childStageOffset > 0)
 				{
-					this.part.inverseStage += parentDecouplerPart.childStageOffset;
+					newInverseStage += parentDecouplerPart.childStageOffset;
 
 					this.LogDebug("parentDecouplerPart.childStageOffset={0}, new inverseStage={1}",
-						parentDecouplerPart.childStageOffset, this.part.inverseStage);
+						parentDecouplerPart.childStageOffset, newInverseStage);
 				}
 
-				this.part.inverseStage += this.part.stageOffset;
+				newInverseStage += this.part.stageOffset;
 
 				this.LogDebug("stageOffset={0}, new inverseStage={1}",
-					this.part.stageOffset, this.part.inverseStage);
+					this.part.stageOffset, newInverseStage);
 
 				if (this.part.stageBefore)
 				{
-					this.part.inverseStage++;
+					newInverseStage++;
 
 					this.LogDebug("stageBefore={0}, new inverseStage={1}",
-						this.part.stageBefore, this.part.inverseStage);
+						this.part.stageBefore, newInverseStage);
 				}
 
 				if (this.part.manualStageOffset > -1)
 				{
-					this.part.inverseStage = this.part.manualStageOffset;
+					newInverseStage = this.part.manualStageOffset;
 
 					this.LogDebug("manualStageOffset={0}, new inverseStage={1}",
-						this.part.manualStageOffset, this.part.inverseStage);
+						this.part.manualStageOffset, newInverseStage);
 				}
 
-				this.part.inverseStage = Mathf.Clamp(this.part.inverseStage, 0, stagingInstance.stages.Count);
+				newInverseStage = Mathf.Clamp(newInverseStage, 0, stagingInstance.stages.Count);
 
-				this.LogDebug("inverseStage={0}", this.part.inverseStage);
+				this.LogDebug("inverseStage={0}", newInverseStage);
 			}
 
+			this.EnableAtStage(newInverseStage);
+
+			if (HighLogic.LoadedSceneIsEditor)
+			{
+				if (this.part.symmetryCounterparts != null)
+				{
+					Part symCounterPart;
+					for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
+					{
+						symCounterPart = this.part.symmetryCounterparts[sIdx];
+
+						ModuleStagingToggle symStagingToggle;
+						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
+						{
+							symStagingToggle.EnableAtStage(newInverseStage);
+						}
+					}
+				}
+			}
+
+			if (this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
+			{
+				Staging.AddStageAt(this.part.inverseStage);
+			}
+
+			this.QueueStagingSort();
+		}
+
+		[KSPEvent(guiName = "Disable Staging")]
+		public void DisableEvent()
+		{
+			if (this.part == null)
+			{
+				this.LogError("Cannot disable staging: part reference is null");
+				return;
+			}
+
+			this.Disable();
+
+			if (HighLogic.LoadedSceneIsEditor)
+			{
+				if (this.part.symmetryCounterparts != null)
+				{
+					Part symCounterPart;
+					for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
+					{
+						symCounterPart = this.part.symmetryCounterparts[sIdx];
+
+						ModuleStagingToggle symStagingToggle;
+						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
+						{
+							symStagingToggle.Disable();
+						}
+					}
+				}
+			}
+
+			this.QueueStagingSort();
+		}
+		#endregion
+
+		#region Utility Methods
+		public void EnableAtStage(int newInverseStage)
+		{
+			this.LogDebug("Enabling");
+
+			this.Events["EnableEvent"].active = false;
+			this.Events["DisableEvent"].active = true;
+
 			this.stagingEnabled = true;
+			this.part.inverseStage = newInverseStage;
+
+			this.part.stackIcon.CreateIcon();
+
+			this.InvokeToggle();
 		}
 
 		public void Disable()
@@ -568,6 +580,24 @@ namespace TweakableEverything
 			}
 
 			log.Append("\n\tStaging switch done");
+		}
+
+		/// <summary>
+		/// Queues a Staging sort, if none is queued already.
+		/// </summary>
+		#if DEBUG
+		[KSPEvent(guiName="Queue Staging Sort", guiActiveEditor=true, guiActive=true, active=true)]
+		public void QueueStagingSort()
+		#else
+		protected void QueueStagingSort()
+		#endif
+		{
+			if (!stageSortQueued)
+			{
+				stageSortQueued = true;
+				this.queuedStagingSort = true;
+				this.LogDebug("Staging sort queued.");
+			}
 		}
 
 		// Gets the inverse stage in which this decoupler's part will be removed from the craft
