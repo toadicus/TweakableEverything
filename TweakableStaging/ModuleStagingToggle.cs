@@ -31,6 +31,9 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	/// <summary>
+	/// PartModule to facilitate the real-time toggling of Staging behavior for a subject Part.
+	/// </summary>
 	public class ModuleStagingToggle : PartModule
 	{
 		private static Tools.DebugLogger log;
@@ -43,35 +46,61 @@ namespace TweakableEverything
 		private static bool stageSortQueued = false;
 
 		#region Interface Elements
-		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
+		/// <summary>
+		/// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
+		/// </summary> 
 		[KSPField(isPersistant = true, guiName = "Staging", guiActive = false, guiActiveEditor = false)]
 		public bool stagingEnabled;
 
+		/// <summary>
+		/// If true, this module will present toggle events in the editor
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public bool activeInEditor;
 
+		/// <summary>
+		/// If true, this module will present toggle events in flight
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public bool activeInFlight;
+
+		/// <summary>
+		/// If true, parts bearing this module will disable (or not enable) Staging behavior by default when placed
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public bool defaultDisabled;
 
+		/// <summary>
+		/// A string naming the staging icon to use for this part
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public string stagingIcon;
 
-		// Only one module should ever be running per part.
+		/// <summary>
+		/// Only one module should ever be running per part.
+		/// </summary>
 		public bool partPrimary;
 
+		/// <summary>
+		/// Occurs when staging is toggled, and during startup
+		/// </summary>
 		public event ToggleEventHandler OnToggle;
 
+		/// <summary>
+		/// Toggle event handler.
+		/// </summary>
 		public delegate void ToggleEventHandler(object sender, ModuleStagingToggle.BoolArg args);
 		#endregion
 
 		// Stores the last toggle state so we can only run when things change.
-		protected bool forceUpdate;
-		protected bool justStarted;
-		protected bool queuedStagingSort;
+		private bool forceUpdate;
+		private bool justStarted;
+		private bool queuedStagingSort;
 
 		#region LifeCycle Methods
+		/// <summary>
+		/// Runs during Unity's Awake cycle.
+		/// </summary>
 		public override void OnAwake()
 		{
 			#if DEBUG
@@ -146,6 +175,9 @@ namespace TweakableEverything
 			log.Print(false);
 		}
 
+		/// <summary>
+		/// Runs during Unity's Start cycle.
+		/// </summary>
 		public override void OnStart(StartState state)
 		{
 			if (!this.partPrimary)
@@ -273,6 +305,9 @@ namespace TweakableEverything
 			log.Print(false);
 		}
 
+		/// <summary>
+		/// Runs during Unity's LateUpdate cycle.
+		/// </summary>
 		public void LateUpdate()
 		{
 			waitingForStaging &= stagingInstance.stages.Count < 1;
@@ -363,6 +398,9 @@ namespace TweakableEverything
 			#endif
 		}
 
+		/// <summary>
+		/// Runs when Unity destroys this object
+		/// </summary>
 		public void OnDestroy()
 		{
 			log.Clear();
@@ -381,6 +419,9 @@ namespace TweakableEverything
 		#endregion
 
 		#region KSPEvents
+		/// <summary>
+		/// KSPEvent handler to enable staging on this part.
+		/// </summary>
 		[KSPEvent(guiName = "Enable Staging")]
 		public void EnableEvent()
 		{
@@ -481,6 +522,9 @@ namespace TweakableEverything
 			this.QueueStagingSort();
 		}
 
+		/// <summary>
+		/// KSPEvent handler to disable staging on this part.
+		/// </summary>
 		[KSPEvent(guiName = "Disable Staging")]
 		public void DisableEvent()
 		{
@@ -515,6 +559,10 @@ namespace TweakableEverything
 		#endregion
 
 		#region Utility Methods
+		/// <summary>
+		/// Utility method for enabling staging on this part at the designated inverseStage
+		/// </summary>
+		/// <param name="newInverseStage">The inverse stage (top down) at which to place this part</param>
 		public void EnableAtStage(int newInverseStage)
 		{
 			this.LogDebug("Enabling");
@@ -530,6 +578,9 @@ namespace TweakableEverything
 			this.InvokeToggle();
 		}
 
+		/// <summary>
+		/// Utility method for disabling staging on this part. 
+		/// </summary>
 		public void Disable()
 		{
 			this.Events["EnableEvent"].active = true;
@@ -571,7 +622,7 @@ namespace TweakableEverything
 			this.stagingEnabled = false;
 		}
 
-		protected void InvokeToggle()
+		private void InvokeToggle()
 		{
 			if (this.OnToggle != null)
 			{
@@ -589,7 +640,7 @@ namespace TweakableEverything
 		[KSPEvent(guiName="Queue Staging Sort", guiActiveEditor=true, guiActive=true, active=true)]
 		public void QueueStagingSort()
 		#else
-		protected void QueueStagingSort()
+		private void QueueStagingSort()
 		#endif
 		{
 			if (!stageSortQueued)
@@ -601,13 +652,13 @@ namespace TweakableEverything
 		}
 
 		// Gets the inverse stage in which this decoupler's part will be removed from the craft
-		protected int GetDecoupledStage()
+		private int GetDecoupledStage()
 		{
 			Part _;
 			return this.GetDecoupledStage(out _);
 		}
 
-		protected int GetDecoupledStage(out Part parentDecouplerPart)
+		private int GetDecoupledStage(out Part parentDecouplerPart)
 		{
 			int iStage = 0;
 
@@ -647,7 +698,7 @@ namespace TweakableEverything
 		#endregion
 
 		#region Event Handlers
-		protected void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
+		private void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
 		{
 			this.LogDebug("Caught onPartAttach with host {0} and target {1}", data.host, data.target);
 
@@ -663,7 +714,7 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onUndock(EventReport data)
+		private void onUndock(EventReport data)
 		{
 			if (data.origin != null)
 			{
@@ -672,7 +723,7 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onPartCouple(GameEvents.FromToAction<Part, Part> data)
+		private void onPartCouple(GameEvents.FromToAction<Part, Part> data)
 		{
 			if (data.from != null)
 			{
@@ -687,7 +738,7 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onVesselChange(Vessel data)
+		private void onVesselChange(Vessel data)
 		{
 			if (this.part.vessel != null && data.id == this.part.vessel.id)
 			{
@@ -696,7 +747,7 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onPartEvent(Part data)
+		private void onPartEvent(Part data)
 		{
 			if (data.vessel != null && data.vessel.id == this.part.vessel.id)
 			{
@@ -705,9 +756,25 @@ namespace TweakableEverything
 		}
 		#endregion
 
+		/// <summary>
+		/// Bool argument for Events
+		/// </summary>
 		public class BoolArg : EventArgs
 		{
+			/// <param name="arg">Argument</param>
+			public static explicit operator bool(BoolArg arg)
+			{
+				return arg.Value;
+			}
+
+			/// <summary>
+			/// A <c>BoolArg</c> representing the <see cref="bool"/> value true
+			/// </summary>
 			public static readonly BoolArg True;
+
+			/// <summary>
+			/// A <c>BoolArg</c> representing the <see cref="bool"/> value false
+			/// </summary>
 			public static readonly BoolArg False;
 
 			static BoolArg()
@@ -716,10 +783,17 @@ namespace TweakableEverything
 				False = new BoolArg(false);
 			}
 
-			public bool Value { get; protected set; }
+			/// <summary>
+			/// Gets or sets the boolean value of this object
+			/// </summary>
+			public bool Value { get; private set; }
 
 			private BoolArg() {}
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="TweakableEverything.ModuleStagingToggle.BoolArg"/> class.
+			/// </summary>
+			/// <param name="value">Boolean value of the new object</param>
 			public BoolArg(bool value) : base()
 			{
 				this.Value = value;
