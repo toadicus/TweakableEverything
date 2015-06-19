@@ -107,7 +107,7 @@ namespace TweakableEverything
 					{
 						stagingInstanceField = field;
 
-						this.Log("Got Staging instance field: {0}",
+						this.LogDebug("Got Staging instance field: {0}",
 							stagingInstanceField == null ? "null" : stagingInstanceField.ToString());
 						
 						break;
@@ -220,7 +220,8 @@ namespace TweakableEverything
 			{
 				stagingInstance = stagingInstanceField.GetValue(null) as Staging;
 
-				this.Log("Got Staging instance: {0}", stagingInstance == null ? "null" : stagingInstance.ToString());
+				this.LogDebug("Got Staging instance: {0}",
+					stagingInstance == null ? "null" : stagingInstance.ToString());
 			}
 
 			if (this.stagingEnabled && this.part.symmetryCounterparts != null)
@@ -442,7 +443,7 @@ namespace TweakableEverything
 		#region Utility Methods
 		public void Enable()
 		{
-			this.stagingEnabled = true;
+			this.LogDebug("Enabling");
 
 			this.Events["EnableEvent"].active = false;
 			this.Events["DisableEvent"].active = true;
@@ -469,34 +470,56 @@ namespace TweakableEverything
 
 			if (rootPart != null && this.part.hasAncestorPart(rootPart))
 			{
+				this.LogDebug("Part is on vessel; figuring new stage.");
+
 				Part parentDecouplerPart;
-				int parentStage = this.GetDecoupledStage(out parentDecouplerPart);
+
+				this.part.inverseStage = this.GetDecoupledStage(out parentDecouplerPart);
+
+				this.LogDebug("parentDecouplerPart={0}, new inverseStage={1}",
+					parentDecouplerPart == null ? "null" : parentDecouplerPart.partInfo.title,
+					this.part.inverseStage
+				);
 
 				if (parentDecouplerPart != null && parentDecouplerPart.childStageOffset > 0)
 				{
-					this.part.inverseStage = parentStage + parentDecouplerPart.childStageOffset;
+					this.part.inverseStage += parentDecouplerPart.childStageOffset;
+
+					this.LogDebug("parentDecouplerPart.childStageOffset={0}, new inverseStage={1}",
+						parentDecouplerPart.childStageOffset, this.part.inverseStage);
 				}
 
 				this.part.inverseStage += this.part.stageOffset;
 
+				this.LogDebug("stageOffset={0}, new inverseStage={1}",
+					this.part.stageOffset, this.part.inverseStage);
+
 				if (this.part.stageBefore)
 				{
 					this.part.inverseStage++;
+
+					this.LogDebug("stageBefore={0}, new inverseStage={1}",
+						this.part.stageBefore, this.part.inverseStage);
 				}
 
 				if (this.part.manualStageOffset > -1)
 				{
 					this.part.inverseStage = this.part.manualStageOffset;
+
+					this.LogDebug("manualStageOffset={0}, new inverseStage={1}",
+						this.part.manualStageOffset, this.part.inverseStage);
 				}
 
 				this.part.inverseStage = Mathf.Clamp(this.part.inverseStage, 0, stagingInstance.stages.Count);
+
+				this.LogDebug("inverseStage={0}", this.part.inverseStage);
 			}
+
+			this.stagingEnabled = true;
 		}
 
 		public void Disable()
 		{
-			this.stagingEnabled = false;
-
 			this.Events["EnableEvent"].active = true;
 			this.Events["DisableEvent"].active = false;
 
@@ -532,6 +555,8 @@ namespace TweakableEverything
 
 				this.part.inverseStage = 0;
 			}
+
+			this.stagingEnabled = false;
 		}
 
 		protected void InvokeToggle()
@@ -558,33 +583,32 @@ namespace TweakableEverything
 
 			parentDecouplerPart = null;
 
-			if (this.stagingEnabled)
+			this.LogDebug("this.part.parent={0}", this.part.parent == null ? "null" : this.part.parent.partInfo.title);
+
+			Part ancestorPart = this.part;
+			while (ancestorPart.parent != null)
 			{
-				iStage = this.part.inverseStage;
-			}
-			else
-			{
-				Part ancestorPart = this.part;
-				while (ancestorPart.parent != null)
+				ancestorPart = ancestorPart.parent;
+				this.LogDebug("Checking if ancestorPart {0} is decoupler", ancestorPart);
+				if (ancestorPart.isDecoupler())
 				{
-					ancestorPart = ancestorPart.parent;
+					this.LogDebug("ancestorPart {0} is decoupler, checking if staging is disabled", ancestorPart);
 
-					if (ancestorPart.isDecoupler())
+					ModuleStagingToggle tweakableStagingModule;
+
+					if (ancestorPart.tryGetFirstModuleOfType<ModuleStagingToggle>(out tweakableStagingModule))
 					{
-						ModuleStagingToggle tweakableStagingModule;
-
-						if (ancestorPart.tryGetFirstModuleOfType<ModuleStagingToggle>(out tweakableStagingModule))
+						if (!tweakableStagingModule.stagingEnabled)
 						{
-							if (!tweakableStagingModule.stagingEnabled)
-							{
-								continue;
-							}
+							this.LogDebug("ancestorPart {0} staging is disabled, skipping", ancestorPart);
+							continue;
 						}
-
-						iStage = ancestorPart.inverseStage;
-						parentDecouplerPart = ancestorPart;
-						break;
 					}
+
+					this.LogDebug("ancestorPart {0} staging is enabled, recording", ancestorPart);
+					iStage = ancestorPart.inverseStage;
+					parentDecouplerPart = ancestorPart;
+					break;
 				}
 			}
 
