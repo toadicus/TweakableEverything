@@ -351,7 +351,7 @@ namespace TweakableEverything
 					}
 					else if (!this.stagingEnabled)
 					{
-						this.Disable();
+						this.DisableInStage(this.part.inverseStage);
 						log.AppendFormat("disabled");
 					}
 
@@ -396,10 +396,26 @@ namespace TweakableEverything
 				#if DEBUG
 			} catch (Exception x)
 			{
-				log.AppendFormat("Caught exception: {0}", x.ToString());
+				log.AppendFormat("\nCaught exception: {0}", x.ToString());
 			}
 			finally
 			{
+				if (stageSortQueued && this.queuedStagingSort)
+				{
+					log.AppendFormat("\nstagingSortQueued and this.queuedStagingSort still true after LateUpdate");
+					log.AppendFormat("\n\tthis.partPrimary={0}", this.partPrimary);
+					log.AppendFormat("\n\tstagingInstance={0}",
+						stagingInstance == null ? "null" : stagingInstance.ToString());
+					log.AppendFormat("\n\twaitingForStaging={0}", waitingForStaging);
+					if (stagingInstance != null && stagingInstance.stages != null)
+					{
+						log.AppendFormat("\n\t\tstagingInstance.stages.Count={0}", stagingInstance.stages.Count);
+					}
+					log.AppendFormat("\n\tStaging.stackLocked={0}", Staging.stackLocked);
+
+					printLog = true;
+				}
+
 				if (printLog)
 				{
 					log.Print(false);
@@ -544,7 +560,19 @@ namespace TweakableEverything
 				return;
 			}
 
-			this.Disable();
+			Part rootPart;
+			switch (HighLogic.LoadedScene)
+			{
+				case GameScenes.EDITOR:
+					rootPart = EditorLogic.RootPart;
+					break;
+				case GameScenes.FLIGHT:
+					rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
+					break;
+				default:
+					rootPart = null;
+					break;
+			}
 
 			if (HighLogic.LoadedSceneIsEditor)
 			{
@@ -558,8 +586,23 @@ namespace TweakableEverything
 						ModuleStagingToggle symStagingToggle;
 						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
 						{
-							symStagingToggle.Disable();
+							symStagingToggle.DisableInStage(0);
 						}
+					}
+				}
+			}
+
+			this.DisableInStage(0);
+
+			if (rootPart != null && this.part.hasAncestorPart(rootPart))
+			{
+				if (this.part.inverseStage < stagingInstance.stages.Count)
+				{
+					StageGroup ourGroup = stagingInstance.stages[this.part.inverseStage];
+
+					if (ourGroup != null && ourGroup.icons.Count == 0)
+					{
+						Staging.DeleteStage(ourGroup);
 					}
 				}
 			}
@@ -591,45 +634,18 @@ namespace TweakableEverything
 		/// <summary>
 		/// Utility method for disabling staging on this part. 
 		/// </summary>
-		public void Disable()
+		public void DisableInStage(int newInverseStage)
 		{
 			this.Events["EnableEvent"].active = true;
 			this.Events["DisableEvent"].active = false;
 
 			this.part.stackIcon.RemoveIcon();
 
-			this.InvokeToggle();
-
-			Part rootPart;
-			switch (HighLogic.LoadedScene)
-			{
-				case GameScenes.EDITOR:
-					rootPart = EditorLogic.RootPart;
-					break;
-				case GameScenes.FLIGHT:
-					rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
-					break;
-				default:
-					rootPart = null;
-					break;
-			}
-
-			if (rootPart != null && this.part.hasAncestorPart(rootPart))
-			{
-				if (this.part.inverseStage < stagingInstance.stages.Count)
-				{
-					StageGroup ourGroup = stagingInstance.stages[this.part.inverseStage];
-
-					if (ourGroup != null && ourGroup.icons.Count == 0)
-					{
-						Staging.DeleteStage(ourGroup);
-					}
-				}
-
-				this.part.inverseStage = 0;
-			}
-
 			this.stagingEnabled = false;
+
+			this.part.inverseStage = newInverseStage;
+
+			this.InvokeToggle();
 		}
 
 		private void InvokeToggle()
