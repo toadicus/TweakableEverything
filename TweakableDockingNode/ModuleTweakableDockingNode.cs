@@ -431,10 +431,12 @@ namespace TweakableEverything
 				switch (this.dockingNodeModule.state.ToLower())
 				{
 					case "preattached":
+						this.dockingNodeModule.Decouple();
+						break;
 					case "docked (dockee)":
 					case "docked (docker)":
 					case "docked (same vessel)":
-						this.dockingNodeModule.Decouple();
+						this.dockingNodeModule.Undock();
 						break;
 					default:
 						break;

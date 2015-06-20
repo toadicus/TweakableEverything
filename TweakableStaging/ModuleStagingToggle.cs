@@ -88,6 +88,11 @@ namespace TweakableEverything
 		public bool partPrimary;
 
 		/// <summary>
+		/// Only true when Enable/Disable Staging event has been clicked for this module and is being processed.
+		/// </summary>
+		public bool eventPrimary;
+
+		/// <summary>
 		/// Occurs when staging is toggled, and during startup
 		/// </summary>
 		public event ToggleEventHandler OnToggle;
@@ -457,6 +462,8 @@ namespace TweakableEverything
 				return;
 			}
 
+			this.eventPrimary = true;
+
 			Part rootPart;
 			switch (HighLogic.LoadedScene)
 			{
@@ -524,8 +531,12 @@ namespace TweakableEverything
 
 			if (HighLogic.LoadedSceneIsEditor)
 			{
+				this.LogDebug("In editor; checking if we need to enable symmetry partners");
+
 				if (this.part.symmetryCounterparts != null)
 				{
+					this.LogDebug("Enabling {0} symmetry partners", this.part.symmetryCounterparts.Count);
+
 					Part symCounterPart;
 					for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
 					{
@@ -534,7 +545,10 @@ namespace TweakableEverything
 						ModuleStagingToggle symStagingToggle;
 						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
 						{
-							symStagingToggle.EnableAtStage(newInverseStage);
+							if (!symStagingToggle.eventPrimary)
+							{
+								symStagingToggle.EnableAtStage(newInverseStage);
+							}
 						}
 					}
 				}
@@ -542,10 +556,16 @@ namespace TweakableEverything
 
 			if (this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
 			{
+				this.LogDebug("inverseStage equals stage count or we have a childStageOffset, adding new stage");
 				Staging.AddStageAt(this.part.inverseStage);
 			}
 
+			this.LogDebug("Queueing sort");
 			this.QueueStagingSort();
+
+			this.eventPrimary = false;
+
+			this.LogDebug("Enabled");
 		}
 
 		/// <summary>
@@ -559,6 +579,34 @@ namespace TweakableEverything
 				this.LogError("Cannot disable staging: part reference is null");
 				return;
 			}
+
+			this.eventPrimary = true;
+
+			this.LogDebug("Disable Staging clicked");
+
+			if (HighLogic.LoadedSceneIsEditor)
+			{
+				if (this.part.symmetryCounterparts != null)
+				{
+					Part symCounterPart;
+					for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
+					{
+						symCounterPart = this.part.symmetryCounterparts[sIdx];
+
+						ModuleStagingToggle symStagingToggle;
+						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
+						{
+							if (!symStagingToggle.eventPrimary)
+							{
+								symStagingToggle.DisableInStage(0);
+							}
+						}
+					}
+				}
+			}
+
+			// Use the sekrit password to avoid changing our inverseStage here.
+			this.DisableInStage(int.MinValue);
 
 			Part rootPart;
 			switch (HighLogic.LoadedScene)
@@ -574,40 +622,36 @@ namespace TweakableEverything
 					break;
 			}
 
-			if (HighLogic.LoadedSceneIsEditor)
-			{
-				if (this.part.symmetryCounterparts != null)
-				{
-					Part symCounterPart;
-					for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
-					{
-						symCounterPart = this.part.symmetryCounterparts[sIdx];
-
-						ModuleStagingToggle symStagingToggle;
-						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
-						{
-							symStagingToggle.DisableInStage(0);
-						}
-					}
-				}
-			}
-
-			this.DisableInStage(0);
+			this.LogDebug("Got root part: {0}", rootPart);
 
 			if (rootPart != null && this.part.hasAncestorPart(rootPart))
 			{
+				this.LogDebug("We have root as ancenstor, let's try to delete our stage." +
+					"\n\tthis.part.inverseStage={0}, stagingInstance.stages.Count={1}",
+					this.part.inverseStage, stagingInstance.stages.Count
+				);
+
 				if (this.part.inverseStage < stagingInstance.stages.Count)
 				{
 					StageGroup ourGroup = stagingInstance.stages[this.part.inverseStage];
 
+					this.LogDebug("ourGroup={0}, ourGroup.icons.Count={1}", ourGroup, ourGroup.icons.Count);
+
 					if (ourGroup != null && ourGroup.icons.Count == 0)
 					{
+						this.LogDebug("Deleting stage");
+
 						Staging.DeleteStage(ourGroup);
 					}
 				}
 			}
 
+			// Since we didn't set it in DisableInStage, set it here.
+			this.part.inverseStage = 0;
+
 			this.QueueStagingSort();
+
+			this.eventPrimary = false;
 		}
 		#endregion
 
@@ -624,7 +668,12 @@ namespace TweakableEverything
 			this.Events["DisableEvent"].active = true;
 
 			this.stagingEnabled = true;
-			this.part.inverseStage = newInverseStage;
+
+			// int.MinValue is our sekrit key to not assign the stage
+			if (int.MinValue != newInverseStage)
+			{
+				this.part.inverseStage = newInverseStage;
+			}
 
 			this.part.stackIcon.CreateIcon();
 
@@ -636,6 +685,8 @@ namespace TweakableEverything
 		/// </summary>
 		public void DisableInStage(int newInverseStage)
 		{
+			this.LogDebug("Disabling");
+
 			this.Events["EnableEvent"].active = true;
 			this.Events["DisableEvent"].active = false;
 
@@ -643,7 +694,11 @@ namespace TweakableEverything
 
 			this.stagingEnabled = false;
 
-			this.part.inverseStage = newInverseStage;
+			// int.MinValue is our sekrit key to not assign the stage
+			if (int.MinValue != newInverseStage)
+			{
+				this.part.inverseStage = newInverseStage;
+			}
 
 			this.InvokeToggle();
 		}
