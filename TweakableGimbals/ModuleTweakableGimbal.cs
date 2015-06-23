@@ -27,7 +27,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
+#if USE_KSPAPIEXTENSIONS
 using KSPAPIExtensions;
+#endif
 using System;
 using System.Collections.Generic;
 using ToadicusTools;
@@ -46,7 +48,11 @@ namespace TweakableEverything
 		// Stores our tweaked value for gimbal range.
 		[KSPField(isPersistant = true, guiName = "Gimbal Range", guiUnits = "°", guiFormat = "F2",
 			guiActiveEditor = true)]
+		#if USE_KSPAPIEXTENSIONS
 		[UI_FloatEdit(minValue = float.MinValue, maxValue = float.MaxValue, incrementSlide = .1f)]
+		#else
+		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = .1f)]
+		#endif
 		public float gimbalRange;
 
 		// Stores our tweaked value for control reversal.
@@ -91,24 +97,22 @@ namespace TweakableEverything
 				return;
 			}
 
-			//PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
-				/*.OfType<ModuleGimbal>()
-				.FirstOrDefault()
-				.gimbalRange*/
-
-			ModuleGimbal gimbalPrefab;
-			if (PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.tryGetFirstModuleOfType(out gimbalPrefab))
-			{
-				// Initialize the gimbal range tweakable and value.
-				TweakableTools.InitializeTweakable<ModuleTweakableGimbal>(
-					this.Fields["gimbalRange"].uiControlCurrent(),
-					ref this.gimbalRange,
-					ref this.gimbalModule.gimbalRange,
-					gimbalPrefab.gimbalRange,
-					this.lowerMult,
-					this.upperMult
-				);
-			}
+			// Initialize the gimbal range tweakable and value.
+			TweakableTools.InitializeTweakable<ModuleTweakableGimbal>(
+				#if USE_KSPAPIEXTENSIONS
+				(UI_FloatEdit)this.Fields["gimbalRange"].uiControlCurrent(),
+				#else
+				(UI_FloatRange)this.Fields["gimbalRange"].uiControlCurrent(),
+				#endif
+				ref this.gimbalRange,
+				ref this.gimbalModule.gimbalRange,
+				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
+					.OfType<ModuleGimbal>()
+					.FirstOrDefault()
+					.gimbalRange,
+				this.lowerMult,
+				this.upperMult
+			);
 
 			// If we're in flight mode...
 			if (HighLogic.LoadedSceneIsFlight)

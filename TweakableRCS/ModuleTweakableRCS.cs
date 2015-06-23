@@ -27,7 +27,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
-using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools;
@@ -52,7 +51,7 @@ namespace TweakableRCS
 
 		// Stores our thrust limiter value for the RCS block.
 		[KSPField(isPersistant = true, guiName = "Thrust Limiter", guiActiveEditor = true, guiActive = true)]
-		[UI_FloatEdit(minValue = 0f, maxValue = 100f, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = 0f, maxValue = 100f, stepIncrement = 1f)]
 		public float thrustLimit;
 
 		protected float baseThrusterPower;

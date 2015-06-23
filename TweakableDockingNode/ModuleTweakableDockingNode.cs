@@ -27,7 +27,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
+#if USE_KSPAPIEXTENSIONS
 using KSPAPIExtensions;
+#endif
 using System;
 using System.Collections.Generic;
 using ToadicusTools;
@@ -146,27 +148,47 @@ namespace TweakableEverything
 
 		[KSPField(isPersistant = true, guiName = "Acquire Range", guiUnits = "m", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
+		#if USE_KSPAPIEXTENSIONS
 		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		#else
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float acquireRange;
 
 		[KSPField(isPersistant = true, guiName = "Acquire Force", guiUnits = "kN", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
+		#if USE_KSPAPIEXTENSIONS
 		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		#else
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float acquireForce;
 
 		[KSPField(isPersistant = true, guiName = "Acquire Torque", guiUnits = "kN-m", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
+		#if USE_KSPAPIEXTENSIONS
 		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		#else
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float acquireTorque;
 
 		[KSPField(isPersistant = true, guiName = "Ejection Force", guiUnits = "kN", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
+		#if USE_KSPAPIEXTENSIONS
 		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		#else
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float undockEjectionForce;
 
 		[KSPField(isPersistant = true, guiName = "Re-engage Distance", guiUnits = "m", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
+		#if USE_KSPAPIEXTENSIONS
 		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		#else
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float minDistanceToReEngage;
 
 		[KSPField(isPersistant = true)]
@@ -255,35 +277,55 @@ namespace TweakableEverything
 				.partPrefab.getFirstModuleOfType<ModuleDockingNode>();
 
 			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
-				this.Fields["acquireRange"].uiControlCurrent(),
+				#if USE_KSPAPIEXTENSIONS
+				(UI_FloatEdit)this.Fields["acquireRange"].uiControlCurrent(),
+				#else
+				(UI_FloatRange)this.Fields["acquireRange"].uiControlCurrent(),
+				#endif
 				ref this.acquireRange,
 				ref this.dockingNodeModule.acquireRange,
 				prefabModule.acquireRange
 			);
 
 			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
-				this.Fields["acquireForce"].uiControlCurrent(),
+				#if USE_KSPAPIEXTENSIONS
+				(UI_FloatEdit)this.Fields["acquireForce"].uiControlCurrent(),
+				#else
+				(UI_FloatRange)this.Fields["acquireForce"].uiControlCurrent(),
+				#endif
 				ref this.acquireForce,
 				ref this.dockingNodeModule.acquireForce,
 				prefabModule.acquireForce
 			);
 
 			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
-				this.Fields["acquireTorque"].uiControlCurrent(),
+				#if USE_KSPAPIEXTENSIONS
+				(UI_FloatEdit)this.Fields["acquireTorque"].uiControlCurrent(),
+				#else
+				(UI_FloatRange)this.Fields["acquireTorque"].uiControlCurrent(),
+				#endif
 				ref this.acquireTorque,
 				ref this.dockingNodeModule.acquireTorque,
 				prefabModule.acquireForce
 			);
 
 			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
-				this.Fields["undockEjectionForce"].uiControlCurrent(),
+				#if USE_KSPAPIEXTENSIONS
+				(UI_FloatEdit)this.Fields["undockEjectionForce"].uiControlCurrent(),
+				#else
+				(UI_FloatRange)this.Fields["undockEjectionForce"].uiControlCurrent(),
+				#endif
 				ref this.undockEjectionForce,
 				ref this.dockingNodeModule.undockEjectionForce,
 				prefabModule.undockEjectionForce
 			);
 
 			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
-				this.Fields["minDistanceToReEngage"].uiControlCurrent(),
+				#if USE_KSPAPIEXTENSIONS
+				(UI_FloatEdit)this.Fields["minDistanceToReEngage"].uiControlCurrent(),
+				#else
+				(UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlCurrent(),
+				#endif
 				ref this.minDistanceToReEngage,
 				ref this.dockingNodeModule.minDistanceToReEngage,
 				prefabModule.minDistanceToReEngage

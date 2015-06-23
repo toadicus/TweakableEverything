@@ -95,9 +95,6 @@
     <Reference Include="UnityEngine">
       <HintPath>..\..\_KSPAssemblies\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="KSPAPIExtensions">
-      <HintPath>..\..\..\KSPAPIExtensions\KSPAPIExtensions\GameData\KSPAPIExtensions.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

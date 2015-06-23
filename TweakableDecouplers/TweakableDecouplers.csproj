@@ -73,18 +73,15 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\_KSPAssemblies\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="System">
       <HintPath>..\..\_KSPAssemblies\System.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\_KSPAssemblies\UnityEngine.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="KSPAPIExtensions">
-      <HintPath>..\..\..\KSPAPIExtensions\KSPAPIExtensions\GameData\KSPAPIExtensions.dll</HintPath>
+      <HintPath>..\..\_KSPAssemblies\KSPAPIExtensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -96,7 +93,6 @@
     <ProjectReference Include="..\TweakableStaging\TweakableStaging.csproj">
       <Project>{44171674-3C98-40EA-AC2A-1D4AFC100EC1}</Project>
       <Name>TweakableStaging</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
 </Project>

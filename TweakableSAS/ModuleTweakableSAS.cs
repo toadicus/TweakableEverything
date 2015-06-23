@@ -28,7 +28,6 @@
 
 using Experience.Effects;
 using KSP;
-using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools;
@@ -48,7 +47,7 @@ namespace TweakableEverything
 
 		#region Fields
 		[KSPField(isPersistant = true, guiName = "SAS Autopilot", guiFormat = "Level #0", guiActiveEditor = true)]
-		[UI_FloatEdit(maxValue = 3, minValue = 0, incrementSlide = 1)]
+		[UI_FloatRange(maxValue = 3, minValue = 0, stepIncrement = 1)]
 		public float SASServiceLevel;
 
 		private ModuleSAS sasModule;
@@ -167,7 +166,7 @@ namespace TweakableEverything
 
 			if (state == StartState.Editor)
 			{
-				UI_FloatEdit sasTweak = this.Fields["SASServiceLevel"].uiControlEditor as UI_FloatEdit;
+				UI_FloatRange sasTweak = this.Fields["SASServiceLevel"].uiControlEditor as UI_FloatRange;
 
 				sasTweak.maxValue = maxSASServiceLevel;
 			}

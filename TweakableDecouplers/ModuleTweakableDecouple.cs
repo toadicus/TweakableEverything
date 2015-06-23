@@ -27,7 +27,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
+#if USE_KSPAPIEXTENSIONS
 using KSPAPIExtensions;
+#endif
 using System;
 using System.Collections.Generic;
 using ToadicusTools;
@@ -51,7 +53,11 @@ namespace TweakableEverything
 		// Stores the tweaked ejectionForce for clobbering the value in the real decouplerModule.
 		[KSPField(isPersistant = true, guiName = "Ejection Force", guiUnits = "N", guiFormat = "S2+3",
 			guiActiveEditor = true, guiActive = false)]
+		#if USE_KSPAPIEXTENSIONS
 		[UI_FloatEdit(minValue = float.MinValue, maxValue = float.MaxValue, incrementSlide = 1f)]
+		#else
+		[UI_FloatRange(minValue = float.MinValue, maxValue = float.MaxValue, stepIncrement = 1f)]
+		#endif
 		public float ejectionForce;
 
 		// Stores the configurable multiplier for the lower bound on the FloatRange
@@ -97,28 +103,32 @@ namespace TweakableEverything
 				partInfo = PartLoader.getPartInfoByName(base.part.partInfo.name);
 
 				// Fetch the prefab module for the above purpose.
-				if (partInfo.partPrefab.tryGetFirstModuleByName(this.decouplerModuleName, out prefabModule))
-				{// Fetch the ejectionForce field from our generic decoupler module.
-					float remoteEjectionForce =
-						this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
+				prefabModule = partInfo.partPrefab.Modules
+				.OfType<PartModule>()
+				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
 
-					// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
-					// prefab, and current value from persistence
-					TweakableTools.InitializeTweakable<ModuleTweakableDecouple>(
-						(UI_FloatEdit)this.Fields["ejectionForce"].uiControlCurrent(),
-						ref this.ejectionForce,
-						ref remoteEjectionForce,
-						prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),
-						this.lowerMult,
-						this.upperMult
-					);
+				// Fetch the ejectionForce field from our generic decoupler module.
+				float remoteEjectionForce =
+					this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
 
-					// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
-					// this sets the ejectionForce from our persistent value when the part is started.
-					this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
+				// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
+				// prefab, and current value from persistence
+				TweakableTools.InitializeTweakable<ModuleTweakableDecouple>(
+					#if USE_KSPAPIEXTENSIONS
+					(UI_FloatEdit)this.Fields["ejectionForce"].uiControlCurrent(),
+					#else
+					(UI_FloatRange)this.Fields["ejectionForce"].uiControlCurrent(),
+					#endif
+					ref this.ejectionForce,
+					ref remoteEjectionForce,
+					prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),
+					this.lowerMult,
+					this.upperMult
+				);
 
-					this.decoupleModule.Fields["staged"].SetValue(this.staged, this.decoupleModule);
-				}
+				// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
+				// this sets the ejectionForce from our persistent value when the part is started.
+				this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
 
 				ModuleStagingToggle stagingToggleModule;
 
