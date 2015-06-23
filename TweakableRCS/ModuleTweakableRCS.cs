@@ -89,16 +89,6 @@ namespace TweakableRCS
 			{
 				this.baseThrusterPower = prefabModule.thrusterPower;
 			}
-
-			var thrustLimitCtl = this.Fields["thrustLimit"].uiControlCurrent();
-
-			if (thrustLimitCtl is UI_FloatEdit)
-			{
-				var thrustLimitSlider = thrustLimitCtl as UI_FloatEdit;
-
-				thrustLimitSlider.maxValue = 1f;
-				thrustLimitSlider.incrementSlide = 0.025f;
-			}
 		}
 
 		// Runs late in the update cycle

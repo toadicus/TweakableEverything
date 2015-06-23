@@ -125,21 +125,21 @@ namespace TweakableEverything
 				if (PartLoader.getPartInfoByName(this.part.partInfo.name).partPrefab
 					.tryGetFirstModuleOfType<ModuleReactionWheel>(out prefabModule))
 				{
-					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
 						(UI_FloatRange)this.Fields["RollTorque"].uiControlCurrent(),
 						ref this.RollTorque,
 						ref this.reactionWheelModule.RollTorque,
 						prefabModule.RollTorque
 					);
 
-					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
 						(UI_FloatRange)this.Fields["PitchTorque"].uiControlCurrent(),
 						ref this.PitchTorque,
 						ref this.reactionWheelModule.PitchTorque,
 						prefabModule.PitchTorque
 					);
 
-					Tools.InitializeTweakable<ModuleTweakableReactionWheel>(
+					TweakableTools.InitializeTweakable<ModuleTweakableReactionWheel>(
 						(UI_FloatRange)this.Fields["YawTorque"].uiControlCurrent(),
 						ref this.YawTorque,
 						ref this.reactionWheelModule.YawTorque,
@@ -148,16 +148,6 @@ namespace TweakableEverything
 
 					log.Append("\n\tYawTorque setup");
 				}
-			}
-
-			var torqueGainCtl = this.Fields["TorqueGain"].uiControlCurrent();
-
-			if (torqueGainCtl is UI_FloatEdit)
-			{
-				var torqueGainSlider = torqueGainCtl as UI_FloatEdit;
-
-				torqueGainSlider.maxValue = 1f;
-				torqueGainSlider.incrementSlide = 0.025f;
 			}
 
 			log.Append("\n\tStarted!");

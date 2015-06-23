@@ -89,18 +89,19 @@ namespace TweakableEverything
 				return;
 			}
 
-			// Initialize the gimbal range tweakable and value.
-			Tools.InitializeTweakable<ModuleTweakableGimbal>(
-				(UI_FloatRange)this.Fields["gimbalRange"].uiControlCurrent(),
-				ref this.gimbalRange,
-				ref this.gimbalModule.gimbalRange,
-				PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.Modules
-					.OfType<ModuleGimbal>()
-					.FirstOrDefault()
-					.gimbalRange,
-				this.lowerMult,
-				this.upperMult
-			);
+			ModuleGimbal gimbalPrefab;
+			if (PartLoader.getPartInfoByName(base.part.partInfo.name).partPrefab.tryGetFirstModuleOfType(out gimbalPrefab))
+			{
+				// Initialize the gimbal range tweakable and value.
+				TweakableTools.InitializeTweakable<ModuleTweakableGimbal>(
+					this.Fields["gimbalRange"].uiControlCurrent(),
+					ref this.gimbalRange,
+					ref this.gimbalModule.gimbalRange,
+					gimbalPrefab.gimbalRange,
+					this.lowerMult,
+					this.upperMult
+				);
+			}
 
 			// If we're in flight mode...
 			if (HighLogic.LoadedSceneIsFlight)

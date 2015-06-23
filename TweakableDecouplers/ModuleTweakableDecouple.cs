@@ -95,28 +95,28 @@ namespace TweakableEverything
 				partInfo = PartLoader.getPartInfoByName(base.part.partInfo.name);
 
 				// Fetch the prefab module for the above purpose.
-				prefabModule = partInfo.partPrefab.Modules
-				.OfType<PartModule>()
-				.FirstOrDefault(m => m.moduleName == this.decouplerModuleName);
+				if (partInfo.partPrefab.tryGetFirstModuleByName(this.decouplerModuleName, out prefabModule))
+				{// Fetch the ejectionForce field from our generic decoupler module.
+					float remoteEjectionForce =
+						this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
 
-				// Fetch the ejectionForce field from our generic decoupler module.
-				float remoteEjectionForce =
-					this.decoupleModule.Fields["ejectionForce"].GetValue<float>(this.decoupleModule);
+					// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
+					// prefab, and current value from persistence
+					TweakableTools.InitializeTweakable<ModuleTweakableDecouple>(
+						(UI_FloatRange)this.Fields["ejectionForce"].uiControlCurrent(),
+						ref this.ejectionForce,
+						ref remoteEjectionForce,
+						prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),
+						this.lowerMult,
+						this.upperMult
+					);
 
-				// Build initialize the FloatRange with upper and lower bounds from the cfg file, center value from the
-				// prefab, and current value from persistence
-				Tools.InitializeTweakable<ModuleTweakableDecouple>(
-					(UI_FloatRange)this.Fields["ejectionForce"].uiControlCurrent(),
-					ref this.ejectionForce,
-					ref remoteEjectionForce,
-					prefabModule.Fields["ejectionForce"].GetValue<float>(prefabModule),
-					this.lowerMult,
-					this.upperMult
-				);
+					// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
+					// this sets the ejectionForce from our persistent value when the part is started.
+					this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
 
-				// Set the decoupler module's ejection force to ours.  In the editor, this is meaningless.  In flight,
-				// this sets the ejectionForce from our persistent value when the part is started.
-				this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
+					this.decoupleModule.Fields["staged"].SetValue(this.staged, this.decoupleModule);
+				}
 
 				ModuleStagingToggle stagingToggleModule;
 

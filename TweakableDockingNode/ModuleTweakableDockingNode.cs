@@ -248,35 +248,35 @@ namespace TweakableEverything
 			ModuleDockingNode prefabModule = PartLoader.getPartInfoByName(this.part.partInfo.name)
 				.partPrefab.getFirstModuleOfType<ModuleDockingNode>();
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireRange"].uiControlCurrent(),
 				ref this.acquireRange,
 				ref this.dockingNodeModule.acquireRange,
 				prefabModule.acquireRange
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireForce"].uiControlCurrent(),
 				ref this.acquireForce,
 				ref this.dockingNodeModule.acquireForce,
 				prefabModule.acquireForce
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["acquireTorque"].uiControlCurrent(),
 				ref this.acquireTorque,
 				ref this.dockingNodeModule.acquireTorque,
 				prefabModule.acquireForce
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["undockEjectionForce"].uiControlCurrent(),
 				ref this.undockEjectionForce,
 				ref this.dockingNodeModule.undockEjectionForce,
 				prefabModule.undockEjectionForce
 			);
 
-			Tools.InitializeTweakable<ModuleTweakableDockingNode>(
+			TweakableTools.InitializeTweakable<ModuleTweakableDockingNode>(
 				(UI_FloatRange)this.Fields["minDistanceToReEngage"].uiControlCurrent(),
 				ref this.minDistanceToReEngage,
 				ref this.dockingNodeModule.minDistanceToReEngage,
