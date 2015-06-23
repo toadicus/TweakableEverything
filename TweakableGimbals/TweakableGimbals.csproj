@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;USE_KSPAPIEXTENSIONS</DefineConstants>
+    <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -39,7 +39,6 @@
       </CustomCommands>
     </CustomCommands>
     <ConsolePause>false</ConsolePause>
-    <DefineConstants>USE_KSPAPIEXTENSIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_linux|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -52,14 +51,13 @@
       </CustomCommands>
     </CustomCommands>
     <ConsolePause>false</ConsolePause>
-    <DefineConstants>USE_KSPAPIEXTENSIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_linux|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;USE_KSPAPIEXTENSIONS</DefineConstants>
+    <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -97,9 +95,6 @@
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\_KSPAssemblies\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="KSPAPIExtensions">
-      <HintPath>..\..\_KSPAssemblies\KSPAPIExtensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
