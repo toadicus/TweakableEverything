@@ -52,27 +52,26 @@ namespace TweakableEverything
 		protected bool startEnabledState;
 
 		// Stores our tweaked value for roll torque.
-		[KSPField(isPersistant = true, guiName = "Roll Torque", guiUnits = "kN-m", guiFormat = "F2",
-			guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "Roll Torque", guiUnits = "kN-m",
+			guiFormat = "F2", guiActiveEditor = true)]
 		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
 		public float RollTorque;
 
 		// Stores our tweaked value for pitch torque.
-		[KSPField(isPersistant = true, guiName = "Pitch Torque", guiUnits = "kN-m", guiFormat = "F2",
-			guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "Pitch Torque", guiUnits = "kN-m",
+			guiFormat = "F2", guiActiveEditor = true)]
 		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
 		public float PitchTorque;
 
 		// Stores our tweaked value for yaw torque.
-		[KSPField(isPersistant = true, guiName = "Yaw Torque", guiUnits = "kN-m", guiFormat = "F2",
-			guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiName = "Yaw Torque", guiUnits = "kN-m",
+			guiFormat = "F2", guiActiveEditor = true)]
 		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
 		public float YawTorque;
 
 		// Stores our value for all-axis torque gain
-		[KSPField(isPersistant = true, guiName = "Torque Limiter", guiFormat = "P0",
-			guiActive = true, guiActiveEditor = false)]
-		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = .02f)]
+		[KSPField(isPersistant = true, guiName = "Torque Limiter", guiActive = true, guiActiveEditor = false)]
+		[UI_FloatEdit(minValue = 0f, maxValue = 100f, incrementSlide = 2f)]
 		public float TorqueGain;
 
 		// Construct ALL the objects.
@@ -86,7 +85,7 @@ namespace TweakableEverything
 			this.PitchTorque = -1;
 			this.YawTorque = -1;
 
-			this.TorqueGain = 1f;
+			this.TorqueGain = 100f;
 		}
 
 		public override void OnLoad(ConfigNode node)
@@ -208,9 +207,11 @@ namespace TweakableEverything
 
 			if (HighLogic.LoadedSceneIsFlight && this.reactionWheelModule != null)
 			{
-				this.reactionWheelModule.RollTorque = this.RollTorque * this.TorqueGain;
-				this.reactionWheelModule.PitchTorque = this.PitchTorque * this.TorqueGain;
-				this.reactionWheelModule.YawTorque = this.YawTorque * this.TorqueGain;
+				float gain = this.TorqueGain / 100f;
+
+				this.reactionWheelModule.RollTorque = this.RollTorque * gain;
+				this.reactionWheelModule.PitchTorque = this.PitchTorque * gain;
+				this.reactionWheelModule.YawTorque = this.YawTorque * gain;
 			}
 		}
 	}

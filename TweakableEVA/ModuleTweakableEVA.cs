@@ -41,8 +41,8 @@ namespace TweakableEVA
 	public class ModuleTweakableEVA : PartModule
 	#endif
 	{
-		[KSPField(guiName = "Thruster Throttle", guiFormat = "P0", guiActive = true, isPersistant = true)]
 		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = 0.05f, controlEnabled = true)]
+		[KSPField(guiName = "Thruster Throttle", guiFormat = "P0", guiActive = true, isPersistant = true)]
 		public float thrusterPowerThrottle;
 		private float lastPowerThrottle;
 
