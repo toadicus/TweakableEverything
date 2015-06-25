@@ -214,10 +214,8 @@ namespace TweakableEverything
 
 			waitingForStaging = true;
 
-			log.AppendFormat("\n\tOnStart with stagingEnabled={0}"/* +
-				"\npart.isInStagingList={1}"*/,
-				this.stagingEnabled/*,
-				this.part.isInStagingList()*/
+			log.AppendFormat("\n\tOnStart with stagingEnabled={0}",
+				this.stagingEnabled
 			);
 
 			log.AppendFormat("\n\tStarting with state {0}", state);
@@ -309,7 +307,6 @@ namespace TweakableEverything
 			this.justStarted = true;
 
 			log.AppendFormat("\n\tRegistering events");
-			GameEvents.onPartAttach.Add(this.onPartAttach);
 			GameEvents.onPartCouple.Add(this.onPartCouple);
 			GameEvents.onUndock.Add(this.onUndock);
 			GameEvents.onVesselChange.Add(this.onVesselChange);
@@ -337,9 +334,8 @@ namespace TweakableEverything
 			if (
 				this.partPrimary &&
 				stagingInstance != null &&
-				!waitingForStaging &&
-				!Staging.stackLocked
-			)
+				!waitingForStaging
+				)
 			{
 				log.AppendFormat("{0}: Time to update, stagingEnabled={1}, isInStagingList={2}",
 					this, this.stagingEnabled, this.part.isInStagingList());
@@ -392,6 +388,7 @@ namespace TweakableEverything
 
 				if (this.justStarted)
 				{
+					log.AppendFormat("\n\tJust started, so sort will wait till next update");
 					this.QueueStagingSort();
 					this.justStarted = false;
 				}
@@ -399,6 +396,16 @@ namespace TweakableEverything
 				log.Append("\nLateUpdate done.\n");
 			}
 				#if DEBUG
+				else if (stageSortQueued)
+				{
+					this.LogDebug("Stage sort queued but MST on {3} not updating:" +
+						"\n\tthis.partPrimary={0}, stagingInstance={1}, waitingForStaging={2}",
+						this.partPrimary.ToString(),
+						stagingInstance == null ? "null" : stagingInstance.ToString(),
+						waitingForStaging.ToString(),
+						this.part.partInfo.title
+					);
+				}
 			} catch (Exception x)
 			{
 				log.AppendFormat("\nCaught exception: {0}", x.ToString());
@@ -416,7 +423,6 @@ namespace TweakableEverything
 					{
 						log.AppendFormat("\n\t\tstagingInstance.stages.Count={0}", stagingInstance.stages.Count);
 					}
-					log.AppendFormat("\n\tStaging.stackLocked={0}", Staging.stackLocked);
 
 					printLog = true;
 				}
@@ -438,10 +444,14 @@ namespace TweakableEverything
 
 			log.AppendFormat("{0}: Destroying", this);
 
-			GameEvents.onPartAttach.Remove(this.onPartAttach);
 			GameEvents.onPartCouple.Remove(this.onPartCouple);
 			GameEvents.onUndock.Remove(this.onUndock);
 			GameEvents.onVesselChange.Remove(this.onVesselChange);
+
+			if (this.queuedStagingSort)
+			{
+				stageSortQueued = false;
+			}
 
 			log.AppendFormat("...events deregistered.");
 
@@ -514,17 +524,13 @@ namespace TweakableEverything
 						this.part.stageBefore, newInverseStage);
 				}
 
-				if (this.part.manualStageOffset > -1)
-				{
-					newInverseStage = this.part.manualStageOffset;
-
-					this.LogDebug("manualStageOffset={0}, new inverseStage={1}",
-						this.part.manualStageOffset, newInverseStage);
-				}
-
 				newInverseStage = Mathf.Clamp(newInverseStage, 0, stagingInstance.stages.Count);
 
 				this.LogDebug("inverseStage={0}", newInverseStage);
+			}
+			else
+			{
+				newInverseStage = -65536;
 			}
 
 			this.EnableAtStage(newInverseStage);
@@ -554,9 +560,15 @@ namespace TweakableEverything
 				}
 			}
 
-			if (this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
+			this.LogDebug("stagingInstance.stages.Count={0}", stagingInstance.stages.Count);
+
+			if (
+				this.part.inverseStage >= 0 &&
+				(this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
+			)
 			{
 				this.LogDebug("inverseStage equals stage count or we have a childStageOffset, adding new stage");
+
 				Staging.AddStageAt(this.part.inverseStage);
 			}
 
@@ -669,13 +681,21 @@ namespace TweakableEverything
 
 			this.stagingEnabled = true;
 
-			// int.MinValue is our sekrit key to not assign the stage
-			if (int.MinValue != newInverseStage)
+			// Using newInverseStage < 0 as a sekrit key to do special things.
+			if (newInverseStage >= 0)
 			{
 				this.part.inverseStage = newInverseStage;
 			}
 
 			this.part.stackIcon.CreateIcon();
+
+			// See, we're cheating and using the negative values as flags now.
+			if (newInverseStage < 0 &&
+				((-newInverseStage & 65536) != 0)
+			)
+			{
+				this.part.stackIcon.Freeze();
+			}
 
 			this.InvokeToggle();
 		}
@@ -730,6 +750,13 @@ namespace TweakableEverything
 				this.queuedStagingSort = true;
 				this.LogDebug("Staging sort queued.");
 			}
+			#if DEBUG
+			else
+			{
+				this.LogDebug("Could not queue staging sort; sort already queued, {0}by this module.",
+					this.queuedStagingSort ? "" : "not ");
+			}
+			#endif
 		}
 
 		// Gets the inverse stage in which this decoupler's part will be removed from the craft
@@ -779,22 +806,6 @@ namespace TweakableEverything
 		#endregion
 
 		#region Event Handlers
-		private void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
-		{
-			this.LogDebug("Caught onPartAttach with host {0} and target {1}", data.host, data.target);
-
-			// Do nothing if our part or the part being attached are null.
-			if (data.target == null || this.part == null)
-			{
-				return;
-			}
-
-			if (this.part.hasAncestorPart(data.target))
-			{
-				this.part.inverseStage = this.GetDecoupledStage();
-			}
-		}
-
 		private void onUndock(EventReport data)
 		{
 			if (data.origin != null)
