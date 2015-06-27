@@ -22,7 +22,7 @@
 // SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#define DEBUG
+
 using KSP;
 using System;
 using System.Reflection;
@@ -32,47 +32,94 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
+	/// <summary>
+	/// PartModule to facilitate the real-time toggling of Staging behavior for a subject Part.
+	/// </summary>
 	public class ModuleStagingToggle : PartModule
 	{
+		// A log for debugging.  Yay?
 		private static PooledDebugLogger log;
 
+		// The FieldInfo behind the more-useful stagingInstance, see below
 		private static FieldInfo stagingInstanceField;
+
+		// We want to look at the staging list directly, so we reflectively get the Staging instance.
 		private static Staging stagingInstance;
 
-		public static bool stageSortQueued = false;
+		// False for all ModuleStagingToggles after any OnStart, until Staging has a positive stage count.
+		private static bool waitingForStaging;
 
-		private bool stagingEnabledState;
+		// True when any ModuleStagingToggle has queued a sort, so we only queue one.
+		private static bool stageSortQueued = false;
 
 		#region Interface Elements
-		// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
-		[KSPField(isPersistant = true, guiName = "Staging", guiActive = true, guiActiveEditor = true)]
-		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
+		/// <summary>
+		/// Store the tweaked staging enabled toggle for clobbering the value in the real decouplerModule.
+		/// </summary> 
+		[KSPField(isPersistant = true, guiName = "Staging", guiActive = false, guiActiveEditor = false)]
 		public bool stagingEnabled;
 
+		/// <summary>
+		/// If true, this module will present toggle events in the editor
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public bool activeInEditor;
 
+		/// <summary>
+		/// If true, this module will present toggle events in flight
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public bool activeInFlight;
+
+		/// <summary>
+		/// If true, parts bearing this module will disable (or not enable) Staging behavior by default when placed
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public bool defaultDisabled;
 
+		/// <summary>
+		/// A string naming the staging icon to use for this part
+		/// </summary>
 		[KSPField(isPersistant = false)]
 		public string stagingIcon;
 
+		/// <summary>
+		/// Only one module should ever be running per part.
+		/// </summary>
+		public bool partPrimary;
+
+		/// <summary>
+		/// Only true when Enable/Disable Staging event has been clicked for this module and is being processed.
+		/// </summary>
+		public bool eventPrimary;
+
+		/// <summary>
+		/// Occurs when staging is toggled, and during startup
+		/// </summary>
 		public event ToggleEventHandler OnToggle;
 
+		/// <summary>
+		/// Toggle event handler.
+		/// </summary>
 		public delegate void ToggleEventHandler(object sender, ModuleStagingToggle.BoolArg args);
 		#endregion
 
-		// Stores the last toggle state so we can only run when things change.
-		protected bool forceUpdate;
-		protected bool queuedStagingSort;
+		// When true, forces a call to EnableAtStage or Disable in the next LateUpdate
+		private bool forceUpdate;
 
-		protected float updatePeriod;
-		protected float timeSinceUpdate;
+		// True only after OnStart, to defer queuing a Staging sort
+		private bool justStarted;
+
+		// True when this module has queued a Staging sort, so we know when to actually run the sort
+		private bool queuedStagingSort;
+
+		// True when this part has just been (re-)attached and needs to be unfrozen.
+		private bool queuedUnfreeze;
 
 		#region LifeCycle Methods
+		/// <summary>
+		/// Runs during Unity's Awake cycle.
+		/// </summary>
 		public override void OnAwake()
 		{
 			if (log == null)
@@ -88,8 +135,6 @@ namespace TweakableEverything
 
 			log.AppendFormat("\n\tOnAwake with defaultDisabled={0}", this.defaultDisabled);
 			this.stagingEnabled = !this.defaultDisabled;
-			this.updatePeriod = 0.0625f;
-			this.timeSinceUpdate = 0f;
 
 			this.forceUpdate = false;
 			this.queuedStagingSort = false;
@@ -109,7 +154,7 @@ namespace TweakableEverything
 					{
 						stagingInstanceField = field;
 
-						this.Log("Got Staging instance field: {0}",
+						this.LogDebug("Got Staging instance field: {0}",
 							stagingInstanceField == null ? "null" : stagingInstanceField.ToString());
 						
 						break;
@@ -119,26 +164,73 @@ namespace TweakableEverything
 
 			log.AppendFormat("\n{0}: Awake; stagingEnabled={1}.\n", this, this.stagingEnabled);
 
-			log.Print();
+			bool otherModuleIsPrimary = false;
+
+			PartModule module;
+			for (int mIdx = 0; mIdx < this.part.Modules.Count; mIdx++)
+			{
+				module = this.part.Modules[mIdx];
+
+				if (module is ModuleStagingToggle && module != this)
+				{
+					ModuleStagingToggle stagingModule = module as ModuleStagingToggle;
+
+					log.AppendFormat("\nForeign module at index {0} is primary", mIdx);
+
+					if (stagingModule.partPrimary)
+					{
+						otherModuleIsPrimary = true;
+						break;
+					}
+				}
+			}
+
+			this.partPrimary = !otherModuleIsPrimary;
+
+			log.AppendFormat("This module is {0}primary", this.partPrimary ? "" : "not ");
+
+			log.Print(false);
 		}
 
+		/// <summary>
+		/// Runs during Unity's Start cycle.
+		/// </summary>
 		public override void OnStart(StartState state)
 		{
+			if (!this.partPrimary)
+			{
+				this.LogWarning(
+					"Non-primary ModuleStagingToggle in part {0} with multiple ModuleStagingToggles not starting up.",
+					this.part.partInfo.title
+				);
+
+				this.Events["EnableEvent"].active = false;
+				this.Events["DisableEvent"].active = false;
+
+				return;
+			}
+
 			log.Clear();
 
 			log.AppendFormat("{0}: Starting up.", this);
 
-			log.AppendFormat("\n\tOnStart with stagingEnabled={0}"/* +
-				"\npart.isInStagingList={1}"*/,
-				this.stagingEnabled/*,
-				this.part.isInStagingList()*/
+			waitingForStaging = true;
+
+			log.AppendFormat("\n\tOnStart with stagingEnabled={0}",
+				this.stagingEnabled
 			);
 
 			log.AppendFormat("\n\tStarting with state {0}", state);
 			base.OnStart(state);
 
-			this.Fields["stagingEnabled"].guiActiveEditor = this.activeInEditor;
-			this.Fields["stagingEnabled"].guiActive = this.activeInFlight;
+			this.Events["EnableEvent"].active = !this.stagingEnabled;
+			this.Events["DisableEvent"].active = this.stagingEnabled;
+
+			this.Events["EnableEvent"].guiActiveEditor = this.activeInEditor;
+			this.Events["DisableEvent"].guiActiveEditor = this.activeInEditor;
+
+			this.Events["EnableEvent"].guiActive = this.activeInFlight;
+			this.Events["DisableEvent"].guiActive = this.activeInFlight;
 
 			log.AppendFormat("\n\tguiActiveEditor: {0} guiActive: {1}",
 				this.Fields["stagingEnabled"].guiActiveEditor, this.activeInFlight);
@@ -176,10 +268,45 @@ namespace TweakableEverything
 			{
 				stagingInstance = stagingInstanceField.GetValue(null) as Staging;
 
-				this.Log("Got Staging instance: {0}", stagingInstance == null ? "null" : stagingInstance.ToString());
+				this.LogDebug("Got Staging instance: {0}",
+					stagingInstance == null ? "null" : stagingInstance.ToString());
 			}
 
-			this.stagingEnabledState = this.stagingEnabled;
+			if (this.stagingEnabled && this.part.symmetryCounterparts != null)
+			{
+				for (int pIdx = 0; pIdx < this.part.symmetryCounterparts.Count; pIdx++)
+				{
+					Part symPartner = this.part.symmetryCounterparts[pIdx];
+
+					if (symPartner == null)
+					{
+						continue;
+					}
+
+					for (int mIdx = 0; mIdx < symPartner.Modules.Count; mIdx++)
+					{
+						PartModule module = symPartner.Modules[mIdx];
+
+						if (module == null || !(module is ModuleStagingToggle))
+						{
+							continue;
+						}
+
+						ModuleStagingToggle symModule = module as ModuleStagingToggle;
+
+						if (symModule.stagingEnabled == this.defaultDisabled)
+						{
+							this.stagingEnabled = symModule.stagingEnabled;
+
+							log.AppendFormat("\n\tAssigning stagingEnabled={0} because a symmetry partner" +
+								" with non-default options was found on startup", this.stagingEnabled);
+						}
+					}
+				}
+			}
+
+			this.forceUpdate = true;
+			this.justStarted = true;
 
 			log.AppendFormat("\n\tRegistering events");
 			GameEvents.onPartAttach.Add(this.onPartAttach);
@@ -190,78 +317,148 @@ namespace TweakableEverything
 			log.AppendFormat("\nStarted; stagingEnabled: {0}, part.stackIcon.iconImage: {1}\n",
 				this.stagingEnabled, this.part.stackIcon.iconImage);
 
-			log.Print();
+			log.Print(false);
 		}
 
+		/// <summary>
+		/// Runs during Unity's LateUpdate cycle.
+		/// </summary>
 		public void LateUpdate()
 		{
-			if (
-				this.timeSinceUpdate > this.updatePeriod &&
-				stagingInstance != null &&
-				stagingInstance.stages.Count > 0 &&
-				!Staging.stackLocked
-			)
-			{
-				log.Clear();
+			waitingForStaging &= stagingInstance.stages.Count < 1;
 
+			#if DEBUG
+			bool printLog = false;
+			try {
+			#endif
+			
+			log.Clear();
+			
+			if (
+				this.partPrimary &&
+				stagingInstance != null &&
+				!waitingForStaging
+				)
+			{
 				log.AppendFormat("{0}: Time to update, stagingEnabled={1}, isInStagingList={2}",
 					this, this.stagingEnabled, this.part.isInStagingList());
 
+				if (this.forceUpdate)
+				{
+					this.forceUpdate = false;
+
+					log.AppendFormat("\n\tUpdate forced...");
+					if (this.stagingEnabled)
+					{
+						this.EnableAtStage(this.part.inverseStage);
+						log.AppendFormat("enabled at stage {0}", this.part.inverseStage);
+					}
+					else if (!this.stagingEnabled)
+					{
+						this.DisableInStage(this.part.inverseStage);
+						log.AppendFormat("disabled");
+					}
+
+					#if DEBUG
+					printLog = true;
+					#endif
+				}
+
 				if (stageSortQueued && this.queuedStagingSort)
 				{
-					log.AppendFormat("\n\tThis module queued a staging event last update; scheduling it now.");
-
-					Staging.ScheduleSort();
-
+					// Un-queue the sort whether we can do it or not
 					stageSortQueued = false;
 					this.queuedStagingSort = false;
+
+					if (stagingInstance.stages.Count > 0)
+					{
+						log.AppendFormat("\n\tThis module queued a staging event last update; sorting now.");
+
+						Staging.SortNow();
+					}
+					#if DEBUG
+					else
+					{
+						log.AppendFormat(
+							"\n\tThis module queued a staging event last update, but now the stage list is empty." +
+							"\n\tun-queuing sort"
+						);
+					}
+
+					printLog = true;
+					#endif
 				}
 
-				this.timeSinceUpdate = 0f;
-
-				Part rootPart;
-				switch (HighLogic.LoadedScene)
+				if (this.justStarted)
 				{
-					case GameScenes.EDITOR:
-						rootPart = EditorLogic.RootPart;
-						break;
-					case GameScenes.FLIGHT:
-						rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
-						break;
-					default:
-						rootPart = null;
-						break;
+					log.AppendFormat("\n\tJust started, so sort will wait till next update");
+
+					if (!this.part.hasAncestorPart(ToadicusTools.Tools.GetSceneRootPart()))
+					{
+						this.part.stackIcon.Freeze();
+					}
+
+					this.QueueStagingSort();
+					this.justStarted = false;
 				}
 
-				// If our staging state has changed...
-				if (rootPart != null &&
-					this.part.hasAncestorPart(rootPart) &&
-					(this.forceUpdate || this.stagingEnabled != this.part.isInStagingList())
-				)
+				if (this.queuedUnfreeze)
 				{
-					log.AppendFormat("\n\tStaging state changed." +
-					"\n\t\tstagingEnable: {0}" +
-					"\n\t\tpart.stackIcon.iconImage: {1}" +
-					"\n\t\tpart.isInStagingList: {2}",
-						this.stagingEnabled,
-						this.part.stackIcon.iconImage,
-						this.part.isInStagingList()
-					);
+					if (HighLogic.LoadedSceneIsEditor)
+					{
+						this.part.inverseStage = this.FindLogicalStage();
+					}
 
-					// ...and switch the staging
-					this.SwitchStaging(this.stagingEnabled);
-	
-					this.forceUpdate = false;
+					this.part.stackIcon.Unfreeze();
+
+					this.queuedUnfreeze = false;
 				}
 
 				log.Append("\nLateUpdate done.\n");
-
-				log.Print();
 			}
+				#if DEBUG
+				else if (stageSortQueued)
+				{
+					this.LogDebug("Stage sort queued but MST on {3} not updating:" +
+						"\n\tthis.partPrimary={0}, stagingInstance={1}, waitingForStaging={2}",
+						this.partPrimary.ToString(),
+						stagingInstance == null ? "null" : stagingInstance.ToString(),
+						waitingForStaging.ToString(),
+						this.part.partInfo.title
+					);
+				}
+			} catch (Exception x)
+			{
+				log.AppendFormat("\nCaught exception: {0}", x.ToString());
+			}
+			finally
+			{
+				if (stageSortQueued && this.queuedStagingSort)
+				{
+					log.AppendFormat("\nstagingSortQueued and this.queuedStagingSort still true after LateUpdate");
+					log.AppendFormat("\n\tthis.partPrimary={0}", this.partPrimary);
+					log.AppendFormat("\n\tstagingInstance={0}",
+						stagingInstance == null ? "null" : stagingInstance.ToString());
+					log.AppendFormat("\n\twaitingForStaging={0}", waitingForStaging);
+					if (stagingInstance != null && stagingInstance.stages != null)
+					{
+						log.AppendFormat("\n\t\tstagingInstance.stages.Count={0}", stagingInstance.stages.Count);
+					}
 
-			this.timeSinceUpdate += Time.smoothDeltaTime;
+					printLog = true;
+				}
+
+				if (printLog)
+				{
+					log.Print(false);
+				}
+			}
+			#endif
 		}
 
+		/// <summary>
+		/// Runs when Unity destroys this object
+		/// </summary>
 		public void OnDestroy()
 		{
 			log.Clear();
@@ -273,161 +470,358 @@ namespace TweakableEverything
 			GameEvents.onUndock.Remove(this.onUndock);
 			GameEvents.onVesselChange.Remove(this.onVesselChange);
 
+			if (this.queuedStagingSort)
+			{
+				stageSortQueued = false;
+			}
+
 			log.AppendFormat("...events deregistered.");
 
-			log.Print();
+			log.Print(false);
+
+			log.Dispose();
+		}
+		#endregion
+
+		#region KSPEvents
+		/// <summary>
+		/// KSPEvent handler to enable staging on this part.
+		/// </summary>
+		[KSPEvent(guiName = "Enable Staging")]
+		public void EnableEvent()
+		{
+			if (this.part == null)
+			{
+				this.LogError("Cannot enable staging: part reference is null");
+				return;
+			}
+
+			Part rootPart = ToadicusTools.Tools.GetSceneRootPart();
+
+			int newInverseStage = 0;
+
+			if (rootPart != null && this.part.hasAncestorPart(rootPart))
+			{
+				this.LogDebug("Part is on vessel; figuring new stage.");
+
+				Part parentDecouplerPart;
+
+				newInverseStage = this.FindLogicalStage(out parentDecouplerPart);
+
+				this.LogDebug("parentDecouplerPart={0}, new inverseStage={1}",
+					parentDecouplerPart == null ? "null" : parentDecouplerPart.partInfo.title,
+					newInverseStage
+				);
+
+				this.LogDebug("inverseStage={0}", newInverseStage);
+			}
+			else
+			{
+				newInverseStage = -65536;
+			}
+
+			this.EnableAtStage(newInverseStage);
+
+			if (HighLogic.LoadedSceneIsEditor)
+			{
+				this.LogDebug("In editor; checking if we need to enable symmetry partners");
+
+				if (this.part.symmetryCounterparts != null)
+				{
+					this.LogDebug("Enabling {0} symmetry partners", this.part.symmetryCounterparts.Count);
+
+					Part symCounterPart;
+					for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
+					{
+						symCounterPart = this.part.symmetryCounterparts[sIdx];
+
+						ModuleStagingToggle symStagingToggle;
+						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
+						{
+							if (!symStagingToggle.eventPrimary)
+							{
+								symStagingToggle.EnableAtStage(newInverseStage);
+							}
+						}
+					}
+				}
+			}
+
+			this.LogDebug("stagingInstance.stages.Count={0}", stagingInstance.stages.Count);
+
+			if (
+				this.part.inverseStage >= 0 &&
+				(this.part.inverseStage == stagingInstance.stages.Count || this.part.childStageOffset > 0)
+			)
+			{
+				this.LogDebug("inverseStage equals stage count or we have a childStageOffset, adding new stage");
+
+				Staging.AddStageAt(this.part.inverseStage);
+			}
+
+			this.LogDebug("Queueing sort");
+			this.QueueStagingSort();
+
+			this.eventPrimary = false;
+
+			this.LogDebug("Enabled");
+		}
+
+		/// <summary>
+		/// KSPEvent handler to disable staging on this part.
+		/// </summary>
+		[KSPEvent(guiName = "Disable Staging")]
+		public void DisableEvent()
+		{
+			if (this.part == null)
+			{
+				this.LogError("Cannot disable staging: part reference is null");
+				return;
+			}
+
+			this.eventPrimary = true;
+
+			this.LogDebug("Disable Staging clicked");
+
+			if (HighLogic.LoadedSceneIsEditor)
+			{
+				if (this.part.symmetryCounterparts != null)
+				{
+					Part symCounterPart;
+					for (int sIdx = 0; sIdx < this.part.symmetryCounterparts.Count; sIdx++)
+					{
+						symCounterPart = this.part.symmetryCounterparts[sIdx];
+
+						ModuleStagingToggle symStagingToggle;
+						if (symCounterPart != null && symCounterPart.tryGetFirstModuleOfType(out symStagingToggle))
+						{
+							if (!symStagingToggle.eventPrimary)
+							{
+								symStagingToggle.DisableInStage(0);
+							}
+						}
+					}
+				}
+			}
+
+			// Use the sekrit password to avoid changing our inverseStage here.
+			this.DisableInStage(int.MinValue);
+
+			Part rootPart = ToadicusTools.Tools.GetSceneRootPart();
+
+			this.LogDebug("Got root part: {0}", rootPart);
+
+			if (rootPart != null && this.part.hasAncestorPart(rootPart))
+			{
+				this.LogDebug("We have root as ancenstor, let's try to delete our stage." +
+					"\n\tthis.part.inverseStage={0}, stagingInstance.stages.Count={1}",
+					this.part.inverseStage, stagingInstance.stages.Count
+				);
+
+				if (this.part.inverseStage < stagingInstance.stages.Count)
+				{
+					StageGroup ourGroup = stagingInstance.stages[this.part.inverseStage];
+
+					this.LogDebug("ourGroup={0}, ourGroup.icons.Count={1}", ourGroup, ourGroup.icons.Count);
+
+					if (ourGroup != null && ourGroup.icons.Count == 0)
+					{
+						this.LogDebug("Deleting stage");
+
+						Staging.DeleteStage(ourGroup);
+					}
+				}
+			}
+
+			// Since we didn't set it in DisableInStage, set it here.
+			this.part.inverseStage = 0;
+
+			this.QueueStagingSort();
+
+			this.eventPrimary = false;
 		}
 		#endregion
 
 		#region Utility Methods
-		protected void SwitchStaging(bool enabled)
+		/// <summary>
+		/// Utility method for enabling staging on this part at the designated inverseStage
+		/// </summary>
+		/// <param name="newInverseStage">The inverse stage (top down) at which to place this part</param>
+		public void EnableAtStage(int newInverseStage)
 		{
-			if (this.part == null)
+			this.LogDebug("Enabling");
+
+			this.Events["EnableEvent"].active = false;
+			this.Events["DisableEvent"].active = true;
+
+			this.stagingEnabled = true;
+
+			// Using newInverseStage < 0 as a sekrit key to do special things.
+			if (newInverseStage >= 0)
 			{
-				log.AppendFormat("\n\t...could not switch staging: part reference is null.");
-				return;
+				this.part.inverseStage = newInverseStage;
 			}
 
-			if (this.part.isInStagingList())
+			this.part.stackIcon.CreateIcon();
+
+			// See, we're cheating and using the negative values as flags now.
+			if (newInverseStage < 0 &&
+				((-newInverseStage & 65536) != 0)
+			)
 			{
-				log.Append("\n\t\tWe removed our icon from staging, so fetching a new inverseStage");
-				this.part.inverseStage = this.GetDecoupledStage() + this.part.stageOffset;
-				log.AppendFormat("={0}", this.part.inverseStage);
-			}
-			#if DEBUG
-			else
-			{
-				log.Append("\n\t\tOur icon was already not in staging, so not assigning a new inverseStage.");
-			}
-			#endif
-
-			log.AppendFormat("\n\t...doStageAssignment: {0}", this.part.isInStagingList());
-
-			// If we're switching to enabled...
-			if (enabled)
-			{
-				this.part.inverseStage = Math.Max(this.part.inverseStage, 0);
-
-				log.AppendFormat("\n\tSwitching staging to enabled, default new inverseStage={0}",
-					this.part.inverseStage);
-
-				// ..and if we've toggled staging and our part has fallen off the staging list...
-				if (
-					this.stagingEnabledState != this.stagingEnabled &&
-					stagingInstance.stages.Count < this.part.inverseStage + 1
-				)
-				{
-					// ...add a new stage at the end
-					log.AppendFormat("\n\tTrying to add new stage at {0}", stagingInstance.stages.Count);
-
-					try
-					{
-						Staging.AddStageAt(stagingInstance.stages.Count);
-					}
-					catch (ArgumentOutOfRangeException)
-					{
-						log.AppendFormat("\n\t...Handled ArgumentOutOfRangeException instead.");
-					}
-
-					// ...and move our part to it
-					this.part.inverseStage = stagingInstance.stages.Count - 1;
-
-					log.AppendFormat("\n\t\tinverseStage had fallen off the list, fixed to {0}",
-						this.part.inverseStage);
-				}
-
-				// ...add our icon to the staging list
-				log.Append("\n\tCreating our staging icon in the staging list.");
-				this.part.stackIcon.CreateIcon();
-			}
-			// ...otherwise, we're switching to disabled, so...
-			else
-			{
-				log.Append("\n\tSwitching staging to disabled");
-
-				log.Append("\n\tRemoving our staging icon from the staging list");
-				// ...remove the icon from the list
-				this.part.stackIcon.RemoveIcon();
+				this.part.stackIcon.Freeze();
 			}
 
-			// this.part.inverseStage = Math.Max(Math.Min(this.part.defaultInverseStage, stagingInstance.stages.Count - 1), 0);
+			this.InvokeToggle();
+		}
 
-			// Sort the staging list
-			if (!stageSortQueued)
+		/// <summary>
+		/// Utility method for disabling staging on this part. 
+		/// </summary>
+		public void DisableInStage(int newInverseStage)
+		{
+			this.LogDebug("Disabling");
+
+			this.Events["EnableEvent"].active = true;
+			this.Events["DisableEvent"].active = false;
+
+			this.part.stackIcon.RemoveIcon();
+
+			this.stagingEnabled = false;
+
+			// int.MinValue is our sekrit key to not assign the stage
+			if (int.MinValue != newInverseStage)
 			{
-				log.Append("\n\tNo other module has queued a staging sort this update; queueing now.");
-
-				stageSortQueued = true;
-				this.queuedStagingSort = true;
+				this.part.inverseStage = newInverseStage;
 			}
 
+			this.InvokeToggle();
+		}
+
+		private void InvokeToggle()
+		{
 			if (this.OnToggle != null)
 			{
 				log.Append("\n\tWe have OnToggle subscribers; firing OnToggle event for them now.");
 				this.OnToggle(this, this.stagingEnabled ? BoolArg.True : BoolArg.False);
 			}
 
-			this.stagingEnabledState = this.stagingEnabled;
-
 			log.Append("\n\tStaging switch done");
 		}
 
-		// Gets the inverse stage in which this decoupler's part will be removed from the craft
-		protected int GetDecoupledStage()
+		/// <summary>
+		/// Queues a Staging sort, if none is queued already.
+		/// </summary>
+		#if DEBUG
+		[KSPEvent(guiName="Queue Staging Sort", guiActiveEditor=true, guiActive=true, active=true)]
+		public void QueueStagingSort()
+		#else
+		private void QueueStagingSort()
+		#endif
 		{
-			int iStage = 0;
-
-			if (this.stagingEnabled)
+			if (!stageSortQueued)
 			{
-				iStage = this.part.inverseStage;
+				stageSortQueued = true;
+				this.queuedStagingSort = true;
+				this.LogDebug("Staging sort queued.");
 			}
+			#if DEBUG
 			else
 			{
-				Part ancestorPart = this.part;
-				while (ancestorPart.parent != null)
+				this.LogDebug("Could not queue staging sort; sort already queued, {0}by this module.",
+					this.queuedStagingSort ? "" : "not ");
+			}
+			#endif
+		}
+
+		// Gets the inverse stage in which this decoupler's part will be removed from the craft
+		private int FindLogicalStage()
+		{
+			Part _;
+			return this.FindLogicalStage(out _);
+		}
+
+		private int FindLogicalStage(out Part parentDecouplerPart)
+		{
+			int newInverseStage = 0;
+
+			parentDecouplerPart = null;
+
+			this.LogDebug("this.part.parent={0}", this.part.parent == null ? "null" : this.part.parent.partInfo.title);
+
+			Part ancestorPart = this.part;
+			while (ancestorPart.parent != null)
+			{
+				ancestorPart = ancestorPart.parent;
+				this.LogDebug("Checking if ancestorPart {0} is decoupler", ancestorPart);
+				if (ancestorPart.isDecoupler())
 				{
-					ancestorPart = ancestorPart.parent;
+					this.LogDebug("ancestorPart {0} is decoupler, checking if staging is disabled", ancestorPart);
 
-					if (ancestorPart.isDecoupler())
+					ModuleStagingToggle tweakableStagingModule;
+
+					if (ancestorPart.tryGetFirstModuleOfType<ModuleStagingToggle>(out tweakableStagingModule))
 					{
-						ModuleStagingToggle tweakableStagingModule;
-
-						if (ancestorPart.tryGetFirstModuleOfType<ModuleStagingToggle>(out tweakableStagingModule))
+						if (!tweakableStagingModule.stagingEnabled)
 						{
-							if (!tweakableStagingModule.stagingEnabled)
-							{
-								continue;
-							}
+							this.LogDebug("ancestorPart {0} staging is disabled, skipping", ancestorPart);
+							continue;
 						}
-
-						iStage = ancestorPart.inverseStage;
-						break;
 					}
+
+					this.LogDebug("ancestorPart {0} staging is enabled, recording", ancestorPart);
+					newInverseStage = ancestorPart.inverseStage;
+					parentDecouplerPart = ancestorPart;
+					break;
 				}
 			}
 
-			return iStage;
+			if (parentDecouplerPart != null && parentDecouplerPart.childStageOffset > 0)
+			{
+				newInverseStage += parentDecouplerPart.childStageOffset;
+
+				this.LogDebug("parentDecouplerPart.childStageOffset={0}, new inverseStage={1}",
+					parentDecouplerPart.childStageOffset, newInverseStage);
+			}
+
+			newInverseStage += this.part.stageOffset;
+
+			this.LogDebug("stageOffset={0}, new inverseStage={1}",
+				this.part.stageOffset, newInverseStage);
+
+			if (this.part.stageBefore)
+			{
+				newInverseStage++;
+
+				this.LogDebug("stageBefore={0}, new inverseStage={1}",
+					this.part.stageBefore, newInverseStage);
+			}
+
+			newInverseStage = Mathf.Clamp(newInverseStage, 0, stagingInstance.stages.Count);
+
+			return newInverseStage;
 		}
 		#endregion
 
 		#region Event Handlers
 		protected void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
 		{
-			this.LogDebug("Caught onPartAttach with host {0} and target {1}", data.host, data.target);
+			this.LogDebug("Caught onPartAttach with host {0} and target {1} for part {2}",
+				data.host, data.target, this.part);
 
 			// Do nothing if our part or the part being attached are null.
-			if (data.target == null || this.part == null)
+			if (data.host == null || this.part == null)
 			{
 				return;
 			}
 
-			if (this.part.hasAncestorPart(data.target))
+			if (this.part.hasAncestorPart(data.host))
 			{
-				this.part.inverseStage = this.GetDecoupledStage();
+				this.queuedUnfreeze = true;
 			}
 		}
 
-		protected void onUndock(EventReport data)
+		private void onUndock(EventReport data)
 		{
 			if (data.origin != null)
 			{
@@ -436,7 +830,7 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onPartCouple(GameEvents.FromToAction<Part, Part> data)
+		private void onPartCouple(GameEvents.FromToAction<Part, Part> data)
 		{
 			if (data.from != null)
 			{
@@ -451,7 +845,7 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onVesselChange(Vessel data)
+		private void onVesselChange(Vessel data)
 		{
 			if (this.part.vessel != null && data.id == this.part.vessel.id)
 			{
@@ -460,7 +854,7 @@ namespace TweakableEverything
 			}
 		}
 
-		protected void onPartEvent(Part data)
+		private void onPartEvent(Part data)
 		{
 			if (data.vessel != null && data.vessel.id == this.part.vessel.id)
 			{
@@ -469,9 +863,25 @@ namespace TweakableEverything
 		}
 		#endregion
 
+		/// <summary>
+		/// Bool argument for Events
+		/// </summary>
 		public class BoolArg : EventArgs
 		{
+			/// <param name="arg">Argument</param>
+			public static explicit operator bool(BoolArg arg)
+			{
+				return arg.Value;
+			}
+
+			/// <summary>
+			/// A <c>BoolArg</c> representing the <see cref="bool"/> value true
+			/// </summary>
 			public static readonly BoolArg True;
+
+			/// <summary>
+			/// A <c>BoolArg</c> representing the <see cref="bool"/> value false
+			/// </summary>
 			public static readonly BoolArg False;
 
 			static BoolArg()
@@ -480,10 +890,17 @@ namespace TweakableEverything
 				False = new BoolArg(false);
 			}
 
-			public bool Value { get; protected set; }
+			/// <summary>
+			/// Gets or sets the boolean value of this object
+			/// </summary>
+			public bool Value { get; private set; }
 
 			private BoolArg() {}
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="TweakableEverything.ModuleStagingToggle.BoolArg"/> class.
+			/// </summary>
+			/// <param name="value">Boolean value of the new object</param>
 			public BoolArg(bool value) : base()
 			{
 				this.Value = value;

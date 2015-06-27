@@ -39,6 +39,7 @@
         <Command type="AfterBuild" command="xcopy /Y ${TargetFile} ${SolutionDir}\GameData\TweakableEverything\" />
       </CustomCommands>
     </CustomCommands>
+    <DocumentationFile>bin\Release\TweakableStaging.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_linux|AnyCPU' ">
     <Optimize>true</Optimize>

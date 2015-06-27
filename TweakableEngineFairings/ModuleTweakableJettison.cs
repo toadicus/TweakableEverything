@@ -48,7 +48,10 @@ namespace TweakableEverything
 		private Dictionary<string, Transform> jettisonTransforms;
 		private Dictionary<string, bool> hasJettisonedTable;
 
-		private AttachNode bottomNode;
+		// jettisonName-keyed table of AttachNode bottomNodes
+		private Dictionary<string, AttachNode> bottomNodesTable;
+		// bottomNode.id-keyed table of "hadAttachedPart" status values
+		private Dictionary<string, bool> lastBottomNodeStatusTable;
 
 		[KSPField(isPersistant = true, guiName = "Fairing", guiActive = false, guiActiveEditor = true)]
 		[UI_Toggle(enabledText = "Disabled", disabledText = "Enabled")]
@@ -56,32 +59,17 @@ namespace TweakableEverything
 
 		private bool disableState;
 
-		private bool hadAttachedPart;
-
-		private bool hasAttachedPart
-		{
-			get
-			{
-				if (this.bottomNode == null)
-				{
-					return false;
-				}
-				else
-				{
-					return this.bottomNode.attachedPart != null;
-				}
-			}
-		}
-
 		public ModuleTweakableJettison()
 		{
 			// Seed disable flag to false to emulate stock behavior
 			this.disableFairing = false;
-			this.hadAttachedPart = false;
 
 			this.jettisonModules = new List<ModuleJettison>();
 			this.jettisonTransforms = new Dictionary<string, Transform>();
 			this.hasJettisonedTable = new Dictionary<string, bool>();
+
+			this.bottomNodesTable = new Dictionary<string, AttachNode>();
+			this.lastBottomNodeStatusTable = new Dictionary<string, bool>();
 		}
 
 		public override void OnStart(StartState state)
@@ -122,9 +110,12 @@ namespace TweakableEverything
 						continue;
 					}
 
-					if (this.bottomNode == null)
+					AttachNode bottomNode = this.part.findAttachNode(jettisonModule.bottomNodeName);
+
+					if (bottomNode != null)
 					{
-						this.bottomNode = this.part.findAttachNode(jettisonModule.bottomNodeName);
+						this.bottomNodesTable[jettisonModule.jettisonName] = bottomNode;
+						this.lastBottomNodeStatusTable[bottomNode.id] = false;
 					}
 
 					this.jettisonModules.Add(jettisonModule);
@@ -210,26 +201,34 @@ namespace TweakableEverything
 			if (
 				this.jettisonModules.Count < 1 ||
 				(
-					this.hasAttachedPart == this.hadAttachedPart &&
-					this.disableState == this.disableFairing
-				)
-			)
+				    !this.anyBottomNodeChanged() &&
+				    this.disableState == this.disableFairing
+				))
 			{
 				// ...move on with life
+				this.LogDebug(
+					"Skipping LateUpdate because nothing changed." +
+					"\n\tjettisonModules.Count={3}" +
+					"\n\tanyBottomNodeChanged={0}, disableFairing={1}, disableState={2}",
+					this.anyBottomNodeChanged(), this.disableFairing, this.disableState, jettisonModules.Count
+				);
+
 				return;
 			}
 			// Otherwise...
 
 			this.LogDebug(
-				"Something changed!  hasAttachedPart={0}, hadAttachedPart={1}, disableFairing={2}, disableState={3}",
-				this.hasAttachedPart, this.hadAttachedPart, this.disableFairing, this.disableState
+				"Something changed!  anyBottomNodeChanged={0}, disableFairing={1}, disableState={2}",
+				this.anyBottomNodeChanged(), this.disableFairing, this.disableState
 			);
 
 			// ...re-seed the states
 			this.disableState = this.disableFairing;
-			this.hadAttachedPart = this.hasAttachedPart;
+			// Move this down to the loop; this.hadAttachedPart = this.hasAttachedPart;
 
-			bool partMayHaveFairing = !this.disableFairing && this.hasAttachedPart;
+			bool partMayHaveFairing = !this.disableFairing;
+
+			bool moduleShouldHaveFairing;
 
 			this.LogDebug("partMayHaveFairing: {0}", partMayHaveFairing);
 
@@ -245,6 +244,7 @@ namespace TweakableEverything
 					this.LogError("Skipping problematic jettisonModule at index {0}", jIdx);
 					continue;
 				}
+
 				// ...otherwise...
 				// ...fetch the transform...
 				Transform jettisonTransform = this.jettisonTransforms[jettisonModule.jettisonName];
@@ -258,6 +258,26 @@ namespace TweakableEverything
 					continue;
 				}
 
+				// ...if we have a bottomNode...
+				AttachNode bottomNode;
+				if (this.bottomNodesTable.TryGetValue(jettisonModule.jettisonName, out bottomNode))
+				{
+					// ... seed ShouldHaveFairing with its current hasAttachedPart status, and update the cache...
+					moduleShouldHaveFairing = bottomNode.attachedPart != null;
+					this.lastBottomNodeStatusTable[bottomNode.id] = moduleShouldHaveFairing;
+
+					this.LogDebug("Got bottomNode={0} for jettinModule {1}\n\t...moduleShouldHaveFairing={2}",
+						bottomNode.id, jettisonModule.jettisonName, moduleShouldHaveFairing);
+				}
+				else
+				{
+					// ...otherwise, assume we aren't checking for parts and carry on...
+					this.LogDebug("No bottom node recorded for jettisonModule {0}\n\t...moduleShouldHaveFairing=true",
+						jettisonModule.jettisonName);
+					
+					moduleShouldHaveFairing = true;
+				}
+
 				this.LogDebug("this.hasJettisonedTable[{0}]={1}, LoadedSceneIsEditor={2}",
 					jettisonModule.jettisonName,
 					this.hasJettisonedTable[jettisonModule.jettisonName],
@@ -266,7 +286,7 @@ namespace TweakableEverything
 
 				// Disable fairings if we know to have loaded with them already jettisoned, but allow them to be 
 				// re-enabled in the editor.
-				bool moduleShouldHaveFairing =
+				moduleShouldHaveFairing &=
 					partMayHaveFairing &&
 					(
 						!this.hasJettisonedTable[jettisonModule.jettisonName] ||
@@ -309,6 +329,54 @@ namespace TweakableEverything
 			this.hasJettisonedTable[jettisonModule.jettisonName] = true;
 
 			this.Events[string.Format("{0}{1}", jettisonModule.jettisonName, "jettisonEvent")].guiActive = false;
+		}
+
+		/// <summary>
+		/// Checks if any of the named "bottom" AttachNodes have changed from having a part to not having a part, or
+		/// vice-versa, since the last update.
+		/// </summary>
+		private bool anyBottomNodeChanged()
+		{
+			AttachNode bottomNode;
+			bool hadAttachedPart;
+			bool hasAttachedPart;
+
+			using (var log = Tools.DebugLogger.New(this))
+			{
+				log.AppendFormat("Checking if any bottom node changed for ModuleTweakableJettison on {0}",
+					this.part.partInfo.title
+				);
+
+				using (var bnEnumerator = this.bottomNodesTable.Values.GetEnumerator())
+				{
+					while (bnEnumerator.MoveNext())
+					{
+						bottomNode = bnEnumerator.Current;
+
+						log.AppendFormat("\n\tChecking node {0}...", bottomNode.id);
+
+						hasAttachedPart = bottomNode.attachedPart != null;
+
+						log.AppendFormat("\n\t...hasAttachedPart = {0}", hasAttachedPart);
+
+						if (this.lastBottomNodeStatusTable.TryGetValue(bottomNode.id, out hadAttachedPart))
+						{
+							log.AppendFormat("\n\t...hadAttachedPart = {0}", hadAttachedPart);
+
+							if (hadAttachedPart != hasAttachedPart)
+							{
+								log.AppendFormat("\n...returning true");
+								log.Print(false);
+								return true;
+							}
+						}
+					}
+				}
+
+				log.AppendFormat("\n...returning false");
+				log.Print(false);
+				return false;
+			}
 		}
 	}
 }
