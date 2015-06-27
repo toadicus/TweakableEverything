@@ -29,7 +29,7 @@
 using KSP;
 using System;
 using System.Collections.Generic;
-using ToadicusTools;
+using ToadicusTools.Extensions;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -61,7 +61,7 @@ namespace TweakableEverything
 		// Stores the solar panel module we're tweaking
 		protected ModuleDeployableSolarPanel panelModule;
 		// Stores the solar panel animation we're clobbering.
-		protected AnimationWrapper panelAnimation;
+		protected ToadicusTools.AnimationWrapper panelAnimation;
 
 		// Construct ALL the objects.
 		public ModuleTweakableSolarPanel()
@@ -84,7 +84,7 @@ namespace TweakableEverything
 				this.sunTrackingState = !this.sunTrackingEnabled;
 
 				// Yay debugging!
-				Tools.PostDebugMessage(this,
+				this.LogDebug(
 					"panelModule: " + this.panelModule,
 					"storedAnimationTime: " + this.panelModule.storedAnimationTime,
 					"storedAnimationSpeed: " + this.panelModule.storedAnimationSpeed,
@@ -103,13 +103,11 @@ namespace TweakableEverything
 					return;
 				}
 
-				// Build an AnimationWrapper
-				this.panelAnimation = new AnimationWrapper(anim, this.panelModule.animationName, PlayDirection.Forward);
+				// Build an ToadicusTools.
+				this.panelAnimation = new ToadicusTools.AnimationWrapper(anim, this.panelModule.animationName, ToadicusTools.PlayDirection.Forward);
 
 				// Yay debugging!
-				Tools.PostDebugMessage(this,
-					"panelAnimation: " + this.panelAnimation
-				);
+				this.LogDebug("panelAnimation: " + this.panelAnimation);
 
 				// If we are in the editor and have an animation...
 				if (HighLogic.LoadedSceneIsEditor && this.panelAnimation != null)
@@ -166,10 +164,10 @@ namespace TweakableEverything
 					if (this.StartOpened)
 					{
 						// Yay debugging!
-						Tools.PostDebugMessage(this, "Extending panel.");
+						this.LogDebug("Extending panel.");
 
 						// ...move the animation to the end with a "forward" play speed.
-						this.panelAnimation.SkipTo(PlayPosition.End);
+						this.panelAnimation.SkipTo(ToadicusTools.PlayPosition.End);
 						this.panelModule.storedAnimationTime = 1f;
 
 						// ...flag the panel as extended.
@@ -180,10 +178,10 @@ namespace TweakableEverything
 					else
 					{
 						// Yay debugging!
-						Tools.PostDebugMessage(this, "Retracting panel.");
+						this.LogDebug("Retracting panel.");
 
 						// ...move the animation to the beginning with a "backward" play speed.
-						this.panelAnimation.SkipTo(PlayPosition.Beginning);
+						this.panelAnimation.SkipTo(ToadicusTools.PlayPosition.Beginning);
 						this.panelModule.storedAnimationTime = 0f;
 
 						// ...flag the panel as retracted.

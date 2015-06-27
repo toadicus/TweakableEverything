@@ -47,7 +47,7 @@ namespace TweakableEverything
 
 			if (part == null || part.Modules == null)
 			{
-				ToadicusTools.Tools.PostWarningMessage("[PartIsStagingDockingPort]: Part or Part.Modules are null, returning false");
+				ToadicusTools.Logging.PostWarningMessage("[PartIsStagingDockingPort]: Part or Part.Modules are null, returning false");
 				return false;
 			}
 

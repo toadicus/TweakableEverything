@@ -29,7 +29,8 @@
 using KSP;
 using System;
 using System.Collections.Generic;
-using ToadicusTools;
+using ToadicusTools.DebugTools;
+using ToadicusTools.Extensions;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -341,7 +342,7 @@ namespace TweakableEverything
 			bool hadAttachedPart;
 			bool hasAttachedPart;
 
-			using (var log = Tools.DebugLogger.New(this))
+			using (var log = PooledDebugLogger.New(this))
 			{
 				log.AppendFormat("Checking if any bottom node changed for ModuleTweakableJettison on {0}",
 					this.part.partInfo.title

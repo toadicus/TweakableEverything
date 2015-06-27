@@ -29,7 +29,7 @@
 using KSP;
 using System;
 using System.Collections.Generic;
-using ToadicusTools;
+using ToadicusTools.Extensions;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -49,7 +49,7 @@ namespace TweakableEverything
 
 		protected RetractableLadder ladderModule;
 
-		protected AnimationWrapper ladderAnimation;
+		protected ToadicusTools.AnimationWrapper ladderAnimation;
 
 		public ModuleTweakableLadder()
 		{
@@ -69,10 +69,10 @@ namespace TweakableEverything
 			if (this.part.tryGetFirstModuleOfType<RetractableLadder>(out this.ladderModule))
 			{
 				// Fetch the UnityEngine.Animation object from the solar ladder module.
-				this.ladderAnimation = new AnimationWrapper(
+				this.ladderAnimation = new ToadicusTools.AnimationWrapper(
 					base.part.FindModelTransform(this.ladderModule.ladderAnimationRootName).animation,
 					this.ladderModule.ladderRetractAnimationName,
-					PlayDirection.Forward
+					ToadicusTools.PlayDirection.Forward
 				);
 
 				// If we are in the editor and have an animation...
@@ -100,10 +100,10 @@ namespace TweakableEverything
 					if (this.startExtended)
 					{
 						// Yay debugging!
-						Tools.PostDebugMessage(this, "Extending ladder.");
+						this.LogDebug("Extending ladder.");
 
 						// ...skip to the beginning...
-						this.ladderAnimation.SkipTo(PlayPosition.Beginning);
+						this.ladderAnimation.SkipTo(ToadicusTools.PlayPosition.Beginning);
 
 						// ...flag the ladder as extended.
 						this.ladderModule.StateName = "Extended";
@@ -112,10 +112,10 @@ namespace TweakableEverything
 					else
 					{
 						// Yay debugging!
-						Tools.PostDebugMessage(this, "Retracting ladder.");
+						this.LogDebug("Retracting ladder.");
 
 						// ...skip to the end...
-						this.ladderAnimation.SkipTo(PlayPosition.End);
+						this.ladderAnimation.SkipTo(ToadicusTools.PlayPosition.End);
 
 						// ...flag the ladder as retracted.
 						this.ladderModule.StateName = "Retracted";

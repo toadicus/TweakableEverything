@@ -29,7 +29,7 @@
 using KSP;
 using System;
 using System.Collections.Generic;
-using ToadicusTools;
+using ToadicusTools.Extensions;
 using UnityEngine;
 
 namespace TweakableEverything
@@ -68,10 +68,10 @@ namespace TweakableEverything
 		public string fieldDisabledText;
 
 		// The animation wrapper
-		private AnimationWrapper animationWrapper;
+		private ToadicusTools.AnimationWrapper animationWrapper;
 
 		// Declare enum values for parsing from string values
-		private PlayDirection direction;
+		private ToadicusTools.PlayDirection direction;
 
 		// The animation wrapper used for easy interface
 		// private TweakableAnimationWrapper animationWrapper;
@@ -140,7 +140,7 @@ namespace TweakableEverything
 				// If we didn't get a module, or we can't parse enums from startPosition or startDirection...
 				if (
 					magToWrap == null ||
-				    !Tools.TryParse(this.startDirection, out this.direction)
+					!ToadicusTools.EnumTools.TryParse(this.startDirection, out this.direction)
 				)
 				{
 					// ...disable the control and stop processing.
@@ -150,7 +150,7 @@ namespace TweakableEverything
 				// ...otherwise...
 				else
 				{
-					this.animationWrapper = new AnimationWrapper(magToWrap, direction);
+					this.animationWrapper = new ToadicusTools.AnimationWrapper(magToWrap, direction);
 
 					this.animationWrapper.module.Events["Toggle"].guiActiveEditor = false;
 				}
@@ -184,10 +184,10 @@ namespace TweakableEverything
 					switch (this.startCompleted)
 					{
 						case false:
-							this.animationWrapper.SkipTo(PlayPosition.End);
+							this.animationWrapper.SkipTo(ToadicusTools.PlayPosition.End);
 							break;
 						case true:
-							this.animationWrapper.SkipTo(PlayPosition.Beginning);
+							this.animationWrapper.SkipTo(ToadicusTools.PlayPosition.Beginning);
 							break;
 					}
 
