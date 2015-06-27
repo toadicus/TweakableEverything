@@ -112,6 +112,9 @@ namespace TweakableEverything
 		// True when this module has queued a Staging sort, so we know when to actually run the sort
 		private bool queuedStagingSort;
 
+		// True when this part has just been (re-)attached and needs to be unfrozen.
+		private bool queuedUnfreeze;
+
 		#region LifeCycle Methods
 		/// <summary>
 		/// Runs during Unity's Awake cycle.
@@ -307,6 +310,7 @@ namespace TweakableEverything
 			this.justStarted = true;
 
 			log.AppendFormat("\n\tRegistering events");
+			GameEvents.onPartAttach.Add(this.onPartAttach);
 			GameEvents.onPartCouple.Add(this.onPartCouple);
 			GameEvents.onUndock.Add(this.onUndock);
 			GameEvents.onVesselChange.Add(this.onVesselChange);
@@ -389,8 +393,26 @@ namespace TweakableEverything
 				if (this.justStarted)
 				{
 					log.AppendFormat("\n\tJust started, so sort will wait till next update");
+
+					if (!this.part.hasAncestorPart(Tools.GetSceneRootPart()))
+					{
+						this.part.stackIcon.Freeze();
+					}
+
 					this.QueueStagingSort();
 					this.justStarted = false;
+				}
+
+				if (this.queuedUnfreeze)
+				{
+					if (HighLogic.LoadedSceneIsEditor)
+					{
+						this.part.inverseStage = this.FindLogicalStage();
+					}
+
+					this.part.stackIcon.Unfreeze();
+
+					this.queuedUnfreeze = false;
 				}
 
 				log.Append("\nLateUpdate done.\n");
@@ -444,6 +466,7 @@ namespace TweakableEverything
 
 			log.AppendFormat("{0}: Destroying", this);
 
+			GameEvents.onPartAttach.Remove(this.onPartAttach);
 			GameEvents.onPartCouple.Remove(this.onPartCouple);
 			GameEvents.onUndock.Remove(this.onUndock);
 			GameEvents.onVesselChange.Remove(this.onVesselChange);
@@ -472,21 +495,7 @@ namespace TweakableEverything
 				return;
 			}
 
-			this.eventPrimary = true;
-
-			Part rootPart;
-			switch (HighLogic.LoadedScene)
-			{
-				case GameScenes.EDITOR:
-					rootPart = EditorLogic.RootPart;
-					break;
-				case GameScenes.FLIGHT:
-					rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
-					break;
-				default:
-					rootPart = null;
-					break;
-			}
+			Part rootPart = Tools.GetSceneRootPart();
 
 			int newInverseStage = 0;
 
@@ -496,35 +505,12 @@ namespace TweakableEverything
 
 				Part parentDecouplerPart;
 
-				newInverseStage = this.GetDecoupledStage(out parentDecouplerPart);
+				newInverseStage = this.FindLogicalStage(out parentDecouplerPart);
 
 				this.LogDebug("parentDecouplerPart={0}, new inverseStage={1}",
 					parentDecouplerPart == null ? "null" : parentDecouplerPart.partInfo.title,
 					newInverseStage
 				);
-
-				if (parentDecouplerPart != null && parentDecouplerPart.childStageOffset > 0)
-				{
-					newInverseStage += parentDecouplerPart.childStageOffset;
-
-					this.LogDebug("parentDecouplerPart.childStageOffset={0}, new inverseStage={1}",
-						parentDecouplerPart.childStageOffset, newInverseStage);
-				}
-
-				newInverseStage += this.part.stageOffset;
-
-				this.LogDebug("stageOffset={0}, new inverseStage={1}",
-					this.part.stageOffset, newInverseStage);
-
-				if (this.part.stageBefore)
-				{
-					newInverseStage++;
-
-					this.LogDebug("stageBefore={0}, new inverseStage={1}",
-						this.part.stageBefore, newInverseStage);
-				}
-
-				newInverseStage = Mathf.Clamp(newInverseStage, 0, stagingInstance.stages.Count);
 
 				this.LogDebug("inverseStage={0}", newInverseStage);
 			}
@@ -620,19 +606,7 @@ namespace TweakableEverything
 			// Use the sekrit password to avoid changing our inverseStage here.
 			this.DisableInStage(int.MinValue);
 
-			Part rootPart;
-			switch (HighLogic.LoadedScene)
-			{
-				case GameScenes.EDITOR:
-					rootPart = EditorLogic.RootPart;
-					break;
-				case GameScenes.FLIGHT:
-					rootPart = FlightGlobals.ActiveVessel != null ? FlightGlobals.ActiveVessel.rootPart : null;
-					break;
-				default:
-					rootPart = null;
-					break;
-			}
+			Part rootPart = Tools.GetSceneRootPart();
 
 			this.LogDebug("Got root part: {0}", rootPart);
 
@@ -760,15 +734,15 @@ namespace TweakableEverything
 		}
 
 		// Gets the inverse stage in which this decoupler's part will be removed from the craft
-		private int GetDecoupledStage()
+		private int FindLogicalStage()
 		{
 			Part _;
-			return this.GetDecoupledStage(out _);
+			return this.FindLogicalStage(out _);
 		}
 
-		private int GetDecoupledStage(out Part parentDecouplerPart)
+		private int FindLogicalStage(out Part parentDecouplerPart)
 		{
-			int iStage = 0;
+			int newInverseStage = 0;
 
 			parentDecouplerPart = null;
 
@@ -795,17 +769,57 @@ namespace TweakableEverything
 					}
 
 					this.LogDebug("ancestorPart {0} staging is enabled, recording", ancestorPart);
-					iStage = ancestorPart.inverseStage;
+					newInverseStage = ancestorPart.inverseStage;
 					parentDecouplerPart = ancestorPart;
 					break;
 				}
 			}
 
-			return iStage;
+			if (parentDecouplerPart != null && parentDecouplerPart.childStageOffset > 0)
+			{
+				newInverseStage += parentDecouplerPart.childStageOffset;
+
+				this.LogDebug("parentDecouplerPart.childStageOffset={0}, new inverseStage={1}",
+					parentDecouplerPart.childStageOffset, newInverseStage);
+			}
+
+			newInverseStage += this.part.stageOffset;
+
+			this.LogDebug("stageOffset={0}, new inverseStage={1}",
+				this.part.stageOffset, newInverseStage);
+
+			if (this.part.stageBefore)
+			{
+				newInverseStage++;
+
+				this.LogDebug("stageBefore={0}, new inverseStage={1}",
+					this.part.stageBefore, newInverseStage);
+			}
+
+			newInverseStage = Mathf.Clamp(newInverseStage, 0, stagingInstance.stages.Count);
+
+			return newInverseStage;
 		}
 		#endregion
 
 		#region Event Handlers
+		protected void onPartAttach(GameEvents.HostTargetAction<Part, Part> data)
+		{
+			this.LogDebug("Caught onPartAttach with host {0} and target {1} for part {2}",
+				data.host, data.target, this.part);
+
+			// Do nothing if our part or the part being attached are null.
+			if (data.host == null || this.part == null)
+			{
+				return;
+			}
+
+			if (this.part.hasAncestorPart(data.host))
+			{
+				this.queuedUnfreeze = true;
+			}
+		}
+
 		private void onUndock(EventReport data)
 		{
 			if (data.origin != null)
