@@ -99,7 +99,7 @@ namespace TweakableFuelPumps
 							joinedResources.Append(", ");
 						}
 
-						joinedResources.Append(this.resources[rIdx]);
+						joinedResources.Append(this.resources[rIdx].resourceName);
 					}
 
 					string pluralChar = this.resources.Count > 1 ? "s" : string.Empty;
