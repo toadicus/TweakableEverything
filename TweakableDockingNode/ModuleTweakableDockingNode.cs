@@ -333,7 +333,7 @@ namespace TweakableEverything
 		// Runs every LateUpdate, because that's how Unity rolls.
 		// We're running at LateUpdate to avoid hiding Update, since ModuleDockingNode's Update is private and we
 		// can't call it.
-		public void LateUpdate()
+		public void FixedUpdate()
 		{
 			// If we're in the Editor...
 			if (HighLogic.LoadedSceneIsEditor)

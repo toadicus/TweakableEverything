@@ -166,7 +166,7 @@ namespace TweakableEverything
 		}
 
 		// Runs at Unity's LateUpdate
-		public void LateUpdate()
+		public void FixedUpdate()
 		{
 			// Only do any work if we're in the editor and have an animation wrapper.
 			if (HighLogic.LoadedSceneIsEditor && this.animationWrapper != null)

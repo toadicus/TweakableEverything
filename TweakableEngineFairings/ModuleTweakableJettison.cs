@@ -196,13 +196,13 @@ namespace TweakableEverything
 			}
 		}
 
-		public void LateUpdate()
+		public void FixedUpdate()
 		{
 			// If nothing has changed...
 			if (
 				this.jettisonModules.Count < 1 ||
 				(
-				    !this.anyBottomNodeChanged() &&
+					(!this.anyBottomNodeChanged() || HighLogic.LoadedSceneIsFlight) &&
 				    this.disableState == this.disableFairing
 				))
 			{
