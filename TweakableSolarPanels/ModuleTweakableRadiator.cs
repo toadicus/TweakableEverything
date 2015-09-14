@@ -1,6 +1,6 @@
 // TweakableSolarPanels, a TweakableEverything module
 //
-// ModuleTweakableSolarPanel.cs
+// ModuleTweakableRadiator.cs
 //
 // Copyright © 2014, toadicus
 // All rights reserved.
@@ -35,9 +35,9 @@ using UnityEngine;
 namespace TweakableEverything
 {
 	#if DEBUG
-	public class ModuleTweakableSolarPanel : DebugPartModule
+	public class ModuleTweakableRadiator : DebugPartModule
 	#else
-	public class ModuleTweakableSolarPanel : PartModule
+	public class ModuleTweakableRadiator : PartModule
 	#endif
 	{
 		// Tweakable property to determine whether the solar panel should start opened or closed.
@@ -59,12 +59,12 @@ namespace TweakableEverything
 		protected float baseTrackingSpeed;
 
 		// Stores the solar panel module we're tweaking
-		protected ModuleDeployableSolarPanel panelModule;
+		protected ModuleDeployableRadiator panelModule;
 		// Stores the solar panel animation we're clobbering.
 		protected ToadicusTools.AnimationWrapper panelAnimation;
 
 		// Construct ALL the objects.
-		public ModuleTweakableSolarPanel()
+		public ModuleTweakableRadiator()
 		{
 			// These defaults reflect stock behavior.
 			this.StartOpened = false;
@@ -117,7 +117,7 @@ namespace TweakableEverything
 				}
 
 				/* 
-			 * Checks whether this panel is a sun tracking panel or not.  Despite its name, ModuleDeployableSolarPanel
+			 * Checks whether this panel is a sun tracking panel or not.  Despite its name, ModuleDeployableRadiator
 			 * is used for all (most?) solar panels, even those that don't deploy or rotate.
 			 * */
 				// If the panel is sun tracking panel...
@@ -171,7 +171,7 @@ namespace TweakableEverything
 						this.panelModule.storedAnimationTime = 1f;
 
 						// ...flag the panel as extended.
-						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.EXTENDED;
+						this.panelModule.panelState = ModuleDeployableRadiator.panelStates.EXTENDED;
 						this.panelModule.status = "Extended";
 					}
 					// ...otherwise, we are starting closed...
@@ -185,7 +185,7 @@ namespace TweakableEverything
 						this.panelModule.storedAnimationTime = 0f;
 
 						// ...flag the panel as retracted.
-						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.RETRACTED;
+						this.panelModule.panelState = ModuleDeployableRadiator.panelStates.RETRACTED;
 						this.panelModule.status = "Retracted";
 					}
 
@@ -194,7 +194,7 @@ namespace TweakableEverything
 					// ...update the persistence data for the solar panel accordingly.
 
 					this.panelModule.stateString =
-						Enum.GetName(typeof(ModuleDeployableSolarPanel.panelStates), this.panelModule.panelState);
+						Enum.GetName(typeof(ModuleDeployableRadiator.panelStates), this.panelModule.panelState);
 				}
 			}
 
