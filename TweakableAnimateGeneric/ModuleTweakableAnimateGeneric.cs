@@ -29,6 +29,9 @@
 using KSP;
 using System;
 using System.Collections.Generic;
+#if DEBUG
+using ToadicusTools.DebugTools;
+#endif
 using ToadicusTools.Extensions;
 using UnityEngine;
 
@@ -42,7 +45,7 @@ namespace TweakableEverything
 	{
 		// Stores whether or not the animation will start completed.
 		[KSPField(isPersistant = true, guiName = "Start", guiActive = false, guiActiveEditor = true)]
-		[UI_Toggle(enabledText = "Open", disabledText = "Closed")]
+		[UI_Toggle(enabledText = "Closed", disabledText = "Open")]
 		public bool startCompleted;
 		// Stores the last state of startCompleted so we can tell if it's changed.
 		private bool startCompletedState;
@@ -166,7 +169,7 @@ namespace TweakableEverything
 		}
 
 		// Runs at Unity's LateUpdate
-		public void FixedUpdate()
+		public void Update()
 		{
 			// Only do any work if we're in the editor and have an animation wrapper.
 			if (HighLogic.LoadedSceneIsEditor && this.animationWrapper != null)
@@ -179,6 +182,8 @@ namespace TweakableEverything
 				// If startCompleted has changed...
 				if (this.startCompletedState != this.startCompleted)
 				{
+					this.Fields["startCompleted"].uiControlCurrent().controlEnabled = false;
+
 					this.LogDebug("startCompleted has changed to {0}; let's work.", this.startCompleted);
 
 					switch (this.startCompleted)
@@ -190,6 +195,8 @@ namespace TweakableEverything
 							this.animationWrapper.SkipTo(ToadicusTools.PlayPosition.Beginning);
 							break;
 					}
+
+					this.Fields["startCompleted"].uiControlCurrent().controlEnabled = true;
 
 					// ...reset startCompletedState to avoid re-running
 					this.LogDebug("startCompletedState reseeded");
