@@ -118,6 +118,10 @@ namespace TweakableEverything
 					this.decoupleModule.Fields["ejectionForce"].SetValue(remoteEjectionForce, this.decoupleModule);
 
 					this.decoupleModule.Fields["staged"].SetValue(this.staged, this.decoupleModule);
+
+					this.decoupleModule.Fields["ejectionForcePercent"].guiActive = false;
+					this.decoupleModule.Fields["ejectionForcePercent"].guiActiveEditor = false;
+					this.decoupleModule.Fields["ejectionForcePercent"].uiControlCurrent().controlEnabled = false;
 				}
 
 				ModuleStagingToggle stagingToggleModule;
