@@ -77,37 +77,8 @@ namespace TweakableEverything
 		// Stores the solar panel animation we're clobbering.
 		protected ToadicusTools.AnimationWrapper panelAnimation;
 
-		private object PanelStateExtended
-		{
-			get
-			{
-				switch (this.panelModule.GetType().Name)
-				{
-					case "ModuleDeployableSolarPanel":
-						return ModuleDeployableSolarPanel.panelStates.EXTENDED;
-					case "ModuleDeployableRadiator":
-						return ModuleDeployableRadiator.panelStates.EXTENDED;
-					default:
-						throw new NotImplementedException();
-				}
-			}
-		}
-
-		private object PanelStateRetracted
-		{
-			get
-			{
-				switch (this.panelModule.GetType().Name)
-				{
-					case "ModuleDeployableSolarPanel":
-						return ModuleDeployableSolarPanel.panelStates.RETRACTED;
-					case "ModuleDeployableRadiator":
-						return ModuleDeployableRadiator.panelStates.RETRACTED;
-					default:
-						throw new NotImplementedException();
-				}
-			}
-		}
+		private object PanelStateExtended;
+		private object PanelStateRetracted;
 
 		// Construct ALL the objects.
 		public ModuleTweakableDeployablePanel()
@@ -140,6 +111,22 @@ namespace TweakableEverything
 					"originalRotation: " + this.panelModule.originalRotation
 				);
 */
+
+				switch (this.panelModule.GetType().Name)
+				{
+					case "ModuleDeployableSolarPanel":
+						this.PanelStateExtended = ModuleDeployableSolarPanel.panelStates.EXTENDED;
+						this.PanelStateRetracted = ModuleDeployableSolarPanel.panelStates.RETRACTED;
+						break;
+					case "ModuleDeployableRadiator":
+						this.PanelStateExtended = ModuleDeployableRadiator.panelStates.EXTENDED;
+						this.PanelStateRetracted = ModuleDeployableRadiator.panelStates.RETRACTED;
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+
+
 				// Fetch the UnityEngine.Animation object from the solar panel module.
 				Animation anim = this.panelModule.GetComponentInChildren<Animation>();
 
@@ -156,7 +143,11 @@ namespace TweakableEverything
 				}
 
 				// Build an ToadicusTools.
-				this.panelAnimation = new ToadicusTools.AnimationWrapper(anim, (string)animationNameField.GetValue(this.panelModule), ToadicusTools.PlayDirection.Forward);
+				this.panelAnimation = new ToadicusTools.AnimationWrapper(
+					anim,
+					(string)animationNameField.GetValue(this.panelModule),
+					ToadicusTools.PlayDirection.Forward
+				);
 
 				// Yay debugging!
 				this.LogDebug("panelAnimation: " + this.panelAnimation);
