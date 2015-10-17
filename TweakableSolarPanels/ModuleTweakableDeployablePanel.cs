@@ -37,8 +37,7 @@ namespace TweakableEverything
 {
 	#if DEBUG
 	public class ModuleTweakableSolarPanel : DebugPartModule
-	
-#else
+	#else
 	public class ModuleTweakableDeployablePanel : PartModule
 	#endif
 	{
