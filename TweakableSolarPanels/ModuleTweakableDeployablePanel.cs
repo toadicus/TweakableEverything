@@ -29,6 +29,7 @@
 using KSP;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using ToadicusTools.Extensions;
 using UnityEngine;
 
@@ -36,10 +37,24 @@ namespace TweakableEverything
 {
 	#if DEBUG
 	public class ModuleTweakableSolarPanel : DebugPartModule
-	#else
-	public class ModuleTweakableSolarPanel : PartModule
+	
+#else
+	public class ModuleTweakableDeployablePanel : PartModule
 	#endif
 	{
+		private FieldInfo animationNameField;
+		private FieldInfo originalRotationField;
+		private FieldInfo currentRotationField;
+		private FieldInfo sunTrackingField;
+		private FieldInfo trackingSpeedField;
+		private FieldInfo storedAnimationTimeField;
+		private FieldInfo panelStateField;
+		private FieldInfo statusField;
+		private FieldInfo stateStringField;
+
+		[KSPField(isPersistant = false)]
+		public string moduleType;
+
 		// Tweakable property to determine whether the solar panel should start opened or closed.
 		[KSPField(guiName = "Start", isPersistant = true, guiActiveEditor = true, guiActive = false)]
 		[UI_Toggle(disabledText = "Retracted", enabledText = "Extended")]
@@ -59,16 +74,49 @@ namespace TweakableEverything
 		protected float baseTrackingSpeed;
 
 		// Stores the solar panel module we're tweaking
-		protected ModuleDeployableSolarPanel panelModule;
+		protected PartModule panelModule;
 		// Stores the solar panel animation we're clobbering.
 		protected ToadicusTools.AnimationWrapper panelAnimation;
 
+		private object PanelStateExtended
+		{
+			get
+			{
+				switch (this.panelModule.GetType().Name)
+				{
+					case "ModuleDeployableSolarPanel":
+						return ModuleDeployableSolarPanel.panelStates.EXTENDED;
+					case "ModuleDeployableRadiator":
+						return ModuleDeployableRadiator.panelStates.EXTENDED;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		private object PanelStateRetracted
+		{
+			get
+			{
+				switch (this.panelModule.GetType().Name)
+				{
+					case "ModuleDeployableSolarPanel":
+						return ModuleDeployableSolarPanel.panelStates.RETRACTED;
+					case "ModuleDeployableRadiator":
+						return ModuleDeployableRadiator.panelStates.RETRACTED;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
 		// Construct ALL the objects.
-		public ModuleTweakableSolarPanel()
+		public ModuleTweakableDeployablePanel()
 		{
 			// These defaults reflect stock behavior.
 			this.StartOpened = false;
 			this.sunTrackingEnabled = true;
+			this.moduleType = "ModuleDeployableSolarPanel";
 		}
 
 		// Runs on PartModule startup.
@@ -78,11 +126,11 @@ namespace TweakableEverything
 			base.OnStart(state);
 
 			// Fetch the solar panel module from the part.
-			if (this.part.tryGetFirstModuleOfType(out this.panelModule))
+			if (this.part.tryGetFirstModuleByName(this.moduleType, out this.panelModule))
 			{// Set our state trackers to the opposite of our states, to force first-run updates.
 				this.startOpenedState = !this.StartOpened;
 				this.sunTrackingState = !this.sunTrackingEnabled;
-
+/*
 				// Yay debugging!
 				this.LogDebug(
 					"panelModule: " + this.panelModule,
@@ -92,7 +140,7 @@ namespace TweakableEverything
 					"currentRotation: " + this.panelModule.currentRotation,
 					"originalRotation: " + this.panelModule.originalRotation
 				);
-
+*/
 				// Fetch the UnityEngine.Animation object from the solar panel module.
 				Animation anim = this.panelModule.GetComponentInChildren<Animation>();
 
@@ -103,8 +151,13 @@ namespace TweakableEverything
 					return;
 				}
 
+				if (animationNameField == null)
+				{
+					animationNameField = this.panelModule.GetType().GetField("animationName");
+				}
+
 				// Build an ToadicusTools.
-				this.panelAnimation = new ToadicusTools.AnimationWrapper(anim, this.panelModule.animationName, ToadicusTools.PlayDirection.Forward);
+				this.panelAnimation = new ToadicusTools.AnimationWrapper(anim, (string)animationNameField.GetValue(this.panelModule), ToadicusTools.PlayDirection.Forward);
 
 				// Yay debugging!
 				this.LogDebug("panelAnimation: " + this.panelAnimation);
@@ -113,18 +166,41 @@ namespace TweakableEverything
 				if (HighLogic.LoadedSceneIsEditor && this.panelAnimation != null)
 				{
 					// ...pre-set the panel's currentRotation...
-					this.panelModule.currentRotation = this.panelModule.originalRotation;
+
+					if (originalRotationField == null)
+					{
+						originalRotationField = this.panelModule.GetType().GetField("originalRotation");
+					}
+
+					if (currentRotationField == null)
+					{
+						currentRotationField = this.panelModule.GetType().GetField("currentRotation");
+					}
+
+					currentRotationField.SetValue(this.panelModule, originalRotationField.GetValue(this.panelModule));
 				}
 
 				/* 
-			 * Checks whether this panel is a sun tracking panel or not.  Despite its name, ModuleDeployableSolarPanel
-			 * is used for all (most?) solar panels, even those that don't deploy or rotate.
-			 * */
+				 * Checks whether this panel is a sun tracking panel or not.  Despite its name, ModuleDeployableSolarPanel
+				 * is used for all (most?) solar panels, even those that don't deploy or rotate.
+				 * */
 				// If the panel is sun tracking panel...
-				if (this.panelModule.sunTracking)
+				if (sunTrackingField == null)
 				{
+					sunTrackingField = this.panelModule.GetType().GetField("sunTracking");
+				}
+
+				bool moduleIsSunTracking = (bool)sunTrackingField.GetValue(this.panelModule);
+
+				if (moduleIsSunTracking)
+				{
+					if (trackingSpeedField == null)
+					{
+						trackingSpeedField = this.panelModule.GetType().GetField("trackingSpeed");
+					}
+
 					// ...go fetch the tracking speed and make sure our tracking tweakable is active.
-					this.baseTrackingSpeed = this.panelModule.trackingSpeed;
+					this.baseTrackingSpeed = (float)trackingSpeedField.GetValue(this.panelModule);
 					this.Fields["sunTrackingEnabled"].guiActive = true;
 					this.Fields["sunTrackingEnabled"].guiActiveEditor = true;
 				}
@@ -160,6 +236,21 @@ namespace TweakableEverything
 					// ...refresh startOpenedState
 					this.startOpenedState = this.StartOpened;
 
+					if (storedAnimationTimeField == null)
+					{
+						storedAnimationTimeField = this.panelModule.GetType().GetField("storedAnimationTime");
+					}
+
+					if (panelStateField == null)
+					{
+						panelStateField = this.panelModule.GetType().GetField("panelState");
+					}
+
+					if (statusField == null)
+					{
+						statusField = this.panelModule.GetType().GetField("status");
+					}
+
 					// ...and if we are starting opened...
 					if (this.StartOpened)
 					{
@@ -168,11 +259,12 @@ namespace TweakableEverything
 
 						// ...move the animation to the end with a "forward" play speed.
 						this.panelAnimation.SkipTo(ToadicusTools.PlayPosition.End);
-						this.panelModule.storedAnimationTime = 1f;
+
+						storedAnimationTimeField.SetValue(this.panelModule, 1f);
 
 						// ...flag the panel as extended.
-						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.EXTENDED;
-						this.panelModule.status = "Extended";
+						panelStateField.SetValue(this.panelModule, this.PanelStateExtended);
+						statusField.SetValue(this.panelModule, "Extended");
 					}
 					// ...otherwise, we are starting closed...
 					else
@@ -182,24 +274,34 @@ namespace TweakableEverything
 
 						// ...move the animation to the beginning with a "backward" play speed.
 						this.panelAnimation.SkipTo(ToadicusTools.PlayPosition.Beginning);
-						this.panelModule.storedAnimationTime = 0f;
+						storedAnimationTimeField.SetValue(this.panelModule, 0f);
 
 						// ...flag the panel as retracted.
-						this.panelModule.panelState = ModuleDeployableSolarPanel.panelStates.RETRACTED;
-						this.panelModule.status = "Retracted";
+						panelStateField.SetValue(this.panelModule, this.PanelStateRetracted);
+						statusField.SetValue(this.panelModule, "Retracted");
 					}
 
 					// ...play the animation, because it's so very pretty.
 
 					// ...update the persistence data for the solar panel accordingly.
 
-					this.panelModule.stateString =
-						Enum.GetName(typeof(ModuleDeployableSolarPanel.panelStates), this.panelModule.panelState);
+					if (stateStringField == null)
+					{
+						stateStringField = this.panelModule.GetType().GetField("stateString");
+					}
+
+					stateStringField.SetValue(
+						this.panelModule,
+						Enum.GetName(
+							typeof(ModuleDeployableSolarPanel.panelStates),
+							panelStateField.GetValue(this.panelModule)
+						)
+					);
 				}
 			}
 
 			// If this panel is tracking-enabled and our sun tracking state has changed...
-			if (this.panelModule.sunTracking && this.sunTrackingEnabled != this.sunTrackingState)
+			if (((bool)sunTrackingField.GetValue(this.panelModule)) && this.sunTrackingEnabled != this.sunTrackingState)
 			{
 				this.LogDebug("Sun tracking toggled; updating.");
 
@@ -211,17 +313,16 @@ namespace TweakableEverything
 				{
 					this.LogDebug("Setting panel module's sunTrackingSpeed to {0}", this.baseTrackingSpeed);
 					// ...ensure the panel's tracking speed is set per it's original value
-					this.panelModule.trackingSpeed = this.baseTrackingSpeed;
+					trackingSpeedField.SetValue(this.panelModule, this.baseTrackingSpeed);
 				}
 				// ...otherwise, we're not tracking the sun...
 				else
 				{
 					this.LogDebug("Setting panel module's sunTrackingSpeed to 0");
 					// ...so set the panel's tracking speed to zero
-					this.panelModule.trackingSpeed = 0;
+					trackingSpeedField.SetValue(this.panelModule, 0);
 				}
 			}
 		}
 	}
 }
-

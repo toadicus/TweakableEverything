@@ -59,8 +59,8 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Compile Include="ModuleTweakableSolarPanel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ModuleTweakableDeployablePanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\GameData\TweakableEverything\TweakableSolarPanels.cfg" />
