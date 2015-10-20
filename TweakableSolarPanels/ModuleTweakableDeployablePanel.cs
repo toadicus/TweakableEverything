@@ -36,7 +36,7 @@ using UnityEngine;
 namespace TweakableEverything
 {
 	#if DEBUG
-	public class ModuleTweakableSolarPanel : DebugPartModule
+	public class ModuleTweakableDeployablePanel : ToadicusTools.DebugTools.DebugPartModule
 	#else
 	public class ModuleTweakableDeployablePanel : PartModule
 	#endif
@@ -97,7 +97,8 @@ namespace TweakableEverything
 
 			// Fetch the solar panel module from the part.
 			if (this.part.tryGetFirstModuleByName(this.moduleType, out this.panelModule))
-			{// Set our state trackers to the opposite of our states, to force first-run updates.
+			{
+				// Set our state trackers to the opposite of our states, to force first-run updates.
 				this.startOpenedState = !this.StartOpened;
 				this.sunTrackingState = !this.sunTrackingEnabled;
 /*
@@ -126,28 +127,25 @@ namespace TweakableEverything
 						throw new NotImplementedException();
 				}
 
-
 				// Fetch the UnityEngine.Animation object from the solar panel module.
 				Animation anim = this.panelModule.GetComponentInChildren<Animation>();
 
 				// If the animation is null, bailout.
-				if (anim == null)
+				if (anim != null)
 				{
-					this.LogDebug("No animation objects found in panel module; bailing out.");
-					return;
-				}
+					this.LogDebug("Animation is not null; wrapping.");
+					if (animationNameField == null)
+					{
+						animationNameField = this.panelModule.GetType().GetField("animationName");
+					}
 
-				if (animationNameField == null)
-				{
-					animationNameField = this.panelModule.GetType().GetField("animationName");
+					// Build an ToadicusTools.
+					this.panelAnimation = new ToadicusTools.AnimationWrapper(
+						anim,
+						(string)animationNameField.GetValue(this.panelModule),
+						ToadicusTools.PlayDirection.Forward
+					);
 				}
-
-				// Build an ToadicusTools.
-				this.panelAnimation = new ToadicusTools.AnimationWrapper(
-					anim,
-					(string)animationNameField.GetValue(this.panelModule),
-					ToadicusTools.PlayDirection.Forward
-				);
 
 				// Yay debugging!
 				this.LogDebug("panelAnimation: " + this.panelAnimation);
@@ -289,6 +287,10 @@ namespace TweakableEverything
 					);
 				}
 			}
+
+			this.LogDebug("Checking sun tracking.");
+			this.LogDebug("sunTrackingField: {0}", sunTrackingField);
+			this.LogDebug("panelModule: {0}", this.panelModule);
 
 			// If this panel is tracking-enabled and our sun tracking state has changed...
 			if (((bool)sunTrackingField.GetValue(this.panelModule)) && this.sunTrackingEnabled != this.sunTrackingState)
