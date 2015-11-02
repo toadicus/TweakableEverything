@@ -41,6 +41,7 @@ namespace TweakableEverything
 	public class ModuleTweakableDockingNode : PartModule
 	#endif
 	{
+		[Obsolete("ModuleTweakableDockingNode no longer handles staging toggle; that's stok now.", true)]
 		public static bool PartIsStagingDockingPort(Part part, out ModuleTweakableDockingNode firstTweakableNode)
 		{
 			firstTweakableNode = null;
@@ -138,7 +139,8 @@ namespace TweakableEverything
 		// Stores the open/closed state of the shield.
 		protected bool lastOpenState;
 
-		private bool yieldedDecouple;
+		/* @subclass
+		private bool yieldedDecouple;*/
 
 		[KSPField(isPersistant = true, guiName = "Crossfeed", guiActiveEditor = true, guiActive = true),
 		UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
@@ -172,7 +174,7 @@ namespace TweakableEverything
 		[KSPField(isPersistant = true)]
 		protected bool isDecoupled;
 
-		protected bool stagingEnabled;
+		// protected bool stagingEnabled;
 
 		// Gets the base part's fuelCrossFeed value.
 		public bool partCrossFeed
@@ -308,13 +310,14 @@ namespace TweakableEverything
 			this.dockingNodeModule.Events["EnableXFeed"].active = false;
 			this.dockingNodeModule.Events["DisableXFeed"].active = false;
 
+			/* @subclass
 			ModuleStagingToggle stagingToggleModule;
 
 			if (this.part.tryGetFirstModuleOfType<ModuleStagingToggle>(out stagingToggleModule))
 			{
 				stagingToggleModule.OnToggle += new ModuleStagingToggle.ToggleEventHandler(this.OnStagingToggle);
-				this.stagingEnabled = stagingToggleModule.stagingEnabled;
 			}
+			*/
 
 			// Yay debugging!
 			this.LogDebug(
@@ -400,6 +403,8 @@ namespace TweakableEverything
 			}
 		}
 
+		/*
+		 * Chopping out OnActive entirely pending reimplementation as a subclass.
 		public override void OnActive()
 		{
 			yieldedDecouple = false;
@@ -443,6 +448,7 @@ namespace TweakableEverything
 				}
 			}
 		}
+		*/
 
 		[KSPAction("Control from Here")]
 		public void MakeReferenceTransformAction(KSPActionParam param)
@@ -453,10 +459,12 @@ namespace TweakableEverything
 			}
 		}
 
+		/*
+		 * @subclass -- Chopping this out pending rewrite; should happen with Stock's logic.
 		protected void OnStagingToggle(object sender, ModuleStagingToggle.BoolArg arg)
 		{
 			this.LogDebug("OnStagingToggle called.");
 			this.stagingEnabled = arg.Value;
-		}
+		}*/
 	}
 }

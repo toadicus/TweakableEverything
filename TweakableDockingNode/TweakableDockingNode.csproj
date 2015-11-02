@@ -91,9 +91,5 @@
       <Name>ToadicusTools</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\TweakableStaging\TweakableStaging.csproj">
-      <Project>{44171674-3C98-40EA-AC2A-1D4AFC100EC1}</Project>
-      <Name>TweakableStaging</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>
