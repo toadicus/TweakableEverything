@@ -69,9 +69,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\GameData\TweakableEverything\TweakableDockingNode.cfg" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\_KSPAssemblies\Assembly-CSharp.dll</HintPath>
     </Reference>

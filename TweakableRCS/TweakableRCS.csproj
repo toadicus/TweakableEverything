@@ -74,9 +74,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\GameData\TweakableEverything\TweakableRCS.cfg" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\_KSPAssemblies\Assembly-CSharp.dll</HintPath>
     </Reference>

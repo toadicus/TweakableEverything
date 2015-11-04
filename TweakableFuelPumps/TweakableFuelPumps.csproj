@@ -115,9 +115,4 @@
       <Link>MuMech_Tools.cs</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\GameData\TweakableEverything\TweakableFuelPumps.cfg">
-      <Link>TweakableFuelPumps.cfg</Link>
-    </None>
-  </ItemGroup>
 </Project>

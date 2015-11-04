@@ -68,9 +68,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\GameData\TweakableEverything\TweakableDecouplers.cfg" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\_KSPAssemblies\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>

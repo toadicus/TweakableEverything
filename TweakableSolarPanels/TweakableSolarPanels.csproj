@@ -63,9 +63,6 @@
     <Compile Include="ModuleTweakableDeployablePanel.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\GameData\TweakableEverything\TweakableSolarPanels.cfg" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\_KSPAssemblies\Assembly-CSharp.dll</HintPath>
     </Reference>
