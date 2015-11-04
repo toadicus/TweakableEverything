@@ -41,59 +41,6 @@ namespace TweakableEverything
 	public class ModuleTweakableDockingNode : PartModule
 	#endif
 	{
-		[Obsolete("ModuleTweakableDockingNode no longer handles staging toggle; that's stok now.", true)]
-		public static bool PartIsStagingDockingPort(Part part, out ModuleTweakableDockingNode firstTweakableNode)
-		{
-			firstTweakableNode = null;
-
-			if (part == null || part.Modules == null)
-			{
-				ToadicusTools.Logging.PostWarningMessage("[PartIsStagingDockingPort]: Part or Part.Modules are null, returning false");
-				return false;
-			}
-
-			bool partHasDockingNode = false;
-			bool partHasActiveStagingToggle = false;
-
-			PartModule module;
-			for (int i = 0; i < part.Modules.Count; i++)
-			{
-				module = part.Modules[i];
-
-				if (module is ModuleDockingNode)
-				{
-					partHasDockingNode = true;
-					part.LogDebug("has docking node {0}", module as ModuleDockingNode);
-				}
-
-				if (module is ModuleStagingToggle)
-				{
-					ModuleStagingToggle toggleModule = module as ModuleStagingToggle;
-
-					if (toggleModule.stagingEnabled)
-					{
-						partHasActiveStagingToggle = true;
-						part.LogDebug("has active staging toggle {0}", toggleModule);
-					}
-				}
-
-				if (module is ModuleTweakableDockingNode)
-				{
-					firstTweakableNode = module as ModuleTweakableDockingNode;
-					part.LogDebug("has tweakable docking node {0}", firstTweakableNode);
-				}
-
-				if (partHasDockingNode && partHasActiveStagingToggle && firstTweakableNode != null)
-				{
-					part.LogDebug("returning true");
-					return true;
-				}
-			}
-
-			part.LogDebug("returning false");
-			return false;
-		}
-
 		/*
 		 * Ctor
 		 * Build ALL the objects.
