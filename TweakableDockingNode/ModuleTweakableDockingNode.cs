@@ -49,7 +49,6 @@ namespace TweakableEverything
 		{
 			this.lastOpenState = false;
 			this.AlwaysAllowStack = false;
-			this.fuelCrossFeed = true;
 
 			this.deployAnimationControllerName = string.Empty;
 			this.TDNnodeName = string.Empty;
@@ -88,10 +87,6 @@ namespace TweakableEverything
 
 		/* @subclass
 		private bool yieldedDecouple;*/
-
-		[KSPField(isPersistant = true, guiName = "Crossfeed", guiActiveEditor = true, guiActive = true),
-		UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
-		public bool fuelCrossFeed;
 
 		[KSPField(isPersistant = true, guiName = "Acquire Range", guiUnits = "m", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
@@ -246,8 +241,6 @@ namespace TweakableEverything
 
 			base.part.attachRules.allowStack = this.IsOpen | this.AlwaysAllowStack;
 
-			this.partCrossFeed = this.fuelCrossFeed;
-
 			this.dockingNodeModule.Events["EnableXFeed"].guiActive = false;
 			this.dockingNodeModule.Events["DisableXFeed"].guiActive = false;
 
@@ -275,8 +268,7 @@ namespace TweakableEverything
 				this.attachNode,
 				this.TDNnodeName,
 				this.GetType().Assembly.GetName().Version,
-				this.attachedPart,
-				this.fuelCrossFeed
+				this.attachedPart
 			);
 		}
 
@@ -339,13 +331,6 @@ namespace TweakableEverything
 						// ...enable the deploy animation.
 						this.deployAnimation.Events["Toggle"].active = true;
 					}
-				}
-
-				// ...and if the crossfeed status has changed...
-				if (this.fuelCrossFeed != this.partCrossFeed)
-				{
-					// ...assign our crossfeed status to the part, since that's where it matters.
-					this.partCrossFeed = this.fuelCrossFeed;
 				}
 			}
 		}
