@@ -45,13 +45,6 @@ namespace TweakableEverything
 		// Stores the reaction wheel module we're tweaking.
 		protected ModuleReactionWheel reactionWheelModule;
 
-		// Stores whether or not the wheel will start enabled.
-		[KSPField(isPersistant = true, guiName = "Reaction Wheels", guiActive = false, guiActiveEditor = true)]
-		[UI_Toggle(enabledText = "Enabled", disabledText = "Disabled")]
-		public bool startEnabled;
-		// Stores the last state of startEnabled so we can tell if it's changed.
-		protected bool startEnabledState;
-
 		// Stores our tweaked value for roll torque.
 		[KSPField(isPersistant = true, guiName = "Roll Torque", guiUnits = "kN-m", guiFormat = "F2",
 			guiActiveEditor = true)]
@@ -79,9 +72,6 @@ namespace TweakableEverything
 		// Construct ALL the objects.
 		public ModuleTweakableReactionWheel()
 		{
-			// Default to starting enabled, per Squad's behavior.
-			this.startEnabled = true;
-
 			// -1 will indicate an uninitialized value.
 			this.RollTorque = -1;
 			this.PitchTorque = -1;
@@ -115,11 +105,6 @@ namespace TweakableEverything
 				base.OnStart(state);
 
 				log.Append("\n\tbase started up");
-
-				// Seed the startEnabledState to the opposite of startEnabled to force first-update processing.
-				this.startEnabledState = !this.startEnabled;
-
-				log.AppendFormat("\n\tlast state seeded ({0} != {1})", this.startEnabledState, this.startEnabled);
 
 				ModuleReactionWheel prefabModule;
 
@@ -184,30 +169,6 @@ namespace TweakableEverything
 		// Runs late in the update cycle
 		public void LateUpdate()
 		{
-			// If we're in the editor...
-			if (HighLogic.LoadedSceneIsEditor && this.reactionWheelModule != null)
-			{
-				// ...and if our startEnabled state has changed...
-				if (this.startEnabled != this.startEnabledState)
-				{
-					// ...refresh startEnabledState
-					this.startEnabledState = this.startEnabled;
-
-					// ...and if we're starting enabled...
-					if (this.startEnabled)
-					{
-						// ...set the reaction wheel module to active
-						this.reactionWheelModule.State = ModuleReactionWheel.WheelState.Active;
-					}
-					// ...otherwise, we're starting disabled...
-					else
-					{
-						// ...set the reaction wheel module to disabled
-						this.reactionWheelModule.State = ModuleReactionWheel.WheelState.Disabled;
-					}
-				}
-			}
-
 			if (HighLogic.LoadedSceneIsFlight && this.reactionWheelModule != null)
 			{
 				this.reactionWheelModule.RollTorque = this.RollTorque * this.TorqueGain;
