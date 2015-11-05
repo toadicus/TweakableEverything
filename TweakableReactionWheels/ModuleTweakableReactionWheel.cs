@@ -27,7 +27,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
-using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools.DebugTools;
@@ -48,25 +47,25 @@ namespace TweakableEverything
 		// Stores our tweaked value for roll torque.
 		[KSPField(isPersistant = true, guiName = "Roll Torque", guiUnits = "kN-m", guiFormat = "F2",
 			guiActiveEditor = true)]
-		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
+		[UI_FloatRange(scene = UI_Scene.Editor, stepIncrement = 1f)]
 		public float RollTorque;
 
 		// Stores our tweaked value for pitch torque.
 		[KSPField(isPersistant = true, guiName = "Pitch Torque", guiUnits = "kN-m", guiFormat = "F2",
 			guiActiveEditor = true)]
-		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
+		[UI_FloatRange(scene = UI_Scene.Editor, stepIncrement = 1f)]
 		public float PitchTorque;
 
 		// Stores our tweaked value for yaw torque.
 		[KSPField(isPersistant = true, guiName = "Yaw Torque", guiUnits = "kN-m", guiFormat = "F2",
 			guiActiveEditor = true)]
-		[UI_FloatEdit(scene = UI_Scene.Editor, incrementSlide = 1f)]
+		[UI_FloatRange(scene = UI_Scene.Editor, stepIncrement = 1f)]
 		public float YawTorque;
 
 		// Stores our value for all-axis torque gain
 		[KSPField(isPersistant = true, guiName = "Torque Limiter", guiFormat = "P0",
 			guiActive = true, guiActiveEditor = false)]
-		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = .02f)]
+		[UI_FloatRange(minValue = 0f, maxValue = 1f, stepIncrement = .02f)]
 		public float TorqueGain;
 
 		// Construct ALL the objects.
@@ -149,12 +148,12 @@ namespace TweakableEverything
 
 				var torqueGainCtl = this.Fields["TorqueGain"].uiControlCurrent();
 
-				if (torqueGainCtl is UI_FloatEdit)
+				if (torqueGainCtl is UI_FloatRange)
 				{
-					var torqueGainSlider = torqueGainCtl as UI_FloatEdit;
+					var torqueGainSlider = torqueGainCtl as UI_FloatRange;
 
 					torqueGainSlider.maxValue = 1f;
-					torqueGainSlider.incrementSlide = 0.025f;
+					torqueGainSlider.stepIncrement = 0.025f;
 				}
 
 				log.Append("\n\tStarted!");

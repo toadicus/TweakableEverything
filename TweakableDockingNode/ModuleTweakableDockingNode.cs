@@ -27,7 +27,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
-using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools.Extensions;
@@ -90,27 +89,27 @@ namespace TweakableEverything
 
 		[KSPField(isPersistant = true, guiName = "Acquire Range", guiUnits = "m", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
-		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float acquireRange;
 
 		[KSPField(isPersistant = true, guiName = "Acquire Force", guiUnits = "kN", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
-		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float acquireForce;
 
 		[KSPField(isPersistant = true, guiName = "Acquire Torque", guiUnits = "kN-m", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
-		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float acquireTorque;
 
 		[KSPField(isPersistant = true, guiName = "Ejection Force", guiUnits = "kN", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
-		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float undockEjectionForce;
 
 		[KSPField(isPersistant = true, guiName = "Re-engage Distance", guiUnits = "m", guiFormat = "F2",
 			guiActiveEditor = true, guiActive = false)]
-		[UI_FloatEdit(minValue = -1f, maxValue = float.MaxValue, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = -1f, maxValue = float.MaxValue, stepIncrement = 1f)]
 		public float minDistanceToReEngage;
 
 		[KSPField(isPersistant = true)]

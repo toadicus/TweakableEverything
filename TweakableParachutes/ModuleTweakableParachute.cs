@@ -27,7 +27,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
-using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools.Extensions;
@@ -50,11 +49,11 @@ namespace TweakableEverything
 		protected float lastSemiDeployFactor;
 
 		[KSPField(isPersistant = true, guiName = "Deploy Factor", guiFormat = "×##0", guiActiveEditor = true)]
-		[UI_FloatEdit(minValue = 1f, maxValue = 20f, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = 1f, maxValue = 20f, stepIncrement = 1f)]
 		public float deploymentFactor;
 
 		[KSPField(isPersistant = true, guiName = "Semi-Deploy Factor", guiFormat = "×##0", guiActiveEditor = true)]
-		[UI_FloatEdit(minValue = 1f, maxValue = 20f, incrementSlide = 1f)]
+		[UI_FloatRange(minValue = 1f, maxValue = 20f, stepIncrement = 1f)]
 		public float semiDeploymentFactor;
 
 		[KSPField(isPersistant = false)]
@@ -90,8 +89,8 @@ namespace TweakableEverything
 			this.chuteModule.Fields["semiDeploymentSpeed"].guiName = "Semi-Deploy Spd";
 			this.chuteModule.Fields["semiDeploymentSpeed"].guiFormat = "G3";
 
-			var deployField = this.Fields["deploymentFactor"].uiControlCurrent() as UI_FloatEdit;
-			var semiDeployField = this.Fields["semiDeploymentFactor"].uiControlCurrent() as UI_FloatEdit;
+			var deployField = this.Fields["deploymentFactor"].uiControlCurrent() as UI_FloatRange;
+			var semiDeployField = this.Fields["semiDeploymentFactor"].uiControlCurrent() as UI_FloatRange;
 
 			float step;
 
@@ -106,11 +105,11 @@ namespace TweakableEverything
 
 			deployField.maxValue = this.maxFactor;
 			deployField.minValue = 1f;
-			deployField.incrementSlide = step;
+			deployField.stepIncrement = step;
 
 			semiDeployField.maxValue = this.maxFactor;
 			semiDeployField.minValue = 1f;
-			deployField.incrementSlide = step;
+			deployField.stepIncrement = step;
 		}
 
 		public void LateUpdate()

@@ -27,7 +27,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
-using KSPAPIExtensions;
 using System;
 using ToadicusTools.Extensions;
 using UnityEngine;
@@ -48,7 +47,7 @@ namespace TweakableControlSurfaces
 			guiActive = false,
 			guiActiveEditor = true
 		)]
-		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = 0.05f)]
+		[UI_FloatRange(minValue = 0f, maxValue = 1f, stepIncrement = 0.05f)]
 		public float ctrlThrottle;
 
 		public override void OnAwake()

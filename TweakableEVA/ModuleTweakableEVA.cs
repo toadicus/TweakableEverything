@@ -27,7 +27,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using KSP;
-using KSPAPIExtensions;
 using System;
 using System.Collections.Generic;
 using ToadicusTools.Extensions;
@@ -42,7 +41,7 @@ namespace TweakableEVA
 	#endif
 	{
 		[KSPField(guiName = "Thruster Throttle", guiFormat = "P0", guiActive = true, isPersistant = true)]
-		[UI_FloatEdit(minValue = 0f, maxValue = 1f, incrementSlide = 0.05f, controlEnabled = true)]
+		[UI_FloatRange(minValue = 0f, maxValue = 1f, stepIncrement = 0.05f, controlEnabled = true)]
 		public float thrusterPowerThrottle;
 		private float lastPowerThrottle;
 
