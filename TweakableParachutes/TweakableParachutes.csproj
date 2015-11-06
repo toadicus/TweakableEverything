@@ -78,9 +78,6 @@
     <Reference Include="UnityEngine">
       <HintPath>..\..\_KSPAssemblies\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="KSPAPIExtensions">
-      <HintPath>..\GameData\TweakableEverything\KSPAPIExtensions.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModuleTweakableParachute.cs" />
