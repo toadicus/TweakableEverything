@@ -57,6 +57,8 @@ namespace TweakableEverything
 			this.acquireTorque = -1;
 			this.undockEjectionForce = -1;
 			this.minDistanceToReEngage = -1;
+
+			this.maxRollAngle = 90f;
 		}
 
 		/*
@@ -80,6 +82,23 @@ namespace TweakableEverything
 		// Some parts need to leave stacking allowed all the time.
 		[KSPField(isPersistant = false)]
 		public bool AlwaysAllowStack;
+
+		[KSPField(isPersistant = true)]
+		public float minRollDotProduct;
+
+		/// <summary>
+		/// Maximum roll angle of separation for docking, in degrees.
+		/// </summary>
+		[KSPField(
+			isPersistant = false,
+			guiName = "Maximum Roll Angle",
+			guiUnits = "°", guiFormat = "F0",
+			guiActive = true, guiActiveEditor = true
+		)]
+		[UI_FloatRange(minValue = 0, maxValue = 90, stepIncrement = 5f, scene = UI_Scene.Editor)]
+		public float maxRollAngle;
+
+		public float lastMaxRollAngle;
 
 		// Stores the open/closed state of the shield.
 		protected bool lastOpenState;
@@ -232,6 +251,14 @@ namespace TweakableEverything
 				prefabModule.minDistanceToReEngage
 			);
 
+			this.Fields["maxRollAngle"].uiControlFlight.controlEnabled = false;
+
+			this.maxRollAngle = Mathf.Acos(this.minRollDotProduct) * 180f / Mathf.PI;
+			this.dockingNodeModule.acquireMinRollDot = this.minRollDotProduct * this.minRollDotProduct;
+			this.dockingNodeModule.captureMinRollDot = this.minRollDotProduct;
+
+			this.lastMaxRollAngle = this.maxRollAngle;
+
 			// If we have a tweakable AttachNode, use it.
 			if (this.TDNnodeName != string.Empty)
 			{
@@ -306,6 +333,14 @@ namespace TweakableEverything
 					{
 						this.attachNode.icon.SetActive(this.IsOpen);
 					}
+				}
+
+				if (this.maxRollAngle != this.lastMaxRollAngle)
+				{
+					this.minRollDotProduct = Mathf.Cos(this.maxRollAngle * Mathf.PI / 180f);
+					this.dockingNodeModule.acquireMinRollDot = this.minRollDotProduct * this.minRollDotProduct;
+					this.dockingNodeModule.captureMinRollDot = this.minRollDotProduct;
+					this.lastMaxRollAngle = this.maxRollAngle;
 				}
 			}
 
