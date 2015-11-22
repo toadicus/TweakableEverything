@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableFuelPumps", "Tweak
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableControlSurfaces", "TweakableControlSurfaces\TweakableControlSurfaces.csproj", "{02B3FB8F-C8C0-4E4C-8448-96C001B128B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TweakableRCS", "TweakableRCS\TweakableRCS.csproj", "{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_win|Any CPU = Debug_win|Any CPU
@@ -97,6 +99,14 @@ Global
 		{AD1165CC-1868-453F-B816-909D1B557141}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
 		{AD1165CC-1868-453F-B816-909D1B557141}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
 		{AD1165CC-1868-453F-B816-909D1B557141}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Debug_win|Any CPU.Build.0 = Debug_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_linux|Any CPU.ActiveCfg = Release_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_linux|Any CPU.Build.0 = Release_linux|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_win|Any CPU.ActiveCfg = Release_win|Any CPU
+		{CB6EC9DF-90F0-4C0C-9EB4-6C0288803AA7}.Release_win|Any CPU.Build.0 = Release_win|Any CPU
 		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Debug_linux|Any CPU.ActiveCfg = Debug_linux|Any CPU
 		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Debug_linux|Any CPU.Build.0 = Debug_linux|Any CPU
 		{D48A5542-6655-4149-BC27-B27DF0466F1C}.Debug_win|Any CPU.ActiveCfg = Debug_win|Any CPU
