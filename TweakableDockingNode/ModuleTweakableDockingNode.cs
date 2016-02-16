@@ -34,11 +34,7 @@ using UnityEngine;
 
 namespace TweakableEverything
 {
-	#if DEBUG
-	public class ModuleTweakableDockingNode : DebugPartModule
-	#else
 	public class ModuleTweakableDockingNode : PartModule
-	#endif
 	{
 		/*
 		 * Ctor
@@ -58,7 +54,8 @@ namespace TweakableEverything
 			this.undockEjectionForce = -1;
 			this.minDistanceToReEngage = -1;
 
-			this.maxRollAngle = 90f;
+			this.maxCaptureRollAngle = 90f;
+			this.maxAcquireRollAngle = 90f;
 		}
 
 		/*
@@ -83,22 +80,39 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public bool AlwaysAllowStack;
 
-		[KSPField(isPersistant = true)]
-		public float minRollDotProduct;
+		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+		public float minCaptureRollDotProduct;
 
 		/// <summary>
-		/// Maximum roll angle of separation for docking, in degrees.
+		/// Maximum roll angle of separation for docking capture, in degrees.
 		/// </summary>
 		[KSPField(
 			isPersistant = false,
-			guiName = "Maximum Roll Angle",
+			guiName = "Max Capture Roll Angle",
 			guiUnits = "°", guiFormat = "F0",
 			guiActive = true, guiActiveEditor = true
 		)]
 		[UI_FloatRange(minValue = 0, maxValue = 90, stepIncrement = 5f, scene = UI_Scene.Editor)]
-		public float maxRollAngle;
+		public float maxCaptureRollAngle;
 
-		public float lastMaxRollAngle;
+		public float lastMaxCaptureRollAngle;
+
+		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+		public float minAcquireRollDotProduct;
+
+		/// <summary>
+		/// Maximum roll angle of separation for docking acquisition, in degrees.
+		/// </summary>
+		[KSPField(
+			isPersistant = false,
+			guiName = "Max Acquire Roll Angle",
+			guiUnits = "°", guiFormat = "F0",
+			guiActive = true, guiActiveEditor = true
+		)]
+		[UI_FloatRange(minValue = 0, maxValue = 90, stepIncrement = 5f, scene = UI_Scene.Editor)]
+		public float maxAcquireRollAngle;
+
+		public float lastMaxAcquireRollAngle;
 
 		// Stores the open/closed state of the shield.
 		protected bool lastOpenState;
@@ -190,24 +204,12 @@ namespace TweakableEverything
 		// Runs when each new part is started.
 		public override void OnStart(StartState st)
 		{
-			this.dockingNodeModule = (ModuleDockingNode)base.part.Modules["ModuleDockingNode"];
-
-			PartModule needle;
-
-			for (int idx = 0; idx < base.part.Modules.Count; idx++)
+			if (!this.part.tryGetFirstModuleOfType<ModuleDockingNode>(out this.dockingNodeModule))
 			{
-				needle = base.part.Modules[idx];
-
-				if (needle is ModuleAnimateGeneric)
-				{
-					if (((ModuleAnimateGeneric)needle).animationName == this.deployAnimationControllerName)
-					{
-						this.deployAnimation = (ModuleAnimateGeneric)needle;
-						break;
-					}
-				}
+				return;
 			}
 
+			this.deployAnimation = this.part.getFirstModuleOfType<ModuleAnimateGeneric>();
 			// If we've loaded a deployAnimationControllerName from the cfg...
 
 			// Start the underlying ModuleDockingNode.
@@ -251,13 +253,20 @@ namespace TweakableEverything
 				prefabModule.minDistanceToReEngage
 			);
 
-			this.Fields["maxRollAngle"].uiControlFlight.controlEnabled = false;
+			this.Fields["maxCaptureRollAngle"].uiControlFlight.controlEnabled = false;
+			this.Fields["maxAcquireRollAngle"].uiControlFlight.controlEnabled = false;
 
-			this.maxRollAngle = Mathf.Acos(this.minRollDotProduct) * 180f / Mathf.PI;
-			this.dockingNodeModule.acquireMinRollDot = this.minRollDotProduct * this.minRollDotProduct;
-			this.dockingNodeModule.captureMinRollDot = this.minRollDotProduct;
+			this.maxCaptureRollAngle = Mathf.Acos(this.minCaptureRollDotProduct) * 180f / Mathf.PI;
+			this.dockingNodeModule.captureMinRollDot = Mathf.Min(this.minCaptureRollDotProduct, 0.99995f);
 
-			this.lastMaxRollAngle = this.maxRollAngle;
+			this.maxAcquireRollAngle = Mathf.Acos(this.minAcquireRollDotProduct) * 180f / Mathf.PI;
+			this.dockingNodeModule.acquireMinRollDot = Mathf.Min(this.minAcquireRollDotProduct, 0.99995f);
+
+			this.dockingNodeModule.Fields["captureMinRollDot"].guiActive = true;
+			this.dockingNodeModule.Fields["captureMinRollDot"].guiActiveEditor = true;
+
+			this.lastMaxCaptureRollAngle = this.maxCaptureRollAngle;
+			this.lastMaxAcquireRollAngle = this.maxAcquireRollAngle;
 
 			// If we have a tweakable AttachNode, use it.
 			if (this.TDNnodeName != string.Empty)
@@ -335,12 +344,23 @@ namespace TweakableEverything
 					}
 				}
 
-				if (this.maxRollAngle != this.lastMaxRollAngle)
+				if (this.maxCaptureRollAngle != this.lastMaxCaptureRollAngle)
 				{
-					this.minRollDotProduct = Mathf.Cos(this.maxRollAngle * Mathf.PI / 180f);
-					this.dockingNodeModule.acquireMinRollDot = this.minRollDotProduct * this.minRollDotProduct;
-					this.dockingNodeModule.captureMinRollDot = this.minRollDotProduct;
-					this.lastMaxRollAngle = this.maxRollAngle;
+					this.minCaptureRollDotProduct = Mathf.Cos(this.maxCaptureRollAngle * Mathf.PI / 180f);
+					this.dockingNodeModule.captureMinRollDot = this.minCaptureRollDotProduct;
+					this.lastMaxCaptureRollAngle = this.maxCaptureRollAngle;
+				}
+
+				if (this.maxCaptureRollAngle > this.maxAcquireRollAngle)
+				{
+					this.maxAcquireRollAngle = this.maxCaptureRollAngle;
+				}
+
+				if (this.maxAcquireRollAngle != this.lastMaxAcquireRollAngle)
+				{
+					this.minAcquireRollDotProduct = Mathf.Cos(this.maxAcquireRollAngle * Mathf.PI / 180f);
+					this.dockingNodeModule.acquireMinRollDot = this.minAcquireRollDotProduct;
+					this.lastMaxAcquireRollAngle = this.maxAcquireRollAngle;
 				}
 			}
 
