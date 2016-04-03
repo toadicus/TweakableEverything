@@ -36,7 +36,7 @@ using UnityEngine;
 namespace TweakableEverything
 {
 	/*
-	 * @TODO: Remove this whole module in favor of a simple MM patch on top of Squad's percentage slider, or 
+	 * TODO: Remove this whole module in favor of a simple MM patch on top of Squad's percentage slider, or 
 	 * */
 	#if DEBUG
 	public class ModuleTweakableDecouple : DebugPartModule
