@@ -80,7 +80,7 @@ namespace TweakableEverything
 		[KSPField(isPersistant = false)]
 		public bool AlwaysAllowStack;
 
-		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false)]
 		public float minCaptureRollDotProduct;
 
 		/// <summary>
@@ -97,7 +97,7 @@ namespace TweakableEverything
 
 		public float lastMaxCaptureRollAngle;
 
-		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+		[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false)]
 		public float minAcquireRollDotProduct;
 
 		/// <summary>
@@ -262,8 +262,10 @@ namespace TweakableEverything
 			this.maxAcquireRollAngle = Mathf.Acos(this.minAcquireRollDotProduct) * 180f / Mathf.PI;
 			this.dockingNodeModule.acquireMinRollDot = Mathf.Min(this.minAcquireRollDotProduct, 0.99995f);
 
+			#if DEBUG
 			this.dockingNodeModule.Fields["captureMinRollDot"].guiActive = true;
 			this.dockingNodeModule.Fields["captureMinRollDot"].guiActiveEditor = true;
+			#endif
 
 			this.lastMaxCaptureRollAngle = this.maxCaptureRollAngle;
 			this.lastMaxAcquireRollAngle = this.maxAcquireRollAngle;
@@ -275,15 +277,6 @@ namespace TweakableEverything
 			}
 
 			base.part.attachRules.allowStack = this.IsOpen | this.AlwaysAllowStack;
-
-			this.dockingNodeModule.Events["EnableXFeed"].guiActive = false;
-			this.dockingNodeModule.Events["DisableXFeed"].guiActive = false;
-
-			this.dockingNodeModule.Events["EnableXFeed"].guiActiveEditor = false;
-			this.dockingNodeModule.Events["DisableXFeed"].guiActiveEditor = false;
-
-			this.dockingNodeModule.Events["EnableXFeed"].active = false;
-			this.dockingNodeModule.Events["DisableXFeed"].active = false;
 
 			/* @subclass
 			ModuleStagingToggle stagingToggleModule;

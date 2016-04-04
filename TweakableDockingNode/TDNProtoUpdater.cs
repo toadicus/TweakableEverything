@@ -54,6 +54,7 @@ namespace TweakableEverything
 		// in case someone has changed it.
 		public virtual void Awake()
 		{
+			this.Log("Waking up.");
 			var config = KSP.IO.PluginConfiguration.CreateForType<TDNProtoUpdater>(null);
 
 			config.load();
@@ -67,6 +68,7 @@ namespace TweakableEverything
 					partStrings[idx] = partStrings[idx].Trim();
 				}
 			}
+			this.Log("Awake.");
 		}
 
 		// Check each of the affected parts snapshots to see if they are missing any AttachNodes.  If so, add them.
@@ -260,18 +262,23 @@ namespace TweakableEverything
 	[KSPAddon(KSPAddon.Startup.Flight, false)]
 	public class TDNProtoUpdater_Flight : TDNProtoUpdater
 	{
-		// Runs once when the plugin wakes up.  Any later and the vessel loader will throw an exception.
-		public override void Awake()
+		public void Update()
 		{
+			// Don't run if Flight isn't ready yet.
+			if (
+				FlightDriver.FlightStateCache == null ||
+				FlightDriver.FlightStateCache.flightState == null ||
+				FlightDriver.FlightStateCache.flightState.protoVessels == null
+			)
+			{
+				return;
+			}
+
 			// We only need to run this code if we're reloading from a saved cache, as in quickloading.
 			if (FlightDriver.StartupBehaviour != FlightDriver.StartupBehaviours.RESUME_SAVED_CACHE)
 			{
 				return;
 			}
-				
-			base.Awake();
-
-			// Tools.PostDebugMessage(this.GetType().Name + ": Awake started.  Flight StartupBehavior: " + FlightDriver.StartupBehaviour);
 
 			// Fetch all the affected parts from the flight state cache.
 			/*IEnumerable<ProtoPartSnapshot> affectedParts = FlightDriver.FlightStateCache.flightState.protoVessels
@@ -302,8 +309,9 @@ namespace TweakableEverything
 				}
 			}
 
-
 			this.UpdateProtoPartSnapshots(affectedParts);
+
+			runOnce = true;
 		}
 	}
 }
