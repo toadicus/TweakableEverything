@@ -1,0 +1,3 @@
+*.cfg	eol=lf
+*.cs	eol=lf
+*.dll	binary
